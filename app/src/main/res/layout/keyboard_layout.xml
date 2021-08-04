@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Sithakuru.
+  ~
+  ~ Sithakuru is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, version 3.
+  ~
+  ~ Sithakuru is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with Sithakuru.  If not, see <https://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/background"
+    android:orientation="vertical"
+    android:padding="2dp"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:id="@+id/key_row_1"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="1"
+            android:text="1" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="2"
+            android:text="2" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="3"
+            android:text="3" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_4"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="4"
+            android:text="4" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_5"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="5"
+            android:text="5" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_6"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="6"
+            android:text="6" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_7"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="7"
+            android:text="7" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_8"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="8"
+            android:text="8" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_9"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="9"
+            android:text="9" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/n_0"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="0"
+            android:text="0" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/key_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_q"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="q"
+            android:text="q" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_w"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="w"
+            android:text="w" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="e"
+            android:text="e" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_r"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="r"
+            android:text="r" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_t"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="t"
+            android:text="t" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_y"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="y"
+            android:text="y" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_u"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="u"
+            android:text="u" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_i"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="i"
+            android:text="i" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_o"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="o"
+            android:text="o" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_p"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="p"
+            android:text="p" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/key_row_3"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/blank_1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_a"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="a"
+            android:text="a" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_s"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="s"
+            android:text="s" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_d"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="d"
+            android:text="d" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_f"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="f"
+            android:text="f" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_g"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="g"
+            android:text="g" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_h"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="h"
+            android:text="h" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_j"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="j"
+            android:text="j" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_k"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="k"
+            android:text="k" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_l"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="l"
+            android:text="l" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/colon_wijesekara"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="59"
+            android:text=";"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/blank_2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.5" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/key_row_4"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/shift"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.5"
+            android:background="@drawable/key_background"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_shift" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_z"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="z"
+            android:text="z" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_x"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="x"
+            android:text="x" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_c"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="c"
+            android:text="c" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_v"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="v"
+            android:text="v" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_b"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="b"
+            android:text="b" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_n"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="n"
+            android:text="n" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/l_m"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="m"
+            android:text="m" />
+
+        <ImageView
+            android:id="@+id/backspace"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.5"
+            android:background="@drawable/key_background"
+            android:padding="14dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_backspace" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/key_row_5"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:orientation="horizontal">
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/panel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag=""
+            android:text="#!" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/lang"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag=""
+            android:textColor="?attr/foreground_2" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/symbol_1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="s1"
+            android:text="/"
+            android:visibility="gone" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/comma"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="44"
+            android:text="," />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/space"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="5"
+            android:tag="32"
+            android:text="Space" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/comma_wijesekara"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="44"
+            android:text=","
+            android:visibility="gone" />
+
+        <kasun.sinhala.keyboard.KeyboardButton
+            android:id="@+id/dot"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:tag="46"
+            android:text="." />
+
+        <ImageView
+            android:id="@+id/action"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/key_background"
+            android:padding="4dp"
+            android:scaleType="centerInside" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Sithakuru</string>
+    <string name="app_name_si">සිතකුරු</string>
+    <string name="info">විස්තර</string>
+    <string name="about_title">යෙදුම පිළිබඳ තොරතුරු</string>
+    <string name="description_text">නිදහස් සිංහල යතුරු පුවරුව</string>
+    <string name="foss_text">මෙය නිදහස් සහ විවෘත මෘදුකාංගයකි.</string>
+    <string name="source_label">මූලාශ්‍රය:</string>
+    <string name="license_label">බලපත්‍රය:</string>
+    <string name="source_link_text">codeberg.org/sinhala/sithakuru</string>
+    <string name="license_link_text">GNU General Public License v3.0 only</string>
+    <string name="source_link_url">https://codeberg.org/sinhala/sithakuru</string>
+    <string name="license_link_url">https://www.gnu.org/licenses/gpl-3.0.txt</string>
+    <string name="license_notice">This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;. </string>
+    <string name="dialog_exit">ඉවත්වන්න</string>
+</resources>

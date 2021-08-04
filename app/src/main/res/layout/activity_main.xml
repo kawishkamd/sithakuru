@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Sithakuru.
+  ~
+  ~ Sithakuru is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, version 3.
+  ~
+  ~ Sithakuru is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with Sithakuru.  If not, see <https://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/night_1"
+    android:orientation="vertical"
+    tools:context=".MainActivity"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:id="@+id/enable_help"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/key_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/light_1"
+                android:gravity="center_horizontal"
+                android:padding="8dp"
+                android:text="සිතකුරු සක්‍රිය කර නොමැත."
+                android:textColor="@color/night_1"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_horizontal"
+                android:padding="8dp"
+                android:text="සක්‍රිය කිරීමට උපදෙස්"
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:padding="4dp"
+                android:text="1. ඔබේ දුරකතනයේ යතුරු පුවරු සැකසුම් වෙත පිවිසීම සඳහා පහත බොත්තම මත ඔබන්න."
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:text="2. එහි 'Sithakuru' නමින් ඇති යතුරු පුවරුව සක්‍රිය කරන්න."
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:padding="4dp"
+                android:text="එහිදී අනතුරු ඇඟවීමි ලැබේ නම් ඒවා කියවන්න. 'සිතකුරු' සක්‍රිය කිරීමට අවශ්‍ය නම්, ඒවායේ 'OK' හෝ 'හරි' ලෙස දැක්වෙන බොත්තම් ඔබන්න."
+                android:textColor="@color/light_1"
+                android:textSize="14sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:padding="4dp"
+                android:text="3. එම සැකසුම් පිටුවෙන් ඉවත් වීම සඳහා දුරකතනයේ පෙර/ආපසු බොත්තම ඔබන්න."
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/enable_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/blue"
+                android:text="යතුරු පුවරු සැකසුම් වෙත යන්න"
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/select_help"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/key_background"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_horizontal"
+                android:padding="8dp"
+                android:text="සිතකුරු සක්‍රිය කර ඇත."
+                android:textColor="@color/yellow"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/light_1"
+                android:gravity="center_horizontal"
+                android:padding="8dp"
+                android:text="නමුත් සිතකුරු තෝරා නොමැත."
+                android:textColor="@color/night_1"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_horizontal"
+                android:padding="8dp"
+                android:text="සිතකුරු තෝරා ගැනීම සඳහා උපදෙස්"
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:padding="8dp"
+                android:text="1. යතුරු පුවරු ලැයිස්තුව විවෘත කිරීම සඳහා පහත බොත්තම මත ඔබන්න."
+                android:textColor="@color/light_1"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:padding="8dp"
+                android:text="2. එම ලැයිස්තුවේ ඇති 'Sithakuru' යන වචනය මත ඔබන්න."
+                android:textColor="@color/light_1"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/select_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/yellow"
+                android:text="යතුරු පුවරු ලැයිස්තුව විවෘත කරන්න"
+                android:textColor="@color/night_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_horizontal"
+            android:text="යතුරු පුවරු මාදිලි"
+            android:textColor="@color/light_1"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/switch_english"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="English"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_wijesekara"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="විජේසේකර"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_singlish"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="සිංග්‍රීසි"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
+            android:gravity="center_horizontal"
+            android:text="යතුරු පුවරුවේ වර්ණ"
+            android:textColor="@color/light_1"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/switch_dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="අඳුරු වර්ණ"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</ScrollView>
