@@ -484,6 +484,12 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                     erasePrevious = true
                 }
             }
+            CHAR.KOMBU_DEKA.text -> {
+                if ((Sinhala.getType(output) == CharType.SWARA || Sinhala.getType(output) == CharType.WYANJANA)) {
+                    output += CHAR.KOMBU_DEKA.text
+                    erasePrevious = true
+                }
+            }
             else -> {
                 if (output == CHAR.SIGN_REEPAYA.text) {
                     output = CHAR.SIGN_REEPAYA.text + lastText
