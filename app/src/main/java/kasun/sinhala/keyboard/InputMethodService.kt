@@ -391,7 +391,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         currentInputConnection.commitText(text, 1)
         positionFlag = currentInputConnection.getTextBeforeCursor(5, 0).toString()
         if (!caps && shift && !symbols) shift = false
-        if (currentLayout == WIJESEKARA) kombuvaNew = text == CHAR.KOMBUVA.text
     }
 
     private fun erasePrevious(count: Int = 1) =
@@ -459,38 +458,25 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                 }
             }
             CHAR.KOMBUVA.text -> {
-                if ((Sinhala.getType(output) != CharType.PILI || Sinhala.getType(output) != CharType.LAKUNU) and kombuvaNew) {
-                    lastTextOverride = CHAR.KOMBUVA.text
-                    output += CHAR.KOMBUVA.text
+                if (kombuvaNew) {
                     erasePrevious = true
-                } else
-                    when (output) {
-                        CHAR.EYANNA.text -> {
-                            output = CHAR.AIYANNA.text
-                            erasePrevious = true
-                        }
-                        CHAR.KOMBUVA.text -> {
-                            output = CHAR.KOMBU_DEKA.text
-                            erasePrevious = true
-                        }
-                        CHAR.SIGN_AL_LAKUNA.text -> {
-                            output = CHAR.DIGA_KOMBUVA.text
-                            erasePrevious = true
-                        }
-                        CHAR.AELA_PILLA.text -> {
-                            output = CHAR.KOMBUVA_HAA_AELA_PILLA.text
-                            erasePrevious = true
-                        }
-                        CHAR.GAYANUKITTA.text -> {
-                            output = CHAR.KOMBUVA_HAA_GAYANUKITTA.text
-                            erasePrevious = true
-                        }
-                        CHAR.SIGN_RAKARANSHAYA.text -> {
-                            output = CHAR.SIGN_RAKARANSHAYA.text + CHAR.KOMBUVA.text
-                            lastTextOverride = CHAR.KOMBUVA.text
-                            erasePrevious = true
+                    if ((Sinhala.getType(output) == CharType.SWARA || Sinhala.getType(output) == CharType.WYANJANA)) {
+                        lastTextOverride = CHAR.KOMBUVA.text
+                        output += CHAR.KOMBUVA.text
+                    } else {
+                        when (output) {
+                            CHAR.EYANNA.text -> output = CHAR.AIYANNA.text
+                            CHAR.KOMBUVA.text -> output = CHAR.KOMBU_DEKA.text
+                            CHAR.SIGN_AL_LAKUNA.text -> output = CHAR.DIGA_KOMBUVA.text
+                            CHAR.AELA_PILLA.text -> output = CHAR.KOMBUVA_HAA_AELA_PILLA.text
+                            CHAR.GAYANUKITTA.text -> output = CHAR.KOMBUVA_HAA_GAYANUKITTA.text
+                            CHAR.SIGN_RAKARANSHAYA.text -> {
+                                output = CHAR.SIGN_RAKARANSHAYA.text + CHAR.KOMBUVA.text
+                                lastTextOverride = CHAR.KOMBUVA.text
+                            }
                         }
                     }
+                }
             }
             CHAR.KOMBUVA_HAA_AELA_PILLA.text -> {
                 if (output == CHAR.SIGN_AL_LAKUNA.text) {
@@ -505,6 +491,8 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                 }
             }
         }
+
+        kombuvaNew = output == CHAR.KOMBUVA.text
 
         if (erasePrevious)
             eraseAndCommit(output)
