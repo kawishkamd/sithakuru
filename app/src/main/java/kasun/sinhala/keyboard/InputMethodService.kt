@@ -393,8 +393,19 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         if (!caps && shift && !symbols) shift = false
     }
 
-    private fun erasePrevious(count: Int = 1) =
-        currentInputConnection.deleteSurroundingText(count, 0)
+    private fun charBeforeCursorSurrogate(): Boolean {
+        currentInputConnection.getTextBeforeCursor(1, 0).let {
+            if (it.isNotEmpty() && it[0].isSurrogate()) return true
+        }
+        return false
+    }
+
+    private fun erasePrevious(count: Int = 1) {
+        if (count == 1 && charBeforeCursorSurrogate())
+            currentInputConnection.deleteSurroundingText(2, 0)
+        else
+            currentInputConnection.deleteSurroundingText(count, 0)
+    }
 
     private fun eraseAndCommit(text: String, eraseCount: Int = 1) {
         erasePrevious(eraseCount)
