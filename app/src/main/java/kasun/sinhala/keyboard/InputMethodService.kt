@@ -320,8 +320,14 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     override fun specialClick(tag: String) {
         when (currentLayout) {
             WIJESEKARA -> when (tag) {
-                "44" -> wijesekaraInput(if (shift) CHAR.LESS_THAN.text else CHAR.COMMA.text)
-                "46" -> wijesekaraInput(if (shift) CHAR.GREATER_THAN.text else CHAR.FULL_STOP.text)
+                "44" -> {
+                    if (symbols) commitText(CHAR.COMMA.text)
+                    else wijesekaraInput(if (shift) CHAR.LESS_THAN.text else CHAR.COMMA.text)
+                }
+                "46" -> {
+                    if (symbols) commitText(CHAR.FULL_STOP.text)
+                    else wijesekaraInput(if (shift) CHAR.GREATER_THAN.text else CHAR.FULL_STOP.text)
+                }
                 "59" -> wijesekaraInput(if (shift) CHAR.COLON.text else CHAR.SEMICOLON.text)
                 else -> {
                     lastText = ""
