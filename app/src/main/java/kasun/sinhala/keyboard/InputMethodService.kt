@@ -352,8 +352,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
 
                 else -> erasePrevious()
             }
-            if (currentInputConnection.getTextBeforeCursor(1, 0) == CHAR.ZERO_WIDTH_JOINER.text)
-                erasePrevious()
         } else commitText("")
 
         if (currentLayout == SINGLISH) {
@@ -405,10 +403,13 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             currentInputConnection.deleteSurroundingText(2, 0)
         else
             currentInputConnection.deleteSurroundingText(count, 0)
+
+        if (currentInputConnection.getTextBeforeCursor(1, 0) == CHAR.ZERO_WIDTH_JOINER.text)
+            erasePrevious()
     }
 
-    private fun eraseAndCommit(text: String, eraseCount: Int = 1) {
-        erasePrevious(eraseCount)
+    private fun eraseAndCommit(text: String) {
+        erasePrevious()
         commitText(text)
     }
 
