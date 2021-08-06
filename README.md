@@ -1,6 +1,16 @@
 # සිතකුරු
 **නිදහස් සිංහල යතුරු පුවරුව**
 
+### යතුරු පුවරු මාදිලි
+විජේසේකර
+සිංග්‍රීසි
+ඉංග්‍රීසි
+
+### පින්තූර
+<img src="metadata/android/en-US/images/phoneScreenshots/1.png" width="150">
+<img src="metadata/android/en-US/images/phoneScreenshots/2.png" width="150">
+<img src="metadata/android/en-US/images/phoneScreenshots/3.png" width="150">
+
 ### බලපත්‍රය
 GNU General Public License v3.0 only
 
