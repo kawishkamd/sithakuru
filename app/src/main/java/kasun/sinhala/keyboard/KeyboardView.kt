@@ -38,12 +38,8 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
     interface ClickListener {
         fun letterOrSymbolClick(tag: String)
         fun numberClick(tag: String)
-        fun shiftClick()
-        fun backspaceClick()
-        fun panelClick()
-        fun actionClick()
+        fun functionClick(type: Function)
         fun specialClick(tag: String)
-        fun langSwitchClick()
     }
 
     private lateinit var backspaceRepeater: Runnable
@@ -96,7 +92,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
 
     val buttonSpecialComma: KeyboardButton
     val buttonSpecialCommaWijesekara: KeyboardButton
-    private var buttonSpecialSpace: KeyboardButton
+    private var buttonSpecialSpace: ImageView
     private var buttonSpecialFullStop: KeyboardButton
     var buttonActionShift: ImageView
     private var buttonActionBackspace: ImageView
@@ -209,8 +205,30 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
 
         buttonSpecialComma.clickListener = { clickListener.specialClick(it) }
         buttonSpecialCommaWijesekara.clickListener = { clickListener.specialClick(it) }
-        buttonSpecialSpace.clickListener = { clickListener.specialClick(it) }
         buttonSpecialFullStop.clickListener = { clickListener.specialClick(it) }
+
+        buttonSpecialSpace.setOnClickListener { clickListener.specialClick(it.tag.toString()) }
+        buttonSpecialSpace.setOnLongClickListener {
+            clickListener.functionClick(Function.IME)
+            true
+        }
+        buttonSpecialSpace.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN ->
+                    v.background = ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.key_background_pressed,
+                        contextThemeWrapper.theme
+                    )
+                MotionEvent.ACTION_UP ->
+                    v.background = ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.key_background,
+                        contextThemeWrapper.theme
+                    )
+            }
+            false
+        }
 
         buttonActionShift = keyboard.findViewById(R.id.shift)
         buttonActionBackspace = keyboard.findViewById(R.id.backspace)
@@ -218,8 +236,8 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         buttonActionPanel = keyboard.findViewById(R.id.panel)
         buttonActionAction = keyboard.findViewById(R.id.action)
 
-        buttonActionLang.clickListener = { clickListener.langSwitchClick() }
-        buttonActionPanel.clickListener = { clickListener.panelClick() }
+        buttonActionLang.clickListener = { clickListener.functionClick(Function.LANG) }
+        buttonActionPanel.clickListener = { clickListener.functionClick(Function.PANEL) }
 
         buttonActionShift.setOnTouchListener { v, event ->
             when (event.action) {
@@ -229,7 +247,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
                         R.drawable.key_background_pressed,
                         contextThemeWrapper.theme
                     )
-                    clickListener.shiftClick()
+                    clickListener.functionClick(Function.SHIFT)
                     v.performClick()
                 }
                 MotionEvent.ACTION_UP -> v.background = ResourcesCompat.getDrawable(
@@ -249,7 +267,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
                         R.drawable.key_background_pressed,
                         contextThemeWrapper.theme
                     )
-                    clickListener.actionClick()
+                    clickListener.functionClick(Function.ACTION)
                     v.performClick()
                 }
                 MotionEvent.ACTION_UP -> v.background = ResourcesCompat.getDrawable(
@@ -263,7 +281,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
 
         backspaceRepeater = Runnable {
             if (backspaceRepeating) {
-                clickListener.backspaceClick()
+                clickListener.functionClick(Function.BACKSPACE)
                 Handler(Looper.getMainLooper()).postDelayed(
                     backspaceRepeater,
                     (Date().time - lastBackspacePressTime).let {
@@ -286,7 +304,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
                         R.drawable.key_background_pressed,
                         contextThemeWrapper.theme
                     )
-                    clickListener.backspaceClick()
+                    clickListener.functionClick(Function.BACKSPACE)
                     lastBackspacePressTime = Date().time
                     v.performClick()
                 }

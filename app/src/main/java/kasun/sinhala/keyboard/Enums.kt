@@ -17,6 +17,7 @@
 
 package kasun.sinhala.keyboard
 
+enum class Function{ ACTION, SHIFT, LANG, IME, BACKSPACE, PANEL }
 enum class KeyboardLayout { ENGLISH, WIJESEKARA, SINGLISH }
 enum class CharType { SWARA, WYANJANA, PILI, LAKUNU, UNKNOWN }
 enum class CHAR(val code: Int, val text: String) {

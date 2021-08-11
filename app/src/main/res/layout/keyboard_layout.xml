@@ -425,13 +425,16 @@
             android:tag="44"
             android:text="," />
 
-        <kasun.sinhala.keyboard.KeyboardButton
+        <ImageView
             android:id="@+id/space"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="5"
-            android:tag="32"
-            android:text="Space" />
+            android:background="@drawable/key_background"
+            android:padding="4dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_space_bar"
+            android:tag="32" />
 
         <kasun.sinhala.keyboard.KeyboardButton
             android:id="@+id/comma_wijesekara"

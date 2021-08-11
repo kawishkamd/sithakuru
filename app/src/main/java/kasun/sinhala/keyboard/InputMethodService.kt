@@ -25,6 +25,7 @@ import android.view.View
 import android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import kasun.sinhala.keyboard.KeyboardLayout.*
@@ -276,11 +277,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         }
     }
 
-    override fun langSwitchClick() {
-        currentLayout = nextAvailableLayout
-    }
-
-    override fun shiftClick() {
+    private fun shiftClick() {
         if (shift && !symbols && Date().time - shiftLastPressed < 500)
             caps = true
         else {
@@ -343,7 +340,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         }
     }
 
-    override fun backspaceClick() {
+    private fun backspaceClick() {
         if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
             when (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrElse(0) { ' ' }) {
                 'ෛ' -> eraseAndCommit("ෙ")
@@ -368,11 +365,18 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             lastText = ""
     }
 
-    override fun panelClick() {
-        symbols = symbols.not()
+    override fun functionClick(type: Function) {
+        when (type) {
+            Function.ACTION -> actionClick()
+            Function.SHIFT -> shiftClick()
+            Function.LANG -> currentLayout = nextAvailableLayout
+            Function.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
+            Function.BACKSPACE -> backspaceClick()
+            Function.PANEL -> symbols = symbols.not()
+        }
     }
 
-    override fun actionClick() {
+    private fun actionClick() {
         when (val action: Int = currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION) {
             EditorInfo.IME_ACTION_GO,
             EditorInfo.IME_ACTION_SEARCH,
