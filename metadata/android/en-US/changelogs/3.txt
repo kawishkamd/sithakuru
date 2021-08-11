@@ -1,0 +1,2 @@
+• Fix: Pressing backspace deletes only half of a surrogate pair
+• Fix: No way to type FULL_STOP and COMMA in Wijesekara layout

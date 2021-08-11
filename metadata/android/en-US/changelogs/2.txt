@@ -1,0 +1,2 @@
+• Fix: An issue with Kombuva in Wijesekara layout
+• Fix: An issue with Kombu Deka in Wijesekara layout
