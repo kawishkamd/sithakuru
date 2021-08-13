@@ -1,15 +1,23 @@
 # සිතකුරු
 **නිදහස් සිංහල යතුරු පුවරුව**
 
+### ලබාගන්න
+<a href="https://f-droid.org/packages/kasun.sinhala.keyboard/" rel="noopener noreferrer nofollow"><img src="get-it-on.png" width="250"></a>
+
 ### යතුරු පුවරු මාදිලි
-විජේසේකර
-සිංග්‍රීසි
-ඉංග්‍රීසි
+- විජේසේකර
+- සිංග්‍රීසි
+- ඉංග්‍රීසි
 
 ### පින්තූර
 <img src="metadata/android/en-US/images/phoneScreenshots/1.png" width="150">
 <img src="metadata/android/en-US/images/phoneScreenshots/2.png" width="150">
 <img src="metadata/android/en-US/images/phoneScreenshots/3.png" width="150">
+
+### ස්තුතිය
+- **Simple Keyboard**<br>F-Droid - <a href="https://f-droid.org/packages/rkr.simplekeyboard.inputmethod/" rel="noopener noreferrer nofollow">f-droid.org/packages/rkr.simplekeyboard.inputmethod</a><br>Source Code - <a href="https://github.com/rkkr/simple-keyboard" rel="noopener noreferrer nofollow">github.com/rkkr/simple-keyboard</a>
+
+- **aaaaa**<br>F-Droid - <a href="https://f-droid.org/packages/io.github.dkter.aaaaa/" rel="noopener noreferrer nofollow">f-droid.org/packages/io.github.dkter.aaaaa</a><br>Source Code - <a href="https://github.com/dkter/aaaaa" rel="noopener noreferrer nofollow">github.com/dkter/aaaaa</a>
 
 ### බලපත්‍රය
 GNU General Public License v3.0 only
