@@ -35,6 +35,16 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     private lateinit var prefs: Prefs
     private var darkTheme = false
 
+    override fun onWindowHidden() {
+        keyboardView.keyboardVisible = false
+        super.onWindowHidden()
+    }
+
+    override fun onWindowShown() {
+        keyboardView.keyboardVisible = true
+        super.onWindowShown()
+    }
+
     private var currentLayout: KeyboardLayout = SINGLISH
         set(value) {
             field = value

@@ -46,6 +46,8 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
     private var backspaceRepeating = false
     private var lastBackspacePressTime = 0L
 
+    var keyboardVisible = false
+
     private val buttonNumber0: KeyboardButton
     private val buttonNumber1: KeyboardButton
     private val buttonNumber2: KeyboardButton
@@ -282,7 +284,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         }
 
         backspaceRepeater = Runnable {
-            if (backspaceRepeating) {
+            if (backspaceRepeating && keyboardVisible) {
                 clickListener.functionClick(Function.BACKSPACE)
                 Handler(Looper.getMainLooper()).postDelayed(
                     backspaceRepeater,
