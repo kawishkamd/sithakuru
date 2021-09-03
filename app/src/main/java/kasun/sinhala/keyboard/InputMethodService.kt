@@ -611,6 +611,13 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                                         tLastLetter = CHAR.ALPAPRAANA_TAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+                                    CHAR.MAHAAPRAANA_TTAYANNA.code -> {
+                                        output =
+                                            CHAR.MAHAAPRAANA_TAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                        erasePreviousChars = 2
+                                        tLastLetter = CHAR.MAHAAPRAANA_TAYANNA
+                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                    }
                                     CHAR.ALPAPRAANA_DDAYANNA.code -> {
                                         output =
                                             CHAR.ALPAPRAANA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
