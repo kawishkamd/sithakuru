@@ -1,0 +1,3 @@
+• Fix: Space is not typed on key down
+• Fix: Text keeps being erased after the keyboard is hidden
+• New: Singlish combination: T + h = ථ්
