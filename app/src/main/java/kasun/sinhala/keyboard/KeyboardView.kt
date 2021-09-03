@@ -207,19 +207,21 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         buttonSpecialCommaWijesekara.clickListener = { clickListener.specialClick(it) }
         buttonSpecialFullStop.clickListener = { clickListener.specialClick(it) }
 
-        buttonSpecialSpace.setOnClickListener { clickListener.specialClick(it.tag.toString()) }
         buttonSpecialSpace.setOnLongClickListener {
             clickListener.functionClick(Function.IME)
             true
         }
         buttonSpecialSpace.setOnTouchListener { v, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN ->
+                MotionEvent.ACTION_DOWN -> {
+                    clickListener.specialClick(v.tag.toString())
+                    v.performClick()
                     v.background = ResourcesCompat.getDrawable(
                         resources,
                         R.drawable.key_background_pressed,
                         contextThemeWrapper.theme
                     )
+                }
                 MotionEvent.ACTION_UP ->
                     v.background = ResourcesCompat.getDrawable(
                         resources,
