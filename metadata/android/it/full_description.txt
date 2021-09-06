@@ -1,7 +1,7 @@
 Sithakuru è una tastiera Singalese Free e Open-Source.
 
 ## Layout di tastiera
-- English
+- Inglese
 - Wijesekara
 - Singlish
 
