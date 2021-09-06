@@ -1,0 +1,9 @@
+Sitakuru ist eine Libre und Open-Source Singhalese-Tastatur.
+
+## Tastaturlayouts.
+- Englisch
+- Wijesekara
+- Singlish
+
+## Sonstiges
+- leichte und dunkle Farben 
