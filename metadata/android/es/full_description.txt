@@ -1,0 +1,9 @@
+Sithakuru es un teclado Sinhalés Libre y Open-Source.
+
+## Diseños de teclado
+- Inglés
+- Wijesekara
+- Singlish
+
+## Otro
+- Colores claros y oscuros
