@@ -1,0 +1,9 @@
+Sithakuru est un clavier Sinhalais Libre et Open-Source.
+
+## mises en page de clavier
+- Anglais
+- Wijesekara
+- Singlish
+
+## Autre
+- Couleurs légères et sombres 
