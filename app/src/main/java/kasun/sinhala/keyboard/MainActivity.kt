@@ -115,7 +115,6 @@ class MainActivity : Activity() {
         }
         switchDark.setOnCheckedChangeListener { _, isChecked ->
             prefs.darkTheme = isChecked
-            setTheme(if (prefs.darkTheme) R.style.Night else R.style.Light)
         }
 
         super.onCreate(savedInstanceState)
