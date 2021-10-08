@@ -367,6 +367,10 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             }
         } else commitText("")
 
+        clearLastTypedInfo()
+    }
+
+    private fun clearLastTypedInfo() {
         if (currentLayout == SINGLISH) {
             lastLetter = null
             lastChar = null
@@ -395,7 +399,10 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
 
             EditorInfo.IME_ACTION_UNSPECIFIED,
             EditorInfo.IME_ACTION_NONE,
-            EditorInfo.IME_ACTION_SEND -> commitText("\n")
+            EditorInfo.IME_ACTION_SEND -> {
+                clearLastTypedInfo()
+                commitText("\n")
+            }
 
             EditorInfo.IME_ACTION_DONE -> currentInputConnection.sendKeyEvent(
                 KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER)
