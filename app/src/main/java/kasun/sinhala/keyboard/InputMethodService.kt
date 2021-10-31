@@ -353,12 +353,14 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     private fun backspaceClick() {
         if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
             when (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrElse(0) { ' ' }) {
+                'ෲ' -> eraseAndCommit("ෘ")
                 'ෛ' -> eraseAndCommit("ෙ")
                 'ො' -> eraseAndCommit("ෙ")
                 'ෞ' -> eraseAndCommit("ෙ")
                 'ෝ' -> eraseAndCommit("ො")
                 'ආ', 'ඇ', 'ඈ' -> eraseAndCommit("අ")
                 'ඌ' -> eraseAndCommit("උ")
+                'ඎ' -> eraseAndCommit("ඍ")
                 'ඐ' -> eraseAndCommit("ඏ")
                 'ඒ' -> eraseAndCommit("එ")
                 'ඕ', 'ඖ' -> eraseAndCommit("ඔ")
