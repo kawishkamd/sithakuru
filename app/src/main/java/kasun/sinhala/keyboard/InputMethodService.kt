@@ -829,7 +829,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                                 } else newLetter()
                             }
                             CHAR.IRUYANNA -> {
-                                if (singlishChar.code == CHAR.UYANNA.code) {
+                                if (singlishChar.code == CHAR.IYANNA.code) {
                                     output = CHAR.IRUUYANNA.text
                                     erasePreviousChars = 1
                                     tLastLetter = CHAR.IRUUYANNA
