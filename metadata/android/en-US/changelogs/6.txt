@@ -1,0 +1,3 @@
+• Fix: New line being erased in Singlish layout
+• Change Singlish combination for 'ඎ' (New: R i)
+• New: Singlish combination for 'ෲ' (Eg.: k + R + i = කෲ)
