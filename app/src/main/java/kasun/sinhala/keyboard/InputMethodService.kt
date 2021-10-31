@@ -760,6 +760,11 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                             erasePreviousChars = 1
                             tLastChar = CHAR.DIGA_PAA_PILLA
                         }
+                        mLastChar.code == CHAR.GAETTA_PILLA.code && singlishChar.code == CHAR.IYANNA.code -> {
+                            output = CHAR.DIGA_GAETTA_PILLA.text
+                            erasePreviousChars = 1
+                            tLastChar = CHAR.DIGA_GAETTA_PILLA
+                        }
                         mLastChar.code == CHAR.KOMBUVA.code && singlishChar.code == CHAR.EYANNA.code -> {
                             output = CHAR.DIGA_KOMBUVA.text
                             erasePreviousChars = 1
