@@ -421,7 +421,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     }
 
     private fun charBeforeCursorSurrogate(): Boolean {
-        currentInputConnection.getTextBeforeCursor(1, 0).let {
+        currentInputConnection.getTextBeforeCursor(1, 0)?.let {
             if (it.isNotEmpty() && it[0].isSurrogate()) return true
         }
         return false
