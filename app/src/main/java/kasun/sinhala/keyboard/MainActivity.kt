@@ -23,7 +23,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
+import android.view.Window
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
@@ -81,6 +84,7 @@ class MainActivity : Activity() {
         val switchWijesekara = findViewById<Switch>(R.id.switch_wijesekara)
         val switchSinglish = findViewById<Switch>(R.id.switch_singlish)
         val switchDark = findViewById<Switch>(R.id.switch_dark)
+        val switchKeyBorders = findViewById<Switch>(R.id.switch_border)
 
         val prefs = Prefs(this)
 
@@ -88,6 +92,7 @@ class MainActivity : Activity() {
         switchWijesekara.isChecked = prefs.layoutWijesekara
         switchSinglish.isChecked = prefs.layoutSinglish
         switchDark.isChecked = prefs.darkTheme
+        switchKeyBorders.isChecked = prefs.keyBorders
 
         switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -115,6 +120,9 @@ class MainActivity : Activity() {
         }
         switchDark.setOnCheckedChangeListener { _, isChecked ->
             prefs.darkTheme = isChecked
+        }
+        switchKeyBorders.setOnCheckedChangeListener { _, isChecked ->
+            prefs.keyBorders = isChecked
         }
 
         super.onCreate(savedInstanceState)

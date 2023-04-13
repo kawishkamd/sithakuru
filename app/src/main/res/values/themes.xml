@@ -21,6 +21,7 @@
     <attr name="accent" format="reference" />
     <attr name="foreground" format="reference" />
     <attr name="foreground_2" format="reference" />
+    <attr name="border" format="reference" />
 
     <style name="Sithakuru">
         <item name="android:windowBackground">?attr/background</item>
@@ -39,6 +40,7 @@
         <item name="foreground">@color/night_1</item>
         <item name="foreground_2">@color/light_2</item>
         <item name="isLight">true</item>
+        <item name="border">@color/light_2</item>
     </style>
 
     <style name="Night" parent="Sithakuru">
@@ -47,5 +49,14 @@
         <item name="foreground">@color/light_1</item>
         <item name="foreground_2">@color/night_2</item>
         <item name="isLight">false</item>
+        <item name="border">@color/night_2</item>
+    </style>
+
+    <style name="LightNoBorder" parent="Light">
+        <item name="border">?attr/background</item>
+    </style>
+
+    <style name="NightNoBorder" parent="Night">
+        <item name="border">?attr/background</item>
     </style>
 </resources>

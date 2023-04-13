@@ -239,7 +239,7 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="8dp"
             android:gravity="center_horizontal"
-            android:text="යතුරු පුවරුවේ වර්ණ"
+            android:text="යතුරු පුවරුවේ පෙනුම"
             android:textColor="@color/light_1"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -253,6 +253,17 @@
             android:text="අඳුරු වර්ණ"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_border"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="යතුරු මායිම්"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
     </LinearLayout>
 
 </ScrollView>

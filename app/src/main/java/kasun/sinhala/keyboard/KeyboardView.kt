@@ -32,8 +32,7 @@ import androidx.core.view.isVisible
 import java.util.Date
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
-class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: Int) :
-    LinearLayout(context) {
+class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: Int, darkTheme: Boolean, keyBorders: Boolean) : LinearLayout(context) {
 
     interface ClickListener {
         fun letterOrSymbolClick(tag: String)
@@ -103,10 +102,14 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
     var buttonActionAction: ImageView
 
     init {
-        val darkTheme = if (context != null) Prefs(context).darkTheme else true
-        val contextThemeWrapper =
-            ContextThemeWrapper(context, if (darkTheme) R.style.Night else R.style.Light)
+        val style = when {
+            !darkTheme && keyBorders -> R.style.Light
+            !darkTheme && !keyBorders -> R.style.LightNoBorder
+            darkTheme && !keyBorders -> R.style.NightNoBorder
+            else -> R.style.Night
+        }
 
+        val contextThemeWrapper = ContextThemeWrapper(context, style)
         val keyboard =
             LayoutInflater.from(contextThemeWrapper).inflate(R.layout.keyboard_layout, this, true)
 

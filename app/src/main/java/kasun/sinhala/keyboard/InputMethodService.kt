@@ -34,6 +34,7 @@ import java.util.Date
 class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     private lateinit var prefs: Prefs
     private var darkTheme = false
+    private var keyBorders = false
 
     override fun onWindowHidden() {
         keyboardView.keyboardVisible = false
@@ -142,7 +143,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         if (!isCurrentLayoutEnabled)
             currentLayout = nextAvailableLayout
 
-        if (darkTheme != prefs.darkTheme)
+        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders)
             setInputView(onCreateInputView())
 
         when (currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION) {
@@ -220,12 +221,13 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
 
     override fun onCreateInputView(): View {
         darkTheme = prefs.darkTheme
+        keyBorders = prefs.keyBorders
 
         val displayMetrics = DisplayMetrics()
         window.window?.windowManager?.defaultDisplay?.getMetrics(displayMetrics)
 
         setTheme(darkTheme)
-        keyboardView = KeyboardView(this, this, displayMetrics.heightPixels / 15)
+        keyboardView = KeyboardView(this, this, displayMetrics.heightPixels / 15, darkTheme, keyBorders)
         setLetterKeySet(shift)
         currentLayout.let { layout ->
             toggleWijesekaraLayoutButtons(layout)

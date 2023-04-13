@@ -36,6 +36,9 @@ class Prefs(context: Context) {
     var darkTheme: Boolean
         get() = preferences.getBoolean(keyDarkTheme, true)
         set(value) = preferences.edit().putBoolean(keyDarkTheme, value).apply()
+    var keyBorders: Boolean
+        get() = preferences.getBoolean(keyKeyBorders, true)
+        set(value) = preferences.edit().putBoolean(keyKeyBorders, value).apply()
     var currentLayout: String
         get() = preferences.getString(keyCurrentLayout, KeyboardLayout.ENGLISH.name)
             ?: KeyboardLayout.ENGLISH.name
@@ -46,6 +49,7 @@ class Prefs(context: Context) {
         private const val keyWijesekara = "LAYOUT_WIJESEKARA"
         private const val keySinglish = "LAYOUT_SINGLISH"
         const val keyDarkTheme = "DARK_THEME"
+        const val keyKeyBorders = "KEY_BORDERS"
         const val keyCurrentLayout = "CURRENT_LAYOUT"
     }
 }
