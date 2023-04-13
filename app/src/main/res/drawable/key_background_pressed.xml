@@ -23,6 +23,7 @@
         android:right="2dp"
         android:top="2dp">
         <shape>
+            <corners android:radius="4dp" />
             <solid android:color="?attr/foreground_2" />
         </shape>
     </item>
