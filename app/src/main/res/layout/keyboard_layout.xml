@@ -28,7 +28,7 @@
     <LinearLayout
         android:id="@+id/key_row_1"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:orientation="horizontal">
 
         <kasun.sinhala.keyboard.KeyboardButton
@@ -116,7 +116,7 @@
     <LinearLayout
         android:id="@+id/key_row_2"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:orientation="horizontal">
 
         <kasun.sinhala.keyboard.KeyboardButton
@@ -204,7 +204,7 @@
     <LinearLayout
         android:id="@+id/key_row_3"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:orientation="horizontal">
 
         <View
@@ -305,7 +305,7 @@
     <LinearLayout
         android:id="@+id/key_row_4"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:orientation="horizontal">
 
         <ImageView
@@ -389,7 +389,7 @@
     <LinearLayout
         android:id="@+id/key_row_5"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:orientation="horizontal">
 
         <kasun.sinhala.keyboard.KeyboardButton
