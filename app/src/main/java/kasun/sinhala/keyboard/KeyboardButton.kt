@@ -23,16 +23,11 @@ import android.util.TypedValue
 import android.view.Gravity.CENTER
 import android.view.MotionEvent
 import android.widget.TextView
-import androidx.core.content.res.ResourcesCompat
 
 class KeyboardButton : TextView {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
-        context,
-        attrs,
-        defStyleAttr
-    )
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
     var clickListener: (tag: String) -> Unit = { }
 
@@ -40,25 +35,18 @@ class KeyboardButton : TextView {
     init {
         gravity = CENTER
         isClickable = true
-        textSize =
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10F, resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10F, resources.displayMetrics)
 
         setOnClickListener { clickListener.invoke(it.tag.toString()) }
 
-        background =
-            ResourcesCompat.getDrawable(resources, R.drawable.key_background, context.theme)
+        background = resources.getDrawable(R.drawable.key_background, context.theme)
         setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    background = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.key_background_pressed,
-                        context.theme
-                    )
+                    background = resources.getDrawable(R.drawable.key_background_pressed, context.theme)
                     v.performClick()
                 }
-                MotionEvent.ACTION_UP -> background =
-                    ResourcesCompat.getDrawable(resources, R.drawable.key_background, context.theme)
+                MotionEvent.ACTION_UP -> background = resources.getDrawable(R.drawable.key_background, context.theme)
             }
             true
         }

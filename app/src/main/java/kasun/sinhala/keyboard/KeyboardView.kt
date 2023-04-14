@@ -27,12 +27,11 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import java.util.Date
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
-class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: Int, darkTheme: Boolean, keyBorders: Boolean) : LinearLayout(context) {
+class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: Int?, darkTheme: Boolean, keyBorders: Boolean) : LinearLayout(context) {
 
     interface ClickListener {
         fun letterOrSymbolClick(tag: String)
@@ -110,14 +109,15 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         }
 
         val contextThemeWrapper = ContextThemeWrapper(context, style)
-        val keyboard =
-            LayoutInflater.from(contextThemeWrapper).inflate(R.layout.keyboard_layout, this, true)
+        val keyboard = LayoutInflater.from(contextThemeWrapper).inflate(R.layout.keyboard_layout, this, true)
 
-        keyboard.findViewById<LinearLayout>(R.id.key_row_1).layoutParams.height = rowHeight
-        keyboard.findViewById<LinearLayout>(R.id.key_row_2).layoutParams.height = rowHeight
-        keyboard.findViewById<LinearLayout>(R.id.key_row_3).layoutParams.height = rowHeight
-        keyboard.findViewById<LinearLayout>(R.id.key_row_4).layoutParams.height = rowHeight
-        keyboard.findViewById<LinearLayout>(R.id.key_row_5).layoutParams.height = rowHeight
+        if (rowHeight != null) {
+            keyboard.findViewById<LinearLayout>(R.id.key_row_1).layoutParams.height = rowHeight
+            keyboard.findViewById<LinearLayout>(R.id.key_row_2).layoutParams.height = rowHeight
+            keyboard.findViewById<LinearLayout>(R.id.key_row_3).layoutParams.height = rowHeight
+            keyboard.findViewById<LinearLayout>(R.id.key_row_4).layoutParams.height = rowHeight
+            keyboard.findViewById<LinearLayout>(R.id.key_row_5).layoutParams.height = rowHeight
+        }
 
         buttonNumber0 = keyboard.findViewById(R.id.n_0)
         buttonNumber1 = keyboard.findViewById(R.id.n_1)
@@ -221,18 +221,10 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
                 MotionEvent.ACTION_DOWN -> {
                     clickListener.specialClick(v.tag.toString())
                     v.performClick()
-                    v.background = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.key_background_pressed,
-                        contextThemeWrapper.theme
-                    )
+                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
                 }
                 MotionEvent.ACTION_UP ->
-                    v.background = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.key_background,
-                        contextThemeWrapper.theme
-                    )
+                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
             }
             false
         }
@@ -249,19 +241,11 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         buttonActionShift.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    v.background = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.key_background_pressed,
-                        contextThemeWrapper.theme
-                    )
+                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
                     clickListener.functionClick(Function.SHIFT)
                     v.performClick()
                 }
-                MotionEvent.ACTION_UP -> v.background = ResourcesCompat.getDrawable(
-                    resources,
-                    R.drawable.key_background,
-                    contextThemeWrapper.theme
-                )
+                MotionEvent.ACTION_UP -> v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
             }
             true
         }
@@ -269,19 +253,11 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         buttonActionAction.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    v.background = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.key_background_pressed,
-                        contextThemeWrapper.theme
-                    )
+                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
                     clickListener.functionClick(Function.ACTION)
                     v.performClick()
                 }
-                MotionEvent.ACTION_UP -> v.background = ResourcesCompat.getDrawable(
-                    resources,
-                    R.drawable.key_background,
-                    contextThemeWrapper.theme
-                )
+                MotionEvent.ACTION_UP -> v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
             }
             true
         }
@@ -306,21 +282,13 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         buttonActionBackspace.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    v.background = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.key_background_pressed,
-                        contextThemeWrapper.theme
-                    )
+                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
                     clickListener.functionClick(Function.BACKSPACE)
                     lastBackspacePressTime = Date().time
                     v.performClick()
                 }
                 MotionEvent.ACTION_UP -> {
-                    v.background = ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.key_background,
-                        contextThemeWrapper.theme
-                    )
+                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
                     backspaceRepeating = false
                 }
                 else ->

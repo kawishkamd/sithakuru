@@ -23,7 +23,7 @@
     android:background="?attr/background"
     android:orientation="vertical"
     android:padding="2dp"
-    tools:ignore="HardcodedText">
+    tools:ignore="HardcodedText,ContentDescription">
 
     <LinearLayout
         android:id="@+id/key_row_1"

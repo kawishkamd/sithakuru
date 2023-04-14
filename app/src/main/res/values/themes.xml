@@ -26,9 +26,9 @@
     <style name="Sithakuru">
         <item name="android:windowBackground">?attr/background</item>
         <item name="android:textColor">?attr/foreground</item>
-        <item name="android:colorAccent" tools:targetApi="l">?attr/accent</item>
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/background</item>
-        <item name="android:navigationBarColor" tools:targetApi="l">?attr/background</item>
+        <item name="android:colorAccent">?attr/accent</item>
+        <item name="android:statusBarColor">?attr/background</item>
+        <item name="android:navigationBarColor">?attr/background</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLight</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">?attr/isLight</item>
         <item name="android:isLightTheme" tools:targetApi="q">?attr/isLight</item>

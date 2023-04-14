@@ -61,7 +61,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             shift = false
             field = value
 
-            keyboardView.showSymbols(value, currentLayout, LayoutMaps.symbolsMap)
+            keyboardView.showSymbols(value, currentLayout, symbolsMap)
             if (!value) setLetterKeySet(shift)
 
             if (currentLayout == WIJESEKARA) setNumberKeySet(if (value) ENGLISH else currentLayout)
@@ -113,7 +113,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             if (symbols)
                 keyboardView.showSymbols(
                     symbolsVisibility = true,
-                    keyMap = if (value) LayoutMaps.symbolsMapShifted else LayoutMaps.symbolsMap,
+                    keyMap = if (value) symbolsMapShifted else symbolsMap,
                     currentLayout = currentLayout
                 )
             else {
@@ -231,11 +231,15 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         darkTheme = prefs.darkTheme
         keyBorders = prefs.keyBorders
 
-        val displayMetrics = DisplayMetrics()
-        window.window?.windowManager?.defaultDisplay?.getMetrics(displayMetrics)
+        val rowHeight: Int? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.window?.windowManager?.maximumWindowMetrics?.bounds?.height()?.div(15)
+        } else {
+            val displayMetrics = DisplayMetrics()
+            if (window.window?.windowManager?.defaultDisplay?.getMetrics(displayMetrics) != null) displayMetrics.heightPixels / 15 else null
+        }
 
         setTheme(darkTheme)
-        keyboardView = KeyboardView(this, this, displayMetrics.heightPixels / 15, darkTheme, keyBorders)
+        keyboardView = KeyboardView(this, this, rowHeight, darkTheme, keyBorders)
         setLetterKeySet(shift)
         currentLayout.let { layout ->
             toggleWijesekaraLayoutButtons(layout)
@@ -262,8 +266,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
 
     private fun setTheme(dark: Boolean) {
         if (dark) {
-            window.window?.navigationBarColor =
-                ResourcesCompat.getColor(resources, R.color.night_1, null)
+            window.window?.navigationBarColor = ResourcesCompat.getColor(resources, R.color.night_1, null)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
                 window.window?.insetsController?.systemBarsAppearance?.let { existingFlags ->
                     window.window?.insetsController?.setSystemBarsAppearance(
@@ -274,12 +277,10 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 @Suppress("Deprecation")
                 window.window?.decorView?.systemUiVisibility?.let { existingFlags ->
-                    window.window?.decorView?.systemUiVisibility =
-                        existingFlags and SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+                    window.window?.decorView?.systemUiVisibility = existingFlags and SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
                 }
         } else {
-            window.window?.navigationBarColor =
-                ResourcesCompat.getColor(resources, R.color.light_1, null)
+            window.window?.navigationBarColor = ResourcesCompat.getColor(resources, R.color.light_1, null)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
                 window.window?.insetsController?.systemBarsAppearance?.let { existingFlags ->
                     window.window?.insetsController?.setSystemBarsAppearance(
@@ -290,8 +291,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 @Suppress("Deprecation")
                 window.window?.decorView?.systemUiVisibility?.let { existingFlags ->
-                    window.window?.decorView?.systemUiVisibility =
-                        existingFlags or SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+                    window.window?.decorView?.systemUiVisibility = existingFlags or SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
                 }
             }
         }
@@ -309,9 +309,9 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
 
     private fun symbolsInput(tag: String) {
         if (shift)
-            LayoutMaps.symbolsMapShifted[tag]?.let { commitText(it) }
+            symbolsMapShifted[tag]?.let { commitText(it) }
         else
-            LayoutMaps.symbolsMap[tag]?.let { commitText(it) }
+            symbolsMap[tag]?.let { commitText(it) }
     }
 
     override fun letterOrSymbolClick(tag: String) {
@@ -458,8 +458,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         var output = getWijesekaraChars(input)
 
         if (lastText.isBlank() or hasPositionChanged())
-            lastText =
-                currentInputConnection.getTextBeforeCursor(1, 0)?.getOrElse(0) { ' ' }.toString()
+            lastText = currentInputConnection.getTextBeforeCursor(1, 0)?.getOrElse(0) { ' ' }.toString()
 
 
         when (lastText) {
@@ -511,7 +510,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             CHAR.KOMBUVA.text -> {
                 if (kombuvaNew) {
                     erasePrevious = true
-                    if ((Sinhala.getType(output) == CharType.SWARA || Sinhala.getType(output) == CharType.WYANJANA)) {
+                    if ((getCharType(output) == CharType.SWARA || getCharType(output) == CharType.WYANJANA)) {
                         lastTextOverride = CHAR.KOMBUVA.text
                         output += CHAR.KOMBUVA.text
                     } else {
@@ -536,7 +535,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                 }
             }
             CHAR.KOMBU_DEKA.text -> {
-                if ((Sinhala.getType(output) == CharType.SWARA || Sinhala.getType(output) == CharType.WYANJANA)) {
+                if ((getCharType(output) == CharType.SWARA || getCharType(output) == CharType.WYANJANA)) {
                     output += CHAR.KOMBU_DEKA.text
                     erasePrevious = true
                 }
@@ -560,7 +559,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     }
 
     private fun getWijesekaraChars(input: String): String =
-        LayoutMaps.wijesekaraMap[input]?.text ?: input
+        wijesekaraMap[input]?.text ?: input
 
     private fun hasPositionChanged(): Boolean =
         currentInputConnection.getTextBeforeCursor(5, 0) != positionFlag
@@ -740,7 +739,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                                         if (singlishChar.code == CHAR.AYANNA.code)
                                             erasePreviousChars = 1
                                         else {
-                                            Sinhala.swaraSignMap[singlishChar.code].let { sign ->
+                                            swaraSignMap[singlishChar.code].let { sign ->
                                                 if (sign != null) {
                                                     output += sign.text
                                                     tLastChar = sign
@@ -881,6 +880,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         lastChar = tLastChar ?: tLastLetter ?: singlishChar
     }
 
-    private fun getSinglishChars(input: String): CHAR? = LayoutMaps.singlishMap[input]
+    private fun getSinglishChars(input: String): CHAR? = singlishMap[input]
 
 }

@@ -293,7 +293,7 @@ enum class CHAR(val code: Int, val text: String) {
 
     EMPTY(-9, "");
 
-    val type get() = Sinhala.getType(code)
+    val type get() = getCharType(code)
 }
 
 enum class SYMBOL(val code: Int, val text: String) {

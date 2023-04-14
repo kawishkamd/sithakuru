@@ -7,6 +7,8 @@ android {
     compileSdkVersion 31
     buildToolsVersion "30.0.3"
 
+    namespace "kasun.sinhala.keyboard"
+
     defaultConfig {
         applicationId "kasun.sinhala.keyboard"
         minSdkVersion 21
@@ -18,7 +20,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            shrinkResources true
         }
     }
 
@@ -28,8 +30,6 @@ android {
     }
 
     kotlinOptions { jvmTarget = '1.8' }
-
-    kotlinOptions.useIR = true
 }
 
 dependencies {

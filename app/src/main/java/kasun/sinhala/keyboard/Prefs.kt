@@ -21,8 +21,7 @@ import android.content.Context
 import android.content.SharedPreferences
 
 class Prefs(context: Context) {
-    private val preferences: SharedPreferences =
-        context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+    private val preferences: SharedPreferences = context.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
 
     var layoutEnglish: Boolean
         get() = preferences.getBoolean(keyEnglish, true)
@@ -40,8 +39,7 @@ class Prefs(context: Context) {
         get() = preferences.getBoolean(keyKeyBorders, true)
         set(value) = preferences.edit().putBoolean(keyKeyBorders, value).apply()
     var currentLayout: String
-        get() = preferences.getString(keyCurrentLayout, KeyboardLayout.ENGLISH.name)
-            ?: KeyboardLayout.ENGLISH.name
+        get() = preferences.getString(keyCurrentLayout, KeyboardLayout.ENGLISH.name) ?: KeyboardLayout.ENGLISH.name
         set(value) = preferences.edit().putString(keyCurrentLayout, value).apply()
 
     companion object {
