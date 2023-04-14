@@ -146,19 +146,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders)
             setInputView(onCreateInputView())
 
-        when (currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION) {
-            EditorInfo.IME_ACTION_NONE, EditorInfo.IME_ACTION_SEND, EditorInfo.IME_ACTION_UNSPECIFIED ->
-                keyboardView.buttonActionAction.setImageResource(R.drawable.ic_keyboard_return)
-            EditorInfo.IME_ACTION_GO, EditorInfo.IME_ACTION_NEXT ->
-                keyboardView.buttonActionAction.setImageResource(R.drawable.ic_keyboard_arrow_right)
-            EditorInfo.IME_ACTION_SEARCH ->
-                keyboardView.buttonActionAction.setImageResource(R.drawable.ic_search)
-            EditorInfo.IME_ACTION_DONE ->
-                keyboardView.buttonActionAction.setImageResource(R.drawable.ic_check)
-            EditorInfo.IME_ACTION_PREVIOUS ->
-                keyboardView.buttonActionAction.setImageResource(R.drawable.ic_keyboard_arrow_left)
-        }
-
         shift = false
         caps = false
         symbols = false
@@ -169,6 +156,27 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         symbols = false
+        keyboardView.buttonActionAction.setImageResource(
+            when (currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION) {
+                EditorInfo.IME_ACTION_SEND ->
+                    if (currentInputEditorInfo.inputType and EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE == 0)
+                        R.drawable.ic_send
+                    else
+                        R.drawable.ic_keyboard_return
+                EditorInfo.IME_ACTION_GO, EditorInfo.IME_ACTION_NEXT ->
+                    R.drawable.ic_keyboard_arrow_right
+                EditorInfo.IME_ACTION_SEARCH ->
+                    R.drawable.ic_search
+                EditorInfo.IME_ACTION_DONE ->
+                    R.drawable.ic_check
+                EditorInfo.IME_ACTION_PREVIOUS ->
+                    R.drawable.ic_keyboard_arrow_left
+                else ->
+                    R.drawable.ic_keyboard_return
+            }
+        )
+
+
         super.onStartInputView(info, restarting)
     }
 
