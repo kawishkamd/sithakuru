@@ -32,7 +32,7 @@ import kasun.sinhala.keyboard.databinding.KeyboardLayoutBinding
 import java.util.Date
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
-class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: Int?, darkTheme: Boolean, keyBorders: Boolean) : LinearLayout(context) {
+class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: Int, darkTheme: Boolean, keyBorders: Boolean) : LinearLayout(context) {
 
     interface ClickListener {
         fun letterOrSymbolClick(tag: String)
@@ -69,13 +69,11 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         val contextThemeWrapper = ContextThemeWrapper(context, style)
         binding = KeyboardLayoutBinding.inflate(LayoutInflater.from(contextThemeWrapper), this, true)
 
-        if (rowHeight != null) {
-            binding.keyRow1.layoutParams.height = rowHeight
-            binding.keyRow2.layoutParams.height = rowHeight
-            binding.keyRow3.layoutParams.height = rowHeight
-            binding.keyRow4.layoutParams.height = rowHeight
-            binding.keyRow5.layoutParams.height = rowHeight
-        }
+        binding.keyRow1.layoutParams.height = rowHeight
+        binding.keyRow2.layoutParams.height = rowHeight
+        binding.keyRow3.layoutParams.height = rowHeight
+        binding.keyRow4.layoutParams.height = rowHeight
+        binding.keyRow5.layoutParams.height = rowHeight
 
         binding.n0.clickListener = { clickListener.numberClick(it) }
         binding.n1.clickListener = { clickListener.numberClick(it) }

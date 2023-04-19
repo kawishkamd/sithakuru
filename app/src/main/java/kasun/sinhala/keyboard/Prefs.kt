@@ -38,6 +38,9 @@ class Prefs(context: Context) {
     var keyBorders: Boolean
         get() = preferences.getBoolean(keyKeyBorders, true)
         set(value) = preferences.edit().putBoolean(keyKeyBorders, value).apply()
+    var heightPercentage: Int
+        get() = preferences.getInt(keyHeightPercentage, 100)
+        set(value) = preferences.edit().putInt(keyHeightPercentage, value).apply()
     var currentLayout: String
         get() = preferences.getString(keyCurrentLayout, KeyboardLayout.ENGLISH.name) ?: KeyboardLayout.ENGLISH.name
         set(value) = preferences.edit().putString(keyCurrentLayout, value).apply()
@@ -48,6 +51,7 @@ class Prefs(context: Context) {
         private const val keySinglish = "LAYOUT_SINGLISH"
         const val keyDarkTheme = "DARK_THEME"
         const val keyKeyBorders = "KEY_BORDERS"
+        const val keyHeightPercentage = "HEIGHT_PERCENTAGE"
         const val keyCurrentLayout = "CURRENT_LAYOUT"
     }
 }

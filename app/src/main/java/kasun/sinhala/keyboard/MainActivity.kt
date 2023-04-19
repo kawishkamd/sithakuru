@@ -17,6 +17,7 @@
 
 package kasun.sinhala.keyboard
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
@@ -30,6 +31,7 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.view.isVisible
 import kasun.sinhala.keyboard.databinding.ActivityMainBinding
@@ -75,6 +77,7 @@ class MainActivity : Activity() {
         return super.onMenuItemSelected(featureId, item)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -116,6 +119,19 @@ class MainActivity : Activity() {
         binding.switchDark.setOnCheckedChangeListener { _, isChecked -> prefs.darkTheme = isChecked }
         binding.switchBorder.setOnCheckedChangeListener { _, isChecked -> prefs.keyBorders = isChecked }
 
+        binding.height.max = 12
+        binding.height.progress = (prefs.heightPercentage - KEYBOARD_HEIGHT_VALUE_OFFSET) / KEYBOARD_HEIGHT_STEP_MULTIPLIER
+        binding.heightPercentage.text = "${prefs.heightPercentage}%"
+        binding.height.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val value = progress * KEYBOARD_HEIGHT_STEP_MULTIPLIER + KEYBOARD_HEIGHT_VALUE_OFFSET
+                binding.heightPercentage.text = "$value%"
+                prefs.heightPercentage = value
+            }
+        })
+
         super.onCreate(savedInstanceState)
     }
 
@@ -149,5 +165,10 @@ class MainActivity : Activity() {
 
     override fun onBackPressed() {
         finishAfterTransition()
+    }
+
+    private companion object {
+        const val KEYBOARD_HEIGHT_VALUE_OFFSET = 70
+        const val KEYBOARD_HEIGHT_STEP_MULTIPLIER = 5
     }
 }

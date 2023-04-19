@@ -17,9 +17,9 @@
 
 package kasun.sinhala.keyboard
 
+import android.content.res.Resources
 import android.inputmethodservice.InputMethodService
 import android.os.Build
-import android.util.DisplayMetrics
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
@@ -35,6 +35,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     private lateinit var prefs: Prefs
     private var darkTheme = false
     private var keyBorders = false
+    private var heightPercentage = 100
 
     override fun onWindowHidden() {
         keyboardView.keyboardVisible = false
@@ -143,7 +144,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         if (!isCurrentLayoutEnabled)
             currentLayout = nextAvailableLayout
 
-        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders)
+        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders || heightPercentage != prefs.heightPercentage)
             setInputView(onCreateInputView())
 
         shift = false
@@ -230,13 +231,9 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     override fun onCreateInputView(): View {
         darkTheme = prefs.darkTheme
         keyBorders = prefs.keyBorders
+        heightPercentage = prefs.heightPercentage
 
-        val rowHeight: Int? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.window?.windowManager?.maximumWindowMetrics?.bounds?.height()?.div(15)
-        } else {
-            val displayMetrics = DisplayMetrics()
-            if (window.window?.windowManager?.defaultDisplay?.getMetrics(displayMetrics) != null) displayMetrics.heightPixels / 15 else null
-        }
+        val rowHeight: Int = ((48 * heightPercentage / 100) * Resources.getSystem().displayMetrics.density).toInt()
 
         setTheme(darkTheme)
         keyboardView = KeyboardView(this, this, rowHeight, darkTheme, keyBorders)
