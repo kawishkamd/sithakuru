@@ -30,9 +30,9 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.Switch
 import android.widget.TextView
 import androidx.core.view.isVisible
+import kasun.sinhala.keyboard.databinding.ActivityMainBinding
 
 class MainActivity : Activity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -76,25 +76,20 @@ class MainActivity : Activity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setContentView(R.layout.activity_main)
+        val binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         actionBar?.title = resources.getString(R.string.app_name_si)
 
-        val switchEnglish = findViewById<Switch>(R.id.switch_english)
-        val switchWijesekara = findViewById<Switch>(R.id.switch_wijesekara)
-        val switchSinglish = findViewById<Switch>(R.id.switch_singlish)
-        val switchDark = findViewById<Switch>(R.id.switch_dark)
-        val switchKeyBorders = findViewById<Switch>(R.id.switch_border)
-
         val prefs = Prefs(this)
 
-        switchEnglish.isChecked = prefs.layoutEnglish
-        switchWijesekara.isChecked = prefs.layoutWijesekara
-        switchSinglish.isChecked = prefs.layoutSinglish
-        switchDark.isChecked = prefs.darkTheme
-        switchKeyBorders.isChecked = prefs.keyBorders
+        binding.switchEnglish.isChecked = prefs.layoutEnglish
+        binding.switchWijesekara.isChecked = prefs.layoutWijesekara
+        binding.switchSinglish.isChecked = prefs.layoutSinglish
+        binding.switchDark.isChecked = prefs.darkTheme
+        binding.switchBorder.isChecked = prefs.keyBorders
 
-        switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
                 prefs.layoutEnglish = true
             else if (prefs.layoutWijesekara || prefs.layoutSinglish)
@@ -102,7 +97,7 @@ class MainActivity : Activity() {
             else
                 buttonView.isChecked = true
         }
-        switchWijesekara.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.switchWijesekara.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
                 prefs.layoutWijesekara = true
             else if (prefs.layoutEnglish || prefs.layoutSinglish)
@@ -110,7 +105,7 @@ class MainActivity : Activity() {
             else
                 buttonView.isChecked = true
         }
-        switchSinglish.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.switchSinglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
                 prefs.layoutSinglish = true
             else if (prefs.layoutEnglish || prefs.layoutWijesekara)
@@ -118,12 +113,8 @@ class MainActivity : Activity() {
             else
                 buttonView.isChecked = true
         }
-        switchDark.setOnCheckedChangeListener { _, isChecked ->
-            prefs.darkTheme = isChecked
-        }
-        switchKeyBorders.setOnCheckedChangeListener { _, isChecked ->
-            prefs.keyBorders = isChecked
-        }
+        binding.switchDark.setOnCheckedChangeListener { _, isChecked -> prefs.darkTheme = isChecked }
+        binding.switchBorder.setOnCheckedChangeListener { _, isChecked -> prefs.keyBorders = isChecked }
 
         super.onCreate(savedInstanceState)
     }

@@ -28,6 +28,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
+import kasun.sinhala.keyboard.databinding.KeyboardLayoutBinding
 import java.util.Date
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
@@ -46,59 +47,16 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
 
     var keyboardVisible = false
 
-    private val buttonNumber0: KeyboardButton
-    private val buttonNumber1: KeyboardButton
-    private val buttonNumber2: KeyboardButton
-    private val buttonNumber3: KeyboardButton
-    private val buttonNumber4: KeyboardButton
-    private val buttonNumber5: KeyboardButton
-    private val buttonNumber6: KeyboardButton
-    private val buttonNumber7: KeyboardButton
-    private val buttonNumber8: KeyboardButton
-    private val buttonNumber9: KeyboardButton
+    private val binding: KeyboardLayoutBinding
 
-    private val buttonLetterA: KeyboardButton
-    private val buttonLetterB: KeyboardButton
-    private val buttonLetterC: KeyboardButton
-    private val buttonLetterD: KeyboardButton
-    private val buttonLetterE: KeyboardButton
-    private val buttonLetterF: KeyboardButton
-    private val buttonLetterG: KeyboardButton
-    private val buttonLetterH: KeyboardButton
-    private val buttonLetterI: KeyboardButton
-    private val buttonLetterJ: KeyboardButton
-    private val buttonLetterK: KeyboardButton
-    private val buttonLetterL: KeyboardButton
-    private val buttonLetterM: KeyboardButton
-    private val buttonLetterN: KeyboardButton
-    private val buttonLetterO: KeyboardButton
-    private val buttonLetterP: KeyboardButton
-    private val buttonLetterQ: KeyboardButton
-    private val buttonLetterR: KeyboardButton
-    private val buttonLetterS: KeyboardButton
-    private val buttonLetterT: KeyboardButton
-    private val buttonLetterU: KeyboardButton
-    private val buttonLetterV: KeyboardButton
-    private val buttonLetterW: KeyboardButton
-    private val buttonLetterX: KeyboardButton
-    private val buttonLetterY: KeyboardButton
-    private val buttonLetterZ: KeyboardButton
+    val viewBlank1: View get() = binding.blank1
+    val viewBlank2: View get() = binding.blank2
+    val buttonColon: KeyboardButton get() = binding.colonWijesekara
+    val buttonActionShift: ImageView get() = binding.shift
 
-    private val buttonSymbol1: KeyboardButton
-
-    val viewBlank1: View
-    val viewBlank2: View
-    val buttonColon: KeyboardButton
-
-    val buttonSpecialComma: KeyboardButton
-    val buttonSpecialCommaWijesekara: KeyboardButton
-    private var buttonSpecialSpace: ImageView
-    private var buttonSpecialFullStop: KeyboardButton
-    var buttonActionShift: ImageView
-    private var buttonActionBackspace: ImageView
-    private var buttonActionLang: KeyboardButton
-    private var buttonActionPanel: KeyboardButton
-    var buttonActionAction: ImageView
+    val buttonSpecialComma: KeyboardButton get() = binding.comma
+    val buttonSpecialCommaWijesekara: KeyboardButton get() = binding.commaWijesekara
+    val buttonActionAction: ImageView get() = binding.action
 
     init {
         val style = when {
@@ -109,114 +67,67 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         }
 
         val contextThemeWrapper = ContextThemeWrapper(context, style)
-        val keyboard = LayoutInflater.from(contextThemeWrapper).inflate(R.layout.keyboard_layout, this, true)
+        binding = KeyboardLayoutBinding.inflate(LayoutInflater.from(contextThemeWrapper), this, true)
 
         if (rowHeight != null) {
-            keyboard.findViewById<LinearLayout>(R.id.key_row_1).layoutParams.height = rowHeight
-            keyboard.findViewById<LinearLayout>(R.id.key_row_2).layoutParams.height = rowHeight
-            keyboard.findViewById<LinearLayout>(R.id.key_row_3).layoutParams.height = rowHeight
-            keyboard.findViewById<LinearLayout>(R.id.key_row_4).layoutParams.height = rowHeight
-            keyboard.findViewById<LinearLayout>(R.id.key_row_5).layoutParams.height = rowHeight
+            binding.keyRow1.layoutParams.height = rowHeight
+            binding.keyRow2.layoutParams.height = rowHeight
+            binding.keyRow3.layoutParams.height = rowHeight
+            binding.keyRow4.layoutParams.height = rowHeight
+            binding.keyRow5.layoutParams.height = rowHeight
         }
 
-        buttonNumber0 = keyboard.findViewById(R.id.n_0)
-        buttonNumber1 = keyboard.findViewById(R.id.n_1)
-        buttonNumber2 = keyboard.findViewById(R.id.n_2)
-        buttonNumber3 = keyboard.findViewById(R.id.n_3)
-        buttonNumber4 = keyboard.findViewById(R.id.n_4)
-        buttonNumber5 = keyboard.findViewById(R.id.n_5)
-        buttonNumber6 = keyboard.findViewById(R.id.n_6)
-        buttonNumber7 = keyboard.findViewById(R.id.n_7)
-        buttonNumber8 = keyboard.findViewById(R.id.n_8)
-        buttonNumber9 = keyboard.findViewById(R.id.n_9)
+        binding.n0.clickListener = { clickListener.numberClick(it) }
+        binding.n1.clickListener = { clickListener.numberClick(it) }
+        binding.n2.clickListener = { clickListener.numberClick(it) }
+        binding.n3.clickListener = { clickListener.numberClick(it) }
+        binding.n4.clickListener = { clickListener.numberClick(it) }
+        binding.n5.clickListener = { clickListener.numberClick(it) }
+        binding.n6.clickListener = { clickListener.numberClick(it) }
+        binding.n7.clickListener = { clickListener.numberClick(it) }
+        binding.n8.clickListener = { clickListener.numberClick(it) }
+        binding.n9.clickListener = { clickListener.numberClick(it) }
 
-        buttonNumber0.clickListener = { clickListener.numberClick(it) }
-        buttonNumber1.clickListener = { clickListener.numberClick(it) }
-        buttonNumber2.clickListener = { clickListener.numberClick(it) }
-        buttonNumber3.clickListener = { clickListener.numberClick(it) }
-        buttonNumber4.clickListener = { clickListener.numberClick(it) }
-        buttonNumber5.clickListener = { clickListener.numberClick(it) }
-        buttonNumber6.clickListener = { clickListener.numberClick(it) }
-        buttonNumber7.clickListener = { clickListener.numberClick(it) }
-        buttonNumber8.clickListener = { clickListener.numberClick(it) }
-        buttonNumber9.clickListener = { clickListener.numberClick(it) }
+        binding.lA.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lB.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lC.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lD.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lE.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lF.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lG.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lH.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lI.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lJ.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lK.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lL.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lM.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lN.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lO.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lP.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lQ.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lR.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lS.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lT.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lU.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lV.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lW.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lX.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lY.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.lZ.clickListener = { clickListener.letterOrSymbolClick(it) }
 
-        buttonLetterA = keyboard.findViewById(R.id.l_a)
-        buttonLetterB = keyboard.findViewById(R.id.l_b)
-        buttonLetterC = keyboard.findViewById(R.id.l_c)
-        buttonLetterD = keyboard.findViewById(R.id.l_d)
-        buttonLetterE = keyboard.findViewById(R.id.l_e)
-        buttonLetterF = keyboard.findViewById(R.id.l_f)
-        buttonLetterG = keyboard.findViewById(R.id.l_g)
-        buttonLetterH = keyboard.findViewById(R.id.l_h)
-        buttonLetterI = keyboard.findViewById(R.id.l_i)
-        buttonLetterJ = keyboard.findViewById(R.id.l_j)
-        buttonLetterK = keyboard.findViewById(R.id.l_k)
-        buttonLetterL = keyboard.findViewById(R.id.l_l)
-        buttonLetterM = keyboard.findViewById(R.id.l_m)
-        buttonLetterN = keyboard.findViewById(R.id.l_n)
-        buttonLetterO = keyboard.findViewById(R.id.l_o)
-        buttonLetterP = keyboard.findViewById(R.id.l_p)
-        buttonLetterQ = keyboard.findViewById(R.id.l_q)
-        buttonLetterR = keyboard.findViewById(R.id.l_r)
-        buttonLetterS = keyboard.findViewById(R.id.l_s)
-        buttonLetterT = keyboard.findViewById(R.id.l_t)
-        buttonLetterU = keyboard.findViewById(R.id.l_u)
-        buttonLetterV = keyboard.findViewById(R.id.l_v)
-        buttonLetterW = keyboard.findViewById(R.id.l_w)
-        buttonLetterX = keyboard.findViewById(R.id.l_x)
-        buttonLetterY = keyboard.findViewById(R.id.l_y)
-        buttonLetterZ = keyboard.findViewById(R.id.l_z)
+        binding.symbol1.clickListener = { clickListener.letterOrSymbolClick(it) }
 
-        buttonLetterA.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterB.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterC.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterD.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterE.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterF.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterG.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterH.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterI.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterJ.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterK.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterL.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterM.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterN.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterO.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterP.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterQ.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterR.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterS.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterT.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterU.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterV.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterW.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterX.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterY.clickListener = { clickListener.letterOrSymbolClick(it) }
-        buttonLetterZ.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.colonWijesekara.clickListener = { clickListener.specialClick(it) }
 
-        buttonSymbol1 = keyboard.findViewById(R.id.symbol_1)
-        buttonSymbol1.clickListener = { clickListener.letterOrSymbolClick(it) }
+        binding.comma.clickListener = { clickListener.specialClick(it) }
+        binding.commaWijesekara.clickListener = { clickListener.specialClick(it) }
+        binding.dot.clickListener = { clickListener.specialClick(it) }
 
-        viewBlank1 = keyboard.findViewById(R.id.blank_1)
-        viewBlank2 = keyboard.findViewById(R.id.blank_2)
-        buttonColon = keyboard.findViewById(R.id.colon_wijesekara)
-        buttonColon.clickListener = { clickListener.specialClick(it) }
-
-        buttonSpecialComma = keyboard.findViewById(R.id.comma)
-        buttonSpecialCommaWijesekara = keyboard.findViewById(R.id.comma_wijesekara)
-        buttonSpecialSpace = keyboard.findViewById(R.id.space)
-        buttonSpecialFullStop = keyboard.findViewById(R.id.dot)
-
-        buttonSpecialComma.clickListener = { clickListener.specialClick(it) }
-        buttonSpecialCommaWijesekara.clickListener = { clickListener.specialClick(it) }
-        buttonSpecialFullStop.clickListener = { clickListener.specialClick(it) }
-
-        buttonSpecialSpace.setOnLongClickListener {
+        binding.space.setOnLongClickListener {
             clickListener.functionClick(Function.IME)
             true
         }
-        buttonSpecialSpace.setOnTouchListener { v, event ->
+        binding.space.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     clickListener.specialClick(v.tag.toString())
@@ -229,16 +140,10 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
             false
         }
 
-        buttonActionShift = keyboard.findViewById(R.id.shift)
-        buttonActionBackspace = keyboard.findViewById(R.id.backspace)
-        buttonActionLang = keyboard.findViewById(R.id.lang)
-        buttonActionPanel = keyboard.findViewById(R.id.panel)
-        buttonActionAction = keyboard.findViewById(R.id.action)
+        binding.lang.clickListener = { clickListener.functionClick(Function.LANG) }
+        binding.panel.clickListener = { clickListener.functionClick(Function.PANEL) }
 
-        buttonActionLang.clickListener = { clickListener.functionClick(Function.LANG) }
-        buttonActionPanel.clickListener = { clickListener.functionClick(Function.PANEL) }
-
-        buttonActionShift.setOnTouchListener { v, event ->
+        binding.shift.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
@@ -250,7 +155,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
             true
         }
 
-        buttonActionAction.setOnTouchListener { v, event ->
+        binding.action.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
@@ -279,7 +184,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
             }
         }
 
-        buttonActionBackspace.setOnTouchListener { v, event ->
+        binding.backspace.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
@@ -302,51 +207,51 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
     }
 
     fun setLetterKeys(keySet: Map<String, String>) {
-        buttonLetterA.text = keySet["a"]
-        buttonLetterB.text = keySet["b"]
-        buttonLetterC.text = keySet["c"]
-        buttonLetterD.text = keySet["d"]
-        buttonLetterE.text = keySet["e"]
-        buttonLetterF.text = keySet["f"]
-        buttonLetterG.text = keySet["g"]
-        buttonLetterH.text = keySet["h"]
-        buttonLetterI.text = keySet["i"]
-        buttonLetterJ.text = keySet["j"]
-        buttonLetterK.text = keySet["k"]
-        buttonLetterL.text = keySet["l"]
-        buttonLetterM.text = keySet["m"]
-        buttonLetterN.text = keySet["n"]
-        buttonLetterO.text = keySet["o"]
-        buttonLetterP.text = keySet["p"]
-        buttonLetterQ.text = keySet["q"]
-        buttonLetterR.text = keySet["r"]
-        buttonLetterS.text = keySet["s"]
-        buttonLetterT.text = keySet["t"]
-        buttonLetterU.text = keySet["u"]
-        buttonLetterV.text = keySet["v"]
-        buttonLetterW.text = keySet["w"]
-        buttonLetterX.text = keySet["x"]
-        buttonLetterY.text = keySet["y"]
-        buttonLetterZ.text = keySet["z"]
+        binding.lA.text = keySet["a"]
+        binding.lB.text = keySet["b"]
+        binding.lC.text = keySet["c"]
+        binding.lD.text = keySet["d"]
+        binding.lE.text = keySet["e"]
+        binding.lF.text = keySet["f"]
+        binding.lG.text = keySet["g"]
+        binding.lH.text = keySet["h"]
+        binding.lI.text = keySet["i"]
+        binding.lJ.text = keySet["j"]
+        binding.lK.text = keySet["k"]
+        binding.lL.text = keySet["l"]
+        binding.lM.text = keySet["m"]
+        binding.lN.text = keySet["n"]
+        binding.lO.text = keySet["o"]
+        binding.lP.text = keySet["p"]
+        binding.lQ.text = keySet["q"]
+        binding.lR.text = keySet["r"]
+        binding.lS.text = keySet["s"]
+        binding.lT.text = keySet["t"]
+        binding.lU.text = keySet["u"]
+        binding.lV.text = keySet["v"]
+        binding.lW.text = keySet["w"]
+        binding.lX.text = keySet["x"]
+        binding.lY.text = keySet["y"]
+        binding.lZ.text = keySet["z"]
 
-        keySet[":"]?.let { buttonColon.text = it }
+        keySet[":"]?.let { binding.colonWijesekara.text = it }
     }
 
     fun setNumberKeys(keySet: Array<String>) {
-        buttonNumber1.text = keySet[0]
-        buttonNumber2.text = keySet[1]
-        buttonNumber3.text = keySet[2]
-        buttonNumber4.text = keySet[3]
-        buttonNumber5.text = keySet[4]
-        buttonNumber6.text = keySet[5]
-        buttonNumber7.text = keySet[6]
-        buttonNumber8.text = keySet[7]
-        buttonNumber9.text = keySet[8]
-        buttonNumber0.text = keySet[9]
+        binding.n1.text = keySet[0]
+        binding.n2.text = keySet[1]
+        binding.n3.text = keySet[2]
+        binding.n4.text = keySet[3]
+        binding.n5.text = keySet[4]
+        binding.n6.text = keySet[5]
+        binding.n7.text = keySet[6]
+        binding.n8.text = keySet[7]
+        binding.n9.text = keySet[8]
+        binding.n0.text = keySet[9]
     }
 
     fun setLangIndicator(text: String) {
-        buttonActionLang.text = text
+        binding.lang.text = text
     }
 
     fun showSymbols(
@@ -355,12 +260,12 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         keyMap: Map<String, String>? = null
     ) {
         if (currentLayout == KeyboardLayout.WIJESEKARA) {
-            viewBlank1.isVisible = symbolsVisibility
-            viewBlank2.isVisible = symbolsVisibility
+            binding.blank1.isVisible = symbolsVisibility
+            binding.blank2.isVisible = symbolsVisibility
         }
-        buttonColon.isVisible = !symbolsVisibility && currentLayout == KeyboardLayout.WIJESEKARA
-        buttonSymbol1.isVisible = symbolsVisibility
-        buttonActionLang.isVisible = !symbolsVisibility
+        binding.colonWijesekara.isVisible = !symbolsVisibility && currentLayout == KeyboardLayout.WIJESEKARA
+        binding.symbol1.isVisible = symbolsVisibility
+        binding.lang.isVisible = !symbolsVisibility
 
         if (symbolsVisibility && keyMap != null) setLetterKeys(keyMap)
     }
