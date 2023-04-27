@@ -231,21 +231,25 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         binding.lX.text = keySet["x"]
         binding.lY.text = keySet["y"]
         binding.lZ.text = keySet["z"]
-
-        keySet[":"]?.let { binding.colonWijesekara.text = it }
     }
 
-    fun setNumberKeys(keySet: Array<String>) {
-        binding.n1.text = keySet[0]
-        binding.n2.text = keySet[1]
-        binding.n3.text = keySet[2]
-        binding.n4.text = keySet[3]
-        binding.n5.text = keySet[4]
-        binding.n6.text = keySet[5]
-        binding.n7.text = keySet[6]
-        binding.n8.text = keySet[7]
-        binding.n9.text = keySet[8]
-        binding.n0.text = keySet[9]
+    fun setNumberKeys(keyLabels: Map<String, String>) {
+        binding.n1.text = keyLabels["1"]
+        binding.n2.text = keyLabels["2"]
+        binding.n3.text = keyLabels["3"]
+        binding.n4.text = keyLabels["4"]
+        binding.n5.text = keyLabels["5"]
+        binding.n6.text = keyLabels["6"]
+        binding.n7.text = keyLabels["7"]
+        binding.n8.text = keyLabels["8"]
+        binding.n9.text = keyLabels["9"]
+        binding.n0.text = keyLabels["0"]
+    }
+
+    fun setSpecialKeys(keyLabels: Map<String, String>) {
+        keyLabels[";"]?.let { binding.colonWijesekara.text = it }
+        keyLabels[","]?.let { binding.commaWijesekara.text = it }
+        keyLabels["."]?.let { binding.dot.text = it }
     }
 
     fun setLangIndicator(text: String) {

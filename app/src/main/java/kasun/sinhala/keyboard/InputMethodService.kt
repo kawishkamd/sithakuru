@@ -51,7 +51,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         set(value) {
             field = value
             toggleWijesekaraLayoutButtons(value)
-            setNumberKeySet(value)
             updateLangIndicator(value)
             resetInputMarkers()
             prefs.currentLayout = value.name
@@ -63,9 +62,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             field = value
 
             keyboardView.showSymbols(value, currentLayout, symbolsMap)
-            if (!value) setLetterKeySet(shift)
-
-            if (currentLayout == WIJESEKARA) setNumberKeySet(if (value) ENGLISH else currentLayout)
         }
 
     private lateinit var keyboardView: KeyboardView
@@ -119,7 +115,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                 )
             else {
                 keyboardView.buttonActionShift.setImageResource(if (field) R.drawable.ic_shift_pressed else R.drawable.ic_shift)
-                setLetterKeySet(field)
             }
         }
 
@@ -152,11 +147,13 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         symbols = false
         resetInputMarkers()
         currentLayout = KeyboardLayout.valueOf(prefs.currentLayout)
+        updateKeySet()
         super.onStartInput(attribute, restarting)
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         symbols = false
+        updateKeySet()
         keyboardView.buttonActionAction.setImageResource(
             when (currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION) {
                 EditorInfo.IME_ACTION_SEND ->
@@ -191,26 +188,6 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         }
     }
 
-    private fun setNumberKeySet(layout: KeyboardLayout) {
-        keyboardView.setNumberKeys(
-            if (layout == WIJESEKARA)
-                arrayOf(
-                    CHAR.SIGN_RAKARANSHAYA.text,
-                    CHAR.SIGN_REEPAYA.text,
-                    CHAR.SIGN_VISARGAYA.text,
-                    CHAR.KANTAJA_NAASIKYAYA.text,
-                    CHAR.TAALUJA_NAASIKYAYA.text,
-                    CHAR.TAALUJA_SANYOOGA_NAAKSIKYAYA.text,
-                    CHAR.SANYAKA_GAYANNA.text,
-                    CHAR.SANYAKA_JAYANNA.text,
-                    CHAR.SANYAKA_DDAYANNA.text,
-                    CHAR.SANYAKA_DAYANNA.text
-                )
-            else
-                arrayOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-        )
-    }
-
     private fun updateLangIndicator(layout: KeyboardLayout) {
         keyboardView.setLangIndicator(
             when (layout) {
@@ -237,28 +214,42 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
 
         setTheme(darkTheme)
         keyboardView = KeyboardView(this, this, rowHeight, darkTheme, keyBorders)
-        setLetterKeySet(shift)
+        updateKeySet()
         currentLayout.let { layout ->
             toggleWijesekaraLayoutButtons(layout)
-            setNumberKeySet(layout)
             updateLangIndicator(layout)
         }
         return keyboardView
     }
 
-    private fun setLetterKeySet(isShifted: Boolean) {
-        val keySet = mutableMapOf<String, String>()
-        val alphabet = arrayOf(
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "k", "j", "l", "m",
-            "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+    private fun updateKeySet() {
+        keyboardView.setNumberKeys(
+            if (currentLayout == WIJESEKARA && !symbols)
+                keyLabelsNumbersWijesekara
+            else
+                keyLabelsNumbers
         )
-        val indices = IntRange(0, alphabet.size - 1)
-        for (index in indices) {
-            val letter = alphabet[index]
-            keySet[letter] = if (isShifted) letter.uppercase() else letter
-        }
-        if (currentLayout == WIJESEKARA) keySet[":"] = if (isShifted) ":" else ";"
-        keyboardView.setLetterKeys(keySet)
+        keyboardView.setLetterKeys(
+            if (currentLayout == WIJESEKARA && prefs.sinhalaKeyLabels && !symbols)
+                if (shift) keyLabelsLettersWijesekaraShifted
+                else keyLabelsLettersWijesekara
+            else if (symbols)
+                if (shift) symbolsMapShifted
+                else symbolsMap
+            else
+                if (shift) keyLabelsLettersEnglishShifted
+                else keyLabelsLettersEnglish
+        )
+        keyboardView.setSpecialKeys(
+            if (currentLayout == WIJESEKARA && !symbols) {
+                if (prefs.sinhalaKeyLabels)
+                    if (shift) keyLabelsSpecialWijesekaraSinhalaShifted
+                    else keyLabelsSpecialWijesekaraSinhala
+                else
+                    if (shift) keyLabelsSpecialWijesekaraShifted
+                    else keyLabelsSpecialWijesekara
+            } else keyLabelsSpecialEnglish
+        )
     }
 
     private fun setTheme(dark: Boolean) {
@@ -301,6 +292,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
             shiftLastPressed = Date().time
             caps = false
             shift = shift.not()
+            updateKeySet()
         }
     }
 
@@ -392,10 +384,16 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         when (type) {
             Function.ACTION -> actionClick()
             Function.SHIFT -> shiftClick()
-            Function.LANG -> currentLayout = nextAvailableLayout
+            Function.LANG -> {
+                currentLayout = nextAvailableLayout
+                updateKeySet()
+            }
             Function.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
             Function.BACKSPACE -> backspaceClick()
-            Function.PANEL -> symbols = symbols.not()
+            Function.PANEL -> {
+                symbols = symbols.not()
+                updateKeySet()
+            }
         }
     }
 
@@ -424,7 +422,10 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     private fun commitText(text: String) {
         currentInputConnection.commitText(text, 1)
         positionFlag = currentInputConnection.getTextBeforeCursor(5, 0).toString()
-        if (!caps && shift && !symbols) shift = false
+        if (!caps && shift && !symbols) {
+            shift = false
+            updateKeySet()
+        }
     }
 
     private fun charBeforeCursorSurrogate(): Boolean {

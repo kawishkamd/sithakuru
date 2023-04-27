@@ -264,6 +264,16 @@
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
+        <Switch
+            android:id="@+id/sinhala_labels"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="සිංහල යතුරු (විජේසේකර)"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

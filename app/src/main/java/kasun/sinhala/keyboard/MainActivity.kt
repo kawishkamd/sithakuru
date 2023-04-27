@@ -91,6 +91,7 @@ class MainActivity : Activity() {
         binding.switchSinglish.isChecked = prefs.layoutSinglish
         binding.switchDark.isChecked = prefs.darkTheme
         binding.switchBorder.isChecked = prefs.keyBorders
+        binding.sinhalaLabels.isChecked = prefs.sinhalaKeyLabels
 
         binding.switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -118,6 +119,7 @@ class MainActivity : Activity() {
         }
         binding.switchDark.setOnCheckedChangeListener { _, isChecked -> prefs.darkTheme = isChecked }
         binding.switchBorder.setOnCheckedChangeListener { _, isChecked -> prefs.keyBorders = isChecked }
+        binding.sinhalaLabels.setOnCheckedChangeListener { _, isChecked -> prefs.sinhalaKeyLabels = isChecked }
 
         binding.height.max = 12
         binding.height.progress = (prefs.heightPercentage - KEYBOARD_HEIGHT_VALUE_OFFSET) / KEYBOARD_HEIGHT_STEP_MULTIPLIER
