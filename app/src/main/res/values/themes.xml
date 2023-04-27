@@ -23,7 +23,7 @@
     <attr name="foreground_2" format="reference" />
     <attr name="border" format="reference" />
 
-    <style name="Sithakuru">
+    <style name="Sithakuru" parent="android:Theme.DeviceDefault">
         <item name="android:windowBackground">?attr/background</item>
         <item name="android:textColor">?attr/foreground</item>
         <item name="android:colorAccent">?attr/accent</item>
