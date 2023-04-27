@@ -1,0 +1,2 @@
+• Add option to have Sinhala key labels in Wijesekara layout
+• Fix: Rakaranshaya has to be typed before Kombuva
