@@ -517,12 +517,12 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
                             CHAR.SIGN_AL_LAKUNA.text -> output = CHAR.DIGA_KOMBUVA.text
                             CHAR.AELA_PILLA.text -> output = CHAR.KOMBUVA_HAA_AELA_PILLA.text
                             CHAR.GAYANUKITTA.text -> output = CHAR.KOMBUVA_HAA_GAYANUKITTA.text
-                            CHAR.SIGN_RAKARANSHAYA.text -> {
-                                output = CHAR.SIGN_RAKARANSHAYA.text + CHAR.KOMBUVA.text
-                                lastTextOverride = CHAR.KOMBUVA.text
-                            }
                         }
                     }
+                } else if (output == CHAR.SIGN_RAKARANSHAYA.text) {
+                    erasePrevious = true
+                    output = CHAR.SIGN_RAKARANSHAYA.text + CHAR.KOMBUVA.text
+                    lastTextOverride = CHAR.KOMBUVA.text
                 }
             }
             CHAR.KOMBUVA_HAA_AELA_PILLA.text -> {
