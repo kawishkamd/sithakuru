@@ -7,6 +7,9 @@
     <string name="foss_text">මෙය නිදහස් සහ විවෘත මෘදුකාංගයකි.</string>
     <string name="source_label">මූලාශ්‍රය:</string>
     <string name="license_label">බලපත්‍රය:</string>
+    <string name="wijesekara">විජේසේකර</string>
+    <string name="singlish">සිංග්‍රීසි</string>
+    <string name="keyboard_help">යතුරු පුවරු සහය</string>
     <string name="source_link_text">codeberg.org/sinhala/sithakuru</string>
     <string name="license_link_text">GNU General Public License v3.0 only</string>
     <string name="source_link_url">https://codeberg.org/sinhala/sithakuru</string>

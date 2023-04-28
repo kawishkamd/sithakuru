@@ -220,7 +220,7 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
             android:paddingVertical="8dp"
-            android:text="විජේසේකර"
+            android:text="@string/wijesekara"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -230,7 +230,7 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
             android:paddingVertical="8dp"
-            android:text="සිංග්‍රීසි"
+            android:text="@string/singlish"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -304,6 +304,30 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
+            android:gravity="center_horizontal"
+            android:text="@string/keyboard_help"
+            android:textColor="@color/light_1"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/wijesekara_help"
+            android:layout_width="match_parent"
+            android:layout_marginVertical="4dp"
+            android:layout_height="wrap_content"
+            android:text="@string/wijesekara" />
+
+        <Button
+            android:id="@+id/singlish_help"
+            android:layout_width="match_parent"
+            android:layout_marginVertical="4dp"
+            android:layout_height="wrap_content"
+            android:text="@string/singlish" />
 
     </LinearLayout>
 

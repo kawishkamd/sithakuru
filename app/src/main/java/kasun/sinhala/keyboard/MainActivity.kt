@@ -20,21 +20,31 @@ package kasun.sinhala.keyboard
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.view.isVisible
 import kasun.sinhala.keyboard.databinding.ActivityMainBinding
+import kasun.sinhala.keyboard.databinding.HelpListItemBinding
+import kasun.sinhala.keyboard.databinding.KeyboardHelpDialogBinding
 
 class MainActivity : Activity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -48,6 +58,8 @@ class MainActivity : Activity() {
                 dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
                 dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
                 dialog.window?.setDimAmount(0.8F)
+                dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                dialog.window?.setGravity(Gravity.CENTER)
                 dialog.setContentView(R.layout.about_dialog)
                 dialog.setCanceledOnTouchOutside(true)
                 dialog.window?.setLayout(
@@ -134,6 +146,9 @@ class MainActivity : Activity() {
             }
         })
 
+        binding.wijesekaraHelp.setOnClickListener { showHelpDialog(getString(R.string.wijesekara), helpMapWijesekara) }
+        binding.singlishHelp.setOnClickListener { showHelpDialog(getString(R.string.singlish), helpMapSinglish) }
+
         super.onCreate(savedInstanceState)
     }
 
@@ -165,6 +180,23 @@ class MainActivity : Activity() {
         super.onWindowFocusChanged(hasFocus)
     }
 
+    private fun showHelpDialog(keyboardType: String, helpMap: List<Pair<String, String>>) {
+        val dialog = Dialog(this)
+        val binding = KeyboardHelpDialogBinding.inflate(layoutInflater)
+        dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
+        dialog.window?.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        dialog.window?.setDimAmount(0.8F)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setGravity(Gravity.CENTER)
+        dialog.setContentView(binding.root)
+        dialog.setCanceledOnTouchOutside(false)
+        dialog.window?.setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        binding.keyboardType.text = keyboardType
+        binding.list.adapter = HelpListAdapter(this, helpMap)
+        binding.dialogClose.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
     override fun onBackPressed() {
         finishAfterTransition()
     }
@@ -172,5 +204,16 @@ class MainActivity : Activity() {
     private companion object {
         const val KEYBOARD_HEIGHT_VALUE_OFFSET = 70
         const val KEYBOARD_HEIGHT_STEP_MULTIPLIER = 5
+    }
+
+    class HelpListAdapter(context: Context, items: List<Pair<String, String>>) :
+        ArrayAdapter<Pair<String, String>>(context, R.layout.help_list_item, items) {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val binding = convertView?.let { HelpListItemBinding.bind(it) } ?: HelpListItemBinding.inflate(LayoutInflater.from(context))
+            val item = getItem(position)
+            binding.first.text = item?.first
+            binding.second.text = item?.second
+            return binding.root
+        }
     }
 }
