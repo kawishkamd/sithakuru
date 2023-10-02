@@ -50,7 +50,7 @@
                 android:background="@color/light_1"
                 android:gravity="center_horizontal"
                 android:padding="8dp"
-                android:text="සිතකුරු සක්‍රිය කර නොමැත."
+                android:text="සිතකුරු සක්‍රිය කර නැත."
                 android:textColor="@color/night_1"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -71,7 +71,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:padding="4dp"
-                android:text="1. ඔබේ දුරකතනයේ යතුරු පුවරු සැකසුම් වෙත පිවිසීම සඳහා පහත බොත්තම මත ඔබන්න."
+                android:text="1. ඔබගේ දුරකතනයේ යතුරු පුවරු සැකසුම් වෙත පිවිසීම සඳහා පහත බොත්තම මත ඔබන්න."
                 android:textColor="@color/light_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -147,7 +147,7 @@
                 android:background="@color/light_1"
                 android:gravity="center_horizontal"
                 android:padding="8dp"
-                android:text="නමුත් සිතකුරු තෝරා නොමැත."
+                android:text="නමුත් සිතකුරු තෝරා නැත."
                 android:textColor="@color/night_1"
                 android:textSize="18sp"
                 android:textStyle="bold" />
