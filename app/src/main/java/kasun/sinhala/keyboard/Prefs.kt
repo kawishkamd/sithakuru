@@ -27,10 +27,10 @@ class Prefs(context: Context) {
         get() = preferences.getBoolean(keyEnglish, true)
         set(value) = preferences.edit().putBoolean(keyEnglish, value).apply()
     var layoutWijesekara: Boolean
-        get() = preferences.getBoolean(keyWijesekara, false)
+        get() = preferences.getBoolean(keyWijesekara, true)
         set(value) = preferences.edit().putBoolean(keyWijesekara, value).apply()
     var layoutSinglish: Boolean
-        get() = preferences.getBoolean(keySinglish, true)
+        get() = preferences.getBoolean(keySinglish, false)
         set(value) = preferences.edit().putBoolean(keySinglish, value).apply()
     var darkTheme: Boolean
         get() = preferences.getBoolean(keyDarkTheme, true)
@@ -42,7 +42,7 @@ class Prefs(context: Context) {
         get() = preferences.getInt(keyHeightPercentage, 100)
         set(value) = preferences.edit().putInt(keyHeightPercentage, value).apply()
     var sinhalaKeyLabels: Boolean
-        get() = preferences.getBoolean(keySinhalaKeyLabels, false)
+        get() = preferences.getBoolean(keySinhalaKeyLabels, true)
         set(value) = preferences.edit().putBoolean(keySinhalaKeyLabels, value).apply()
     var swipeToErase: Boolean
         get() = preferences.getBoolean(keySwipeToErase, true)
