@@ -44,6 +44,9 @@ class Prefs(context: Context) {
     var sinhalaKeyLabels: Boolean
         get() = preferences.getBoolean(keySinhalaKeyLabels, false)
         set(value) = preferences.edit().putBoolean(keySinhalaKeyLabels, value).apply()
+    var swipeToErase: Boolean
+        get() = preferences.getBoolean(keySwipeToErase, true)
+        set(value) = preferences.edit().putBoolean(keySwipeToErase, value).apply()
     var currentLayout: String
         get() = preferences.getString(keyCurrentLayout, KeyboardLayout.ENGLISH.name) ?: KeyboardLayout.ENGLISH.name
         set(value) = preferences.edit().putString(keyCurrentLayout, value).apply()
@@ -56,6 +59,7 @@ class Prefs(context: Context) {
         const val keyKeyBorders = "KEY_BORDERS"
         const val keyHeightPercentage = "HEIGHT_PERCENTAGE"
         const val keySinhalaKeyLabels = "SINHALA_KEY_LABELS"
+        const val keySwipeToErase = "SWIPE_TO_ERASE"
         const val keyCurrentLayout = "CURRENT_LAYOUT"
     }
 }

@@ -21,7 +21,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.Gravity.CENTER
-import android.view.MotionEvent
 import android.widget.TextView
 
 class KeyboardButton : TextView {
@@ -40,15 +39,5 @@ class KeyboardButton : TextView {
         setOnClickListener { clickListener.invoke(it.tag.toString()) }
 
         background = resources.getDrawable(R.drawable.key_background, context.theme)
-        setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    background = resources.getDrawable(R.drawable.key_background_pressed, context.theme)
-                    v.performClick()
-                }
-                MotionEvent.ACTION_UP -> background = resources.getDrawable(R.drawable.key_background, context.theme)
-            }
-            true
-        }
     }
 }

@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
-            android:background="@drawable/key_background"
+            android:background="@drawable/key_background_not_pressed"
             android:clickable="true"
             android:focusable="true"
             android:orientation="vertical"
@@ -122,7 +122,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="40dp"
-            android:background="@drawable/key_background"
+            android:background="@drawable/key_background_not_pressed"
             android:clickable="true"
             android:focusable="true"
             android:orientation="vertical"
@@ -304,6 +304,26 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
+            android:gravity="center_horizontal"
+            android:text="යතුරු පුවරුවේ හැසිරීම"
+            android:textColor="@color/light_1"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/swipe_to_erase"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="ඇදගෙන යාමෙන් මැකීම"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="match_parent"

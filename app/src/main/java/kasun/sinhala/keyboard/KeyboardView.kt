@@ -19,8 +19,6 @@ package kasun.sinhala.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -29,10 +27,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import kasun.sinhala.keyboard.databinding.KeyboardLayoutBinding
-import java.util.Date
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
-class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: Int, darkTheme: Boolean, keyBorders: Boolean) : LinearLayout(context) {
+class KeyboardView(context: Context?, clickListener: ClickListener, private val swipeListener: SwipeListener, rowHeight: Int, darkTheme: Boolean, keyBorders: Boolean, private val swipeToErase: Boolean) : LinearLayout(context) {
 
     interface ClickListener {
         fun letterOrSymbolClick(tag: String)
@@ -41,9 +38,14 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         fun specialClick(tag: String)
     }
 
-    private lateinit var backspaceRepeater: Runnable
-    private var backspaceRepeating = false
-    private var lastBackspacePressTime = 0L
+    interface SwipeListener {
+        fun eraseDo()
+        fun eraseUndo()
+        fun eraseDone()
+    }
+
+    private var lastBackspaceDownTime = 0L
+    private var lastBackspaceEraseTime = 0L
 
     var keyboardVisible = false
 
@@ -57,6 +59,54 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
     val buttonSpecialComma: KeyboardButton get() = binding.comma
     val buttonSpecialCommaWijesekara: KeyboardButton get() = binding.commaWijesekara
     val buttonActionAction: ImageView get() = binding.action
+
+    private var shouldInterceptTouchEvent: Boolean = false
+    private var lastActionDownX: Float = 0F
+    private val swipeActionStepDistance = resources.displayMetrics.widthPixels / 15
+    private var currentSwipeActionStep: Int = 1
+    private var multiTouchStartIgnoreSwipe = false
+
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        if (swipeToErase) {
+            if (ev != null && ev.pointerCount > 1) multiTouchStartIgnoreSwipe = true
+            when (ev?.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    currentSwipeActionStep = 1
+                    lastActionDownX = ev.x
+                    shouldInterceptTouchEvent = false
+                }
+                MotionEvent.ACTION_MOVE ->
+                    if (!multiTouchStartIgnoreSwipe && (lastActionDownX - ev.x) > swipeActionStepDistance) shouldInterceptTouchEvent = true
+                MotionEvent.ACTION_UP ->
+                    if (ev.pointerCount == 1) multiTouchStartIgnoreSwipe = false
+            }
+            return shouldInterceptTouchEvent
+        } else return super.onInterceptTouchEvent(ev)
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        when (event?.action) {
+            MotionEvent.ACTION_MOVE -> {
+                val totalSwipeDistance = lastActionDownX - event.x
+                if (totalSwipeDistance > 0) {
+                    val swipeDistanceSinceLastAction = totalSwipeDistance - swipeActionStepDistance * currentSwipeActionStep
+                    if (swipeDistanceSinceLastAction > swipeActionStepDistance) {
+                        swipeListener.eraseDo()
+                        currentSwipeActionStep++
+                    } else if (swipeDistanceSinceLastAction < -swipeActionStepDistance) {
+                        swipeListener.eraseUndo()
+                        currentSwipeActionStep--
+                    }
+                }
+            }
+            MotionEvent.ACTION_UP -> {
+                swipeListener.eraseDone()
+                if (event.pointerCount == 1) multiTouchStartIgnoreSwipe = false
+                shouldInterceptTouchEvent = false
+            }
+        }
+        return true
+    }
 
     init {
         val style = when {
@@ -121,84 +171,47 @@ class KeyboardView(context: Context?, clickListener: ClickListener, rowHeight: I
         binding.commaWijesekara.clickListener = { clickListener.specialClick(it) }
         binding.dot.clickListener = { clickListener.specialClick(it) }
 
+        binding.space.setOnClickListener { clickListener.specialClick(it.tag.toString()) }
         binding.space.setOnLongClickListener {
             clickListener.functionClick(Function.IME)
             true
         }
-        binding.space.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    clickListener.specialClick(v.tag.toString())
-                    v.performClick()
-                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
-                }
-                MotionEvent.ACTION_UP ->
-                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
-            }
-            false
-        }
 
-        binding.lang.clickListener = { clickListener.functionClick(Function.LANG) }
-        binding.panel.clickListener = { clickListener.functionClick(Function.PANEL) }
-
-        binding.shift.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
-                    clickListener.functionClick(Function.SHIFT)
-                    v.performClick()
-                }
-                MotionEvent.ACTION_UP -> v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
-            }
-            true
-        }
-
-        binding.action.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
-                    clickListener.functionClick(Function.ACTION)
-                    v.performClick()
-                }
-                MotionEvent.ACTION_UP -> v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
-            }
-            true
-        }
-
-        backspaceRepeater = Runnable {
-            if (backspaceRepeating && keyboardVisible) {
-                clickListener.functionClick(Function.BACKSPACE)
-                Handler(Looper.getMainLooper()).postDelayed(
-                    backspaceRepeater,
-                    (Date().time - lastBackspacePressTime).let {
-                        when {
-                            it > 4500 -> 40
-                            it > 3000 -> 60
-                            it > 1500 -> 80
-                            else -> 100
-                        }
-                    }
-                )
-            }
-        }
+        binding.lang.setOnClickListener { clickListener.functionClick(Function.LANG) }
+        binding.panel.setOnClickListener { clickListener.functionClick(Function.PANEL) }
+        binding.shift.setOnClickListener { clickListener.functionClick(Function.SHIFT) }
+        binding.action.setOnClickListener { clickListener.functionClick(Function.ACTION) }
 
         binding.backspace.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     v.background = contextThemeWrapper.getDrawable(R.drawable.key_background_pressed)
                     clickListener.functionClick(Function.BACKSPACE)
-                    lastBackspacePressTime = Date().time
+                    lastBackspaceDownTime = System.currentTimeMillis()
                     v.performClick()
                 }
-                MotionEvent.ACTION_UP -> {
-                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
-                    backspaceRepeating = false
-                }
-                else ->
-                    if (Date().time - lastBackspacePressTime > 400 && !backspaceRepeating) {
-                        backspaceRepeating = true
-                        Handler(Looper.getMainLooper()).post(backspaceRepeater)
+                MotionEvent.ACTION_MOVE -> {
+                    val currentTimeMillis = System.currentTimeMillis()
+                    val timeSinceLastDown = currentTimeMillis - lastBackspaceDownTime
+                    if (timeSinceLastDown > 500) {
+                        val delay = when {
+                            timeSinceLastDown > 6000 -> 4
+                            timeSinceLastDown > 5000 -> 8
+                            timeSinceLastDown > 4000 -> 16
+                            timeSinceLastDown > 3000 -> 32
+                            timeSinceLastDown > 2000 -> 64
+                            timeSinceLastDown > 1000 -> 128
+                            else -> 256
+                        }
+                        if (currentTimeMillis - lastBackspaceEraseTime > delay) {
+                            clickListener.functionClick(Function.BACKSPACE)
+                            lastBackspaceEraseTime = currentTimeMillis
+                        }
                     }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
+                }
             }
             true
         }

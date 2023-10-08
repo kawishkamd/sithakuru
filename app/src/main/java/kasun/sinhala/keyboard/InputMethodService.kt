@@ -31,11 +31,13 @@ import androidx.core.view.isVisible
 import kasun.sinhala.keyboard.KeyboardLayout.*
 import java.util.Date
 
-class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
+class InputMethodService : InputMethodService(), KeyboardView.ClickListener, KeyboardView.SwipeListener {
     private lateinit var prefs: Prefs
     private var darkTheme = false
     private var keyBorders = false
     private var heightPercentage = 100
+    private var swipeToErase = true
+    private val swipeErasedContent = mutableListOf<String>()
 
     override fun onWindowHidden() {
         keyboardView.keyboardVisible = false
@@ -139,7 +141,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         if (!isCurrentLayoutEnabled)
             currentLayout = nextAvailableLayout
 
-        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders || heightPercentage != prefs.heightPercentage)
+        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders || heightPercentage != prefs.heightPercentage || swipeToErase != prefs.swipeToErase)
             setInputView(onCreateInputView())
 
         shift = false
@@ -209,11 +211,12 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         darkTheme = prefs.darkTheme
         keyBorders = prefs.keyBorders
         heightPercentage = prefs.heightPercentage
+        swipeToErase = prefs.swipeToErase
 
         val rowHeight: Int = ((48 * heightPercentage / 100) * Resources.getSystem().displayMetrics.density).toInt()
 
         setTheme(darkTheme)
-        keyboardView = KeyboardView(this, this, rowHeight, darkTheme, keyBorders)
+        keyboardView = KeyboardView(this, this, this, rowHeight, darkTheme, keyBorders, swipeToErase)
         updateKeySet()
         currentLayout.let { layout ->
             toggleWijesekaraLayoutButtons(layout)
@@ -435,14 +438,21 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
         return false
     }
 
-    private fun erasePrevious(count: Int = 1) {
-        if (count == 1 && charBeforeCursorSurrogate())
+    private fun erasePrevious(count: Int = 1, returnDeletedText: Boolean = false): String {
+        var erasedText = ""
+        if (count == 1 && charBeforeCursorSurrogate()) {
+            if (returnDeletedText) erasedText = currentInputConnection.getTextBeforeCursor(2, 0).toString()
             currentInputConnection.deleteSurroundingText(2, 0)
-        else
+        } else {
+            if (returnDeletedText) erasedText = currentInputConnection.getTextBeforeCursor(count, 0).toString()
             currentInputConnection.deleteSurroundingText(count, 0)
+        }
 
-        if (currentInputConnection.getTextBeforeCursor(1, 0) == CHAR.ZERO_WIDTH_JOINER.text)
-            erasePrevious()
+        if (currentInputConnection.getTextBeforeCursor(1, 0) == CHAR.ZERO_WIDTH_JOINER.text) {
+            val erasedTextNested = erasePrevious(1, returnDeletedText)
+            if (returnDeletedText) erasedText = erasedTextNested + erasedText
+        }
+        return erasedText
     }
 
     private fun eraseAndCommit(text: String) {
@@ -879,5 +889,20 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener {
     }
 
     private fun getSinglishChars(input: String): CHAR? = singlishMap[input]
+
+    override fun eraseDo() {
+        val erasedText = erasePrevious(1, true)
+        swipeErasedContent.add(0, erasedText)
+    }
+
+    override fun eraseUndo() {
+        val erasedText = swipeErasedContent[0]
+        commitText(erasedText)
+        swipeErasedContent.removeAt(0)
+    }
+
+    override fun eraseDone() {
+        swipeErasedContent.clear()
+    }
 
 }

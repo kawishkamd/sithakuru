@@ -104,6 +104,7 @@ class MainActivity : Activity() {
         binding.switchDark.isChecked = prefs.darkTheme
         binding.switchBorder.isChecked = prefs.keyBorders
         binding.sinhalaLabels.isChecked = prefs.sinhalaKeyLabels
+        binding.swipeToErase.isChecked = prefs.swipeToErase
 
         binding.switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -145,6 +146,8 @@ class MainActivity : Activity() {
                 prefs.heightPercentage = value
             }
         })
+
+        binding.swipeToErase.setOnCheckedChangeListener { _, isChecked -> prefs.swipeToErase = isChecked }
 
         binding.wijesekaraHelp.setOnClickListener { showHelpDialog(getString(R.string.wijesekara), helpMapWijesekara) }
         binding.singlishHelp.setOnClickListener { showHelpDialog(getString(R.string.singlish), helpMapSinglish) }
