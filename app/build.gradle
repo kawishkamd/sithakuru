@@ -4,8 +4,8 @@ plugins {
 }
 
 android {
-    compileSdkVersion 33
-    buildToolsVersion "33.0.2"
+    compileSdkVersion = 34
+    buildToolsVersion = "34.0.0"
 
     namespace "kasun.sinhala.keyboard"
 
@@ -14,7 +14,7 @@ android {
         minSdkVersion 21
         versionCode 10
         versionName "1.0.9"
-        targetSdkVersion 33
+        targetSdkVersion 34
     }
 
     buildTypes {
@@ -35,5 +35,5 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.core:core-ktx:1.12.0'
 }
