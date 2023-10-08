@@ -390,6 +390,7 @@ val helpMapWijesekara: List<Pair<String, String>> = listOf(
     "h" to CHAR.YAYANNA.text,
     "H" to CHAR.SIGN_YANSHAYA.text,
     "j" to CHAR.VAYANNA.text,
+    "J" to CHAR.MUURDHAJA_LAYANNA.text + CHAR.KETTI_PAA_PILLA.text,
     "k" to CHAR.DANTAJA_NAYANNA.text,
     "K" to CHAR.MUURDHAJA_NAYANNA.text,
     "l" to CHAR.ALPAPRAANA_KAYANNA.text,

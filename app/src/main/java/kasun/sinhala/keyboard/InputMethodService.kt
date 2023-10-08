@@ -566,8 +566,13 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         lastText = lastTextOverride ?: output
     }
 
+    private fun getCombinedWijesekaraChars(input: String): String? = when (input) {
+        "J" -> CHAR.MUURDHAJA_LAYANNA.text + CHAR.KETTI_PAA_PILLA.text
+        else -> null
+    }
+
     private fun getWijesekaraChars(input: String): String =
-        wijesekaraMap[input]?.text ?: input
+        wijesekaraMap[input]?.text ?: getCombinedWijesekaraChars(input) ?: input
 
     private fun hasPositionChanged(): Boolean =
         currentInputConnection.getTextBeforeCursor(5, 0) != positionFlag
