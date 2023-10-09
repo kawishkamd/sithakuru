@@ -497,5 +497,5 @@ val helpMapSinglish: List<Pair<String, String>> = listOf(
     CHAR.ALPAPRAANA_KAYANNA.text + CHAR.SIGN_VISARGAYA.text to "kaX",
     "" to "",
     CHAR.ALPAPRAANA_KAYANNA.text + CHAR.SIGN_YANSHAYA.text + CHAR.SIGN_AL_LAKUNA.text to "ky / kY",
-    CHAR.ALPAPRAANA_KAYANNA.text + CHAR.SIGN_RAKARANSHAYA.text  + CHAR.SIGN_AL_LAKUNA.text to "kr"
+    CHAR.ALPAPRAANA_KAYANNA.text + CHAR.SIGN_RAKARANSHAYA.text + CHAR.SIGN_AL_LAKUNA.text to "kr"
 )

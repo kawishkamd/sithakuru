@@ -30,7 +30,6 @@ class KeyboardButton : TextView {
 
     var clickListener: (tag: String) -> Unit = { }
 
-
     init {
         gravity = CENTER
         isClickable = true

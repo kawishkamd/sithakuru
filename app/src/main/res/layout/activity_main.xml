@@ -338,15 +338,15 @@
         <Button
             android:id="@+id/wijesekara_help"
             android:layout_width="match_parent"
-            android:layout_marginVertical="4dp"
             android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
             android:text="@string/wijesekara" />
 
         <Button
             android:id="@+id/singlish_help"
             android:layout_width="match_parent"
-            android:layout_marginVertical="4dp"
             android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
             android:text="@string/singlish" />
 
     </LinearLayout>

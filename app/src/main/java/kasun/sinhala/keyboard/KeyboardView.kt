@@ -29,7 +29,15 @@ import androidx.core.view.isVisible
 import kasun.sinhala.keyboard.databinding.KeyboardLayoutBinding
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
-class KeyboardView(context: Context?, clickListener: ClickListener, private val swipeListener: SwipeListener, rowHeight: Int, darkTheme: Boolean, keyBorders: Boolean, private val swipeToErase: Boolean) : LinearLayout(context) {
+class KeyboardView(
+    context: Context?,
+    clickListener: ClickListener,
+    private val swipeListener: SwipeListener,
+    rowHeight: Int,
+    darkTheme: Boolean,
+    keyBorders: Boolean,
+    private val swipeToErase: Boolean
+) : LinearLayout(context) {
 
     interface ClickListener {
         fun letterOrSymbolClick(tag: String)
@@ -75,8 +83,10 @@ class KeyboardView(context: Context?, clickListener: ClickListener, private val 
                     lastActionDownX = ev.x
                     shouldInterceptTouchEvent = false
                 }
+
                 MotionEvent.ACTION_MOVE ->
                     if (!multiTouchStartIgnoreSwipe && (lastActionDownX - ev.x) > swipeActionStepDistance) shouldInterceptTouchEvent = true
+
                 MotionEvent.ACTION_UP ->
                     if (ev.pointerCount == 1) multiTouchStartIgnoreSwipe = false
             }
@@ -99,6 +109,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, private val 
                     }
                 }
             }
+
             MotionEvent.ACTION_UP -> {
                 swipeListener.eraseDone()
                 if (event.pointerCount == 1) multiTouchStartIgnoreSwipe = false
@@ -190,6 +201,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, private val 
                     lastBackspaceDownTime = System.currentTimeMillis()
                     v.performClick()
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     val currentTimeMillis = System.currentTimeMillis()
                     val timeSinceLastDown = currentTimeMillis - lastBackspaceDownTime
@@ -209,6 +221,7 @@ class KeyboardView(context: Context?, clickListener: ClickListener, private val 
                         }
                     }
                 }
+
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
                 }

@@ -33,8 +33,8 @@ import java.util.Date
 
 class InputMethodService : InputMethodService(), KeyboardView.ClickListener, KeyboardView.SwipeListener {
     private lateinit var prefs: Prefs
-    private var darkTheme = false
-    private var keyBorders = false
+    private var darkTheme = true
+    private var keyBorders = true
     private var heightPercentage = 100
     private var swipeToErase = true
     private val swipeErasedContent = mutableListOf<String>()
@@ -87,6 +87,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                         else -> ENGLISH
                     }
                 }
+
                 WIJESEKARA -> {
                     when {
                         prefs.layoutSinglish -> SINGLISH
@@ -94,6 +95,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                         else -> WIJESEKARA
                     }
                 }
+
                 SINGLISH -> {
                     when {
                         prefs.layoutEnglish -> ENGLISH
@@ -163,14 +165,19 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                         R.drawable.ic_send
                     else
                         R.drawable.ic_keyboard_return
+
                 EditorInfo.IME_ACTION_GO, EditorInfo.IME_ACTION_NEXT ->
                     R.drawable.ic_keyboard_arrow_right
+
                 EditorInfo.IME_ACTION_SEARCH ->
                     R.drawable.ic_search
+
                 EditorInfo.IME_ACTION_DONE ->
                     R.drawable.ic_check
+
                 EditorInfo.IME_ACTION_PREVIOUS ->
                     R.drawable.ic_keyboard_arrow_left
+
                 else ->
                     R.drawable.ic_keyboard_return
             }
@@ -333,21 +340,25 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                     if (symbols) commitText(CHAR.COMMA.text)
                     else wijesekaraInput(if (shift) CHAR.LESS_THAN.text else CHAR.COMMA.text)
                 }
+
                 "46" -> {
                     if (symbols) commitText(CHAR.FULL_STOP.text)
                     else wijesekaraInput(if (shift) CHAR.GREATER_THAN.text else CHAR.FULL_STOP.text)
                 }
+
                 "59" -> wijesekaraInput(if (shift) CHAR.COLON.text else CHAR.SEMICOLON.text)
                 else -> {
                     lastText = ""
                     commitText(tag.toInt())
                 }
             }
+
             SINGLISH -> {
                 lastChar = null
                 lastLetter = null
                 commitText(tag.toInt())
             }
+
             ENGLISH -> commitText(tag.toInt())
         }
     }
@@ -391,6 +402,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                 currentLayout = nextAvailableLayout
                 updateKeySet()
             }
+
             Function.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
             Function.BACKSPACE -> backspaceClick()
             Function.PANEL -> {
@@ -476,36 +488,43 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                         output = CHAR.AAYANNA.text
                         erasePrevious = true
                     }
+
                     CHAR.KETTI_AEDA_PILLA.text -> {
                         output = CHAR.AEYANNA.text
                         erasePrevious = true
                     }
+
                     CHAR.DIGA_AEDA_PILLA.text -> {
                         output = CHAR.AEEYANNA.text
                         erasePrevious = true
                     }
                 }
             }
+
             CHAR.UYANNA.text ->
                 if (output == CHAR.GAYANUKITTA.text) {
                     output = CHAR.UUYANNA.text
                     erasePrevious = true
                 }
+
             CHAR.IRUYANNA.text ->
                 if (output == CHAR.GAETTA_PILLA.text) {
                     output = CHAR.IRUUYANNA.text
                     erasePrevious = true
                 }
+
             CHAR.ILUYANNA.text ->
                 if (output == CHAR.GAYANUKITTA.text) {
                     output = CHAR.ILUUYANNA.text
                     erasePrevious = true
                 }
+
             CHAR.EYANNA.text ->
                 if (output == CHAR.SIGN_AL_LAKUNA.text) {
                     output = CHAR.EEYANNA.text
                     erasePrevious = true
                 }
+
             CHAR.OYANNA.text -> {
                 if (output == CHAR.SIGN_AL_LAKUNA.text) {
                     output = CHAR.OOYANNA.text
@@ -515,6 +534,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                     erasePrevious = true
                 }
             }
+
             CHAR.KOMBUVA.text -> {
                 if (kombuvaNew) {
                     erasePrevious = true
@@ -536,18 +556,21 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                     lastTextOverride = CHAR.KOMBUVA.text
                 }
             }
+
             CHAR.KOMBUVA_HAA_AELA_PILLA.text -> {
                 if (output == CHAR.SIGN_AL_LAKUNA.text) {
                     output = CHAR.KOMBUVA_HAA_DIGA_AELA_PILLA.text
                     erasePrevious = true
                 }
             }
+
             CHAR.KOMBU_DEKA.text -> {
                 if ((getCharType(output) == CharType.SWARA || getCharType(output) == CharType.WYANJANA)) {
                     output += CHAR.KOMBU_DEKA.text
                     erasePrevious = true
                 }
             }
+
             else -> {
                 if (output == CHAR.SIGN_REEPAYA.text) {
                     output = CHAR.SIGN_REEPAYA.text + lastText
@@ -616,22 +639,26 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                         CHAR.UYANNA.code -> output = CHAR.KOMBUVA_HAA_GAYANUKITTA.text
                         else -> newLetter()
                     }
+
                 mLastChar.code == CHAR.SIGN_AL_LAKUNA.code -> {
                     when (singlishChar.code) {
                         CHAR.AYANNA.code -> {
                             erasePreviousChars = 1
                             tLastChar = mLastLetter
                         }
+
                         CHAR.RAYANNA.code -> {
                             output =
                                 CHAR.ZERO_WIDTH_JOINER.text + CHAR.RAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
                             tLastChar = CHAR.SIGN_AL_LAKUNA
                         }
+
                         CHAR.YAYANNA.code -> {
                             output =
                                 CHAR.ZERO_WIDTH_JOINER.text + CHAR.YAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
                             tLastChar = CHAR.SIGN_AL_LAKUNA
                         }
+
                         CHAR.HAYANNA.code -> {
                             if (mLastLetter != null) {
                                 when (mLastLetter.code) {
@@ -642,6 +669,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.ALPAPRAANA_TAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.MAHAAPRAANA_TTAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_TAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -649,6 +677,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_TAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_DDAYANNA.code -> {
                                         output =
                                             CHAR.ALPAPRAANA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -656,6 +685,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.ALPAPRAANA_DAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.MAHAAPRAANA_DDAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -663,6 +693,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_DAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_KAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_KAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -670,6 +701,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_KAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_GAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_GAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -677,6 +709,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_GAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_CAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_CAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -684,6 +717,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_CAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_JAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_JAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -691,6 +725,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_JAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_TAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_TAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -698,6 +733,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_TAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_DAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -705,6 +741,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_DAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_PAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_PAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -712,6 +749,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MAHAAPRAANA_PAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.ALPAPRAANA_BAYANNA.code -> {
                                         output =
                                             CHAR.MAHAAPRAANA_BAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -727,6 +765,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.TAALUJA_SAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.SANYAKA_DDAYANNA.code -> {
                                         output =
                                             CHAR.SANYAKA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -734,6 +773,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.SANYAKA_DAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     CHAR.MUURDHAJA_SAYANNA.code -> {
                                         output =
                                             CHAR.MUURDHAJA_SAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
@@ -741,10 +781,12 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         tLastLetter = CHAR.MUURDHAJA_SAYANNA
                                         tLastChar = CHAR.SIGN_AL_LAKUNA
                                     }
+
                                     else -> newLetter()
                                 }
                             } else newLetter()
                         }
+
                         else -> {
                             when (singlishChar.type) {
                                 CharType.SWARA -> {
@@ -762,11 +804,13 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         }
                                     } else output = singlishChar.text
                                 }
+
                                 else -> newLetter()
                             }
                         }
                     }
                 }
+
                 mLastChar.type == CharType.PILI -> {
                     when {
                         mLastChar.code == CHAR.KETTI_AEDA_PILLA.code && singlishChar.code == CHAR.AYANNA.code -> {
@@ -774,34 +818,41 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                             erasePreviousChars = 1
                             tLastChar = CHAR.DIGA_AEDA_PILLA
                         }
+
                         mLastChar.code == CHAR.KETTI_IS_PILLA.code && singlishChar.code == CHAR.IYANNA.code -> {
                             output = CHAR.DIGA_IS_PILLA.text
                             erasePreviousChars = 1
                             tLastChar = CHAR.DIGA_IS_PILLA
                         }
+
                         mLastChar.code == CHAR.KETTI_PAA_PILLA.code && singlishChar.code == CHAR.UYANNA.code -> {
                             output = CHAR.DIGA_PAA_PILLA.text
                             erasePreviousChars = 1
                             tLastChar = CHAR.DIGA_PAA_PILLA
                         }
+
                         mLastChar.code == CHAR.GAETTA_PILLA.code && singlishChar.code == CHAR.IYANNA.code -> {
                             output = CHAR.DIGA_GAETTA_PILLA.text
                             erasePreviousChars = 1
                             tLastChar = CHAR.DIGA_GAETTA_PILLA
                         }
+
                         mLastChar.code == CHAR.KOMBUVA.code && singlishChar.code == CHAR.EYANNA.code -> {
                             output = CHAR.DIGA_KOMBUVA.text
                             erasePreviousChars = 1
                             tLastChar = CHAR.DIGA_KOMBUVA
                         }
+
                         mLastChar.code == CHAR.KOMBUVA_HAA_AELA_PILLA.code && singlishChar.code == CHAR.OYANNA.code -> {
                             output = CHAR.KOMBUVA_HAA_DIGA_AELA_PILLA.text
                             erasePreviousChars = 1
                             tLastChar = CHAR.KOMBUVA_HAA_DIGA_AELA_PILLA
                         }
+
                         else -> newLetter()
                     }
                 }
+
                 mLastChar.code == CHAR.MARK_SANYAKA.code -> {
                     when (singlishChar.code) {
                         CHAR.ALPAPRAANA_KAYANNA.code -> singlishChar = CHAR.TAALUJA_NAASIKYAYA
@@ -813,6 +864,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                     }
                     newLetter()
                 }
+
                 else -> {
                     if (mLastLetter != null) {
                         when (mLastLetter) {
@@ -823,19 +875,23 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                         erasePreviousChars = 1
                                         tLastLetter = CHAR.AAYANNA
                                     }
+
                                     CHAR.IYANNA.code -> {
                                         output = CHAR.AIYANNA.text
                                         erasePreviousChars = 1
                                         tLastLetter = CHAR.AIYANNA
                                     }
+
                                     CHAR.UYANNA.code -> {
                                         output = CHAR.AUYANNA.text
                                         erasePreviousChars = 1
                                         tLastLetter = CHAR.AUYANNA
                                     }
+
                                     else -> newLetter()
                                 }
                             }
+
                             CHAR.AEYANNA -> {
                                 if (singlishChar.code == CHAR.AYANNA.code) {
                                     output = CHAR.AEEYANNA.text
@@ -843,6 +899,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                     tLastLetter = CHAR.AEEYANNA
                                 } else newLetter()
                             }
+
                             CHAR.IYANNA -> {
                                 if (singlishChar.code == CHAR.IYANNA.code) {
                                     output = CHAR.IIYANNA.text
@@ -850,6 +907,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                     tLastLetter = CHAR.IIYANNA
                                 } else newLetter()
                             }
+
                             CHAR.UYANNA -> {
                                 if (singlishChar.code == CHAR.UYANNA.code) {
                                     output = CHAR.UUYANNA.text
@@ -857,6 +915,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                     tLastLetter = CHAR.UUYANNA
                                 } else newLetter()
                             }
+
                             CHAR.IRUYANNA -> {
                                 if (singlishChar.code == CHAR.IYANNA.code) {
                                     output = CHAR.IRUUYANNA.text
@@ -864,6 +923,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                     tLastLetter = CHAR.IRUUYANNA
                                 } else newLetter()
                             }
+
                             CHAR.EYANNA -> {
                                 if (singlishChar.code == CHAR.EYANNA.code) {
                                     output = CHAR.EEYANNA.text
@@ -871,6 +931,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                     tLastLetter = CHAR.EEYANNA
                                 } else newLetter()
                             }
+
                             CHAR.OYANNA -> {
                                 if (singlishChar.code == CHAR.OYANNA.code) {
                                     output = CHAR.OOYANNA.text
@@ -878,6 +939,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                                     tLastLetter = CHAR.OOYANNA
                                 } else newLetter()
                             }
+
                             else -> newLetter()
                         }
                     } else newLetter()
