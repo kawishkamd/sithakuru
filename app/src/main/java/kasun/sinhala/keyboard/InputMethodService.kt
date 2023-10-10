@@ -37,6 +37,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
     private var keyBorders = true
     private var heightPercentage = 100
     private var swipeToErase = true
+    private var textSize = Prefs.DEFAULT_TEXT_SIZE
     private val swipeErasedContent = mutableListOf<String>()
 
     override fun onWindowHidden() {
@@ -143,8 +144,9 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         if (!isCurrentLayoutEnabled)
             currentLayout = nextAvailableLayout
 
-        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders || heightPercentage != prefs.heightPercentage || swipeToErase != prefs.swipeToErase)
-            setInputView(onCreateInputView())
+        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders || heightPercentage != prefs.heightPercentage ||
+            swipeToErase != prefs.swipeToErase || textSize != prefs.textSize
+        ) setInputView(onCreateInputView())
 
         shift = false
         caps = false
@@ -219,11 +221,12 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         keyBorders = prefs.keyBorders
         heightPercentage = prefs.heightPercentage
         swipeToErase = prefs.swipeToErase
+        textSize = prefs.textSize
 
         val rowHeight: Int = ((48 * heightPercentage / 100) * Resources.getSystem().displayMetrics.density).toInt()
 
         setTheme(darkTheme)
-        keyboardView = KeyboardView(this, this, this, rowHeight, darkTheme, keyBorders, swipeToErase)
+        keyboardView = KeyboardView(this, this, this, rowHeight, darkTheme, keyBorders, swipeToErase, textSize)
         updateKeySet()
         currentLayout.let { layout ->
             toggleWijesekaraLayoutButtons(layout)

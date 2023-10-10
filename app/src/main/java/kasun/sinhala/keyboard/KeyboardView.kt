@@ -25,6 +25,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import kasun.sinhala.keyboard.databinding.KeyboardLayoutBinding
 
@@ -36,7 +37,8 @@ class KeyboardView(
     rowHeight: Int,
     darkTheme: Boolean,
     keyBorders: Boolean,
-    private val swipeToErase: Boolean
+    private val swipeToErase: Boolean,
+    textSize: Int
 ) : LinearLayout(context) {
 
     interface ClickListener {
@@ -135,6 +137,12 @@ class KeyboardView(
         binding.keyRow3.layoutParams.height = rowHeight
         binding.keyRow4.layoutParams.height = rowHeight
         binding.keyRow5.layoutParams.height = rowHeight
+
+        for (row in binding.root.children)
+            if (row is LinearLayout)
+                for (button in row.children)
+                    if (button is KeyboardButton)
+                        button.textSize = textSize.toFloat()
 
         binding.n0.clickListener = { clickListener.numberClick(it) }
         binding.n1.clickListener = { clickListener.numberClick(it) }

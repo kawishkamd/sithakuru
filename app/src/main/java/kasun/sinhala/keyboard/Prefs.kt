@@ -41,6 +41,9 @@ class Prefs(context: Context) {
     var heightPercentage: Int
         get() = preferences.getInt(keyHeightPercentage, 100)
         set(value) = preferences.edit().putInt(keyHeightPercentage, value).apply()
+    var textSize: Int
+        get() = preferences.getInt(keyTextSize, DEFAULT_TEXT_SIZE)
+        set(value) = preferences.edit().putInt(keyTextSize, value).apply()
     var sinhalaKeyLabels: Boolean
         get() = preferences.getBoolean(keySinhalaKeyLabels, true)
         set(value) = preferences.edit().putBoolean(keySinhalaKeyLabels, value).apply()
@@ -58,8 +61,11 @@ class Prefs(context: Context) {
         const val keyDarkTheme = "DARK_THEME"
         const val keyKeyBorders = "KEY_BORDERS"
         const val keyHeightPercentage = "HEIGHT_PERCENTAGE"
+        private const val keyTextSize = "TEXT_SIZE"
         const val keySinhalaKeyLabels = "SINHALA_KEY_LABELS"
         const val keySwipeToErase = "SWIPE_TO_ERASE"
         const val keyCurrentLayout = "CURRENT_LAYOUT"
+
+        const val DEFAULT_TEXT_SIZE = 20
     }
 }

@@ -147,6 +147,19 @@ class MainActivity : Activity() {
             }
         })
 
+        binding.textSize.max = 20
+        binding.textSize.progress = prefs.textSize - TEXT_SIZE_VALUE_OFFSET
+        binding.textSizeValue.text = "${prefs.textSize}"
+        binding.textSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val value = progress + TEXT_SIZE_VALUE_OFFSET
+                binding.textSizeValue.text = "$value"
+                prefs.textSize = value
+            }
+        })
+
         binding.swipeToErase.setOnCheckedChangeListener { _, isChecked -> prefs.swipeToErase = isChecked }
 
         binding.wijesekaraHelp.setOnClickListener { showHelpDialog(getString(R.string.wijesekara), helpMapWijesekara) }
@@ -207,6 +220,7 @@ class MainActivity : Activity() {
     private companion object {
         const val KEYBOARD_HEIGHT_VALUE_OFFSET = 70
         const val KEYBOARD_HEIGHT_STEP_MULTIPLIER = 5
+        const val TEXT_SIZE_VALUE_OFFSET = 10
     }
 
     class HelpListAdapter(context: Context, items: List<Pair<String, String>>) :

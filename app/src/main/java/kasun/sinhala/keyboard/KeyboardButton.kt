@@ -19,7 +19,6 @@ package kasun.sinhala.keyboard
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.Gravity.CENTER
 import android.widget.TextView
 
@@ -33,7 +32,6 @@ class KeyboardButton : TextView {
     init {
         gravity = CENTER
         isClickable = true
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10F, resources.displayMetrics)
 
         setOnClickListener { clickListener.invoke(it.tag.toString()) }
 

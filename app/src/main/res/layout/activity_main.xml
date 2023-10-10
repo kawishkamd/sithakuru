@@ -305,6 +305,37 @@
             android:layout_height="48dp"
             android:layout_marginBottom="4dp" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="අකුරුවල ප්‍රමාණය"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/text_size_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                tools:text="16dp" />
+
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/text_size"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="4dp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
