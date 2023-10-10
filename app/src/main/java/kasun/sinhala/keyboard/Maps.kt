@@ -287,7 +287,7 @@ val keyLabelsLettersWijesekaraShifted: Map<String, String> = mapOf(
     "g" to CHAR.MAHAAPRAANA_TTAYANNA.text,
     "h" to CHAR.SIGN_YANSHAYA.text,
     "i" to CHAR.MUURDHAJA_SAYANNA.text,
-    "j" to "J",
+    "j" to CHAR.MUURDHAJA_LAYANNA.text + CHAR.KETTI_PAA_PILLA.text,
     "k" to CHAR.MUURDHAJA_NAYANNA.text,
     "l" to CHAR.MAHAAPRAANA_KAYANNA.text,
     "m" to CHAR.MAHAAPRAANA_PAYANNA.text,
