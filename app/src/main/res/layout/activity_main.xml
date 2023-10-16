@@ -356,6 +356,16 @@
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
+        <Switch
+            android:id="@+id/swipe_to_move_cursor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:paddingVertical="8dp"
+            android:text="ඇදගෙන යාමෙන් ලියන තැන වෙනස් කිරීම"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

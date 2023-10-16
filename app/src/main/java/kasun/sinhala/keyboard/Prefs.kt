@@ -50,6 +50,9 @@ class Prefs(context: Context) {
     var swipeToErase: Boolean
         get() = preferences.getBoolean(keySwipeToErase, true)
         set(value) = preferences.edit().putBoolean(keySwipeToErase, value).apply()
+    var swipeToMoveCursor: Boolean
+        get() = preferences.getBoolean(keySwipeToMoveCursor, true)
+        set(value) = preferences.edit().putBoolean(keySwipeToMoveCursor, value).apply()
     var currentLayout: String
         get() = preferences.getString(keyCurrentLayout, KeyboardLayout.ENGLISH.name) ?: KeyboardLayout.ENGLISH.name
         set(value) = preferences.edit().putString(keyCurrentLayout, value).apply()
@@ -64,6 +67,7 @@ class Prefs(context: Context) {
         private const val keyTextSize = "TEXT_SIZE"
         const val keySinhalaKeyLabels = "SINHALA_KEY_LABELS"
         const val keySwipeToErase = "SWIPE_TO_ERASE"
+        private const val keySwipeToMoveCursor = "SWIPE_TO_MOVE_CURSOR"
         const val keyCurrentLayout = "CURRENT_LAYOUT"
 
         const val DEFAULT_TEXT_SIZE = 20

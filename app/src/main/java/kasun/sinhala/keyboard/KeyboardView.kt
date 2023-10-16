@@ -34,10 +34,11 @@ class KeyboardView(
     context: Context?,
     clickListener: ClickListener,
     private val swipeListener: SwipeListener,
-    rowHeight: Int,
+    private val rowHeight: Int,
     darkTheme: Boolean,
     keyBorders: Boolean,
     private val swipeToErase: Boolean,
+    private val swipeToMoveCursor: Boolean,
     textSize: Int
 ) : LinearLayout(context) {
 
@@ -52,6 +53,8 @@ class KeyboardView(
         fun eraseDo()
         fun eraseUndo()
         fun eraseDone()
+        fun moveRight()
+        fun moveLeft()
     }
 
     private var lastBackspaceDownTime = 0L
@@ -70,52 +73,68 @@ class KeyboardView(
     val buttonSpecialCommaWijesekara: KeyboardButton get() = binding.commaWijesekara
     val buttonActionAction: ImageView get() = binding.action
 
-    private var shouldInterceptTouchEvent: Boolean = false
-    private var lastActionDownX: Float = 0F
-    private val swipeActionStepDistance = resources.displayMetrics.widthPixels / 15
-    private var currentSwipeActionStep: Int = 1
-    private var multiTouchStartIgnoreSwipe = false
+    private var swipeStepStartX: Float = 0F
+    private val swipeStepDistance = resources.displayMetrics.widthPixels / 15
+    private var startIgnoreSwipe = false
+    private var currentSwipeActionType = SwipeActionType.NONE
+
+    private enum class SwipeActionType { ERASE, MOVE_CURSOR, NONE }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        if (swipeToErase) {
-            if (ev != null && ev.pointerCount > 1) multiTouchStartIgnoreSwipe = true
+        if (swipeToErase || swipeToMoveCursor) {
+            if (ev != null && ev.pointerCount > 1) startIgnoreSwipe = true
             when (ev?.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    currentSwipeActionStep = 1
-                    lastActionDownX = ev.x
-                    shouldInterceptTouchEvent = false
+                    currentSwipeActionType = SwipeActionType.NONE
+                    swipeStepStartX = ev.x
                 }
 
-                MotionEvent.ACTION_MOVE ->
-                    if (!multiTouchStartIgnoreSwipe && (lastActionDownX - ev.x) > swipeActionStepDistance) shouldInterceptTouchEvent = true
+                MotionEvent.ACTION_MOVE -> {
+                    if (!startIgnoreSwipe) {
 
-                MotionEvent.ACTION_UP ->
-                    if (ev.pointerCount == 1) multiTouchStartIgnoreSwipe = false
+                        // මේ වන විට swipeStepStartXහි තිබෙන්නේ ඉහළ MotionEvent.ACTION_DOWN සිදුවීමේදී ආදේශ කළ අගය යි.
+                        val distanceFromDownX: Float = swipeStepStartX - ev.x
+
+                        if (swipeToErase && ev.y < rowHeight * 4 && distanceFromDownX > swipeStepDistance)
+                            currentSwipeActionType = SwipeActionType.ERASE
+                        else if (swipeToMoveCursor && ev.y >= rowHeight * 4 && (distanceFromDownX > swipeStepDistance || distanceFromDownX < -swipeStepDistance))
+                            currentSwipeActionType = SwipeActionType.MOVE_CURSOR
+
+                        return currentSwipeActionType != SwipeActionType.NONE
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> if (ev.pointerCount == 1) startIgnoreSwipe = false
             }
-            return shouldInterceptTouchEvent
-        } else return super.onInterceptTouchEvent(ev)
+        }
+        return super.onInterceptTouchEvent(ev)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
             MotionEvent.ACTION_MOVE -> {
-                val totalSwipeDistance = lastActionDownX - event.x
-                if (totalSwipeDistance > 0) {
-                    val swipeDistanceSinceLastAction = totalSwipeDistance - swipeActionStepDistance * currentSwipeActionStep
-                    if (swipeDistanceSinceLastAction > swipeActionStepDistance) {
-                        swipeListener.eraseDo()
-                        currentSwipeActionStep++
-                    } else if (swipeDistanceSinceLastAction < -swipeActionStepDistance) {
-                        swipeListener.eraseUndo()
-                        currentSwipeActionStep--
+                val swipeDistance = swipeStepStartX - event.x
+                if (swipeDistance > swipeStepDistance) {
+                    when (currentSwipeActionType) {
+                        SwipeActionType.ERASE -> swipeListener.eraseDo()
+                        SwipeActionType.MOVE_CURSOR -> swipeListener.moveLeft()
+                        SwipeActionType.NONE -> {}
                     }
+                    swipeStepStartX = event.x
+                } else if (swipeDistance < -swipeStepDistance) {
+                    when (currentSwipeActionType) {
+                        SwipeActionType.ERASE -> swipeListener.eraseUndo()
+                        SwipeActionType.MOVE_CURSOR -> swipeListener.moveRight()
+                        SwipeActionType.NONE -> {}
+                    }
+                    swipeStepStartX = event.x
                 }
             }
 
             MotionEvent.ACTION_UP -> {
                 swipeListener.eraseDone()
-                if (event.pointerCount == 1) multiTouchStartIgnoreSwipe = false
-                shouldInterceptTouchEvent = false
+                if (event.pointerCount == 1) startIgnoreSwipe = false
+                return false
             }
         }
         return true

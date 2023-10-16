@@ -37,6 +37,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
     private var keyBorders = true
     private var heightPercentage = 100
     private var swipeToErase = true
+    private var swipeToMoveCursor = true
     private var textSize = Prefs.DEFAULT_TEXT_SIZE
     private val swipeErasedContent = mutableListOf<String>()
 
@@ -145,7 +146,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
             currentLayout = nextAvailableLayout
 
         if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders || heightPercentage != prefs.heightPercentage ||
-            swipeToErase != prefs.swipeToErase || textSize != prefs.textSize
+            swipeToErase != prefs.swipeToErase || swipeToMoveCursor != prefs.swipeToMoveCursor || textSize != prefs.textSize
         ) setInputView(onCreateInputView())
 
         shift = false
@@ -221,12 +222,13 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         keyBorders = prefs.keyBorders
         heightPercentage = prefs.heightPercentage
         swipeToErase = prefs.swipeToErase
+        swipeToMoveCursor = prefs.swipeToMoveCursor
         textSize = prefs.textSize
 
         val rowHeight: Int = ((48 * heightPercentage / 100) * Resources.getSystem().displayMetrics.density).toInt()
 
         setTheme(darkTheme)
-        keyboardView = KeyboardView(this, this, this, rowHeight, darkTheme, keyBorders, swipeToErase, textSize)
+        keyboardView = KeyboardView(this, this, this, rowHeight, darkTheme, keyBorders, swipeToErase, swipeToMoveCursor, textSize)
         updateKeySet()
         currentLayout.let { layout ->
             toggleWijesekaraLayoutButtons(layout)
@@ -966,13 +968,24 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
     }
 
     override fun eraseUndo() {
-        val erasedText = swipeErasedContent[0]
-        commitText(erasedText)
-        swipeErasedContent.removeAt(0)
+        if (swipeErasedContent.size > 0) {
+            val erasedText = swipeErasedContent[0]
+            commitText(erasedText)
+            swipeErasedContent.removeAt(0)
+        }
     }
 
     override fun eraseDone() {
         swipeErasedContent.clear()
     }
 
+    override fun moveRight() {
+        if (!currentInputConnection.getTextAfterCursor(1, 0).isNullOrEmpty())
+            currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
+    }
+
+    override fun moveLeft() {
+        if (!currentInputConnection.getTextBeforeCursor(1, 0).isNullOrEmpty())
+            currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
+    }
 }

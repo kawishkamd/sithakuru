@@ -105,6 +105,7 @@ class MainActivity : Activity() {
         binding.switchBorder.isChecked = prefs.keyBorders
         binding.sinhalaLabels.isChecked = prefs.sinhalaKeyLabels
         binding.swipeToErase.isChecked = prefs.swipeToErase
+        binding.swipeToMoveCursor.isChecked = prefs.swipeToMoveCursor
 
         binding.switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -161,6 +162,7 @@ class MainActivity : Activity() {
         })
 
         binding.swipeToErase.setOnCheckedChangeListener { _, isChecked -> prefs.swipeToErase = isChecked }
+        binding.swipeToMoveCursor.setOnCheckedChangeListener { _, isChecked -> prefs.swipeToMoveCursor = isChecked }
 
         binding.wijesekaraHelp.setOnClickListener { showHelpDialog(getString(R.string.wijesekara), helpMapWijesekara) }
         binding.singlishHelp.setOnClickListener { showHelpDialog(getString(R.string.singlish), helpMapSinglish) }
