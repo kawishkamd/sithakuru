@@ -4,7 +4,7 @@
 ### ලබාගන්න
 <a href="https://f-droid.org/packages/kasun.sinhala.keyboard/" rel="noopener noreferrer nofollow"><img src="get-it-on.png" width="250"></a>
 
-### යතුරු පුවරු මාදිලි
+### යතුරු පුවරු මාදිළි
 - විජේසේකර
 - සිංග්‍රීසි
 - ඉංග්‍රීසි
