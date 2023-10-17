@@ -32,6 +32,8 @@ import kasun.sinhala.keyboard.KeyboardLayout.*
 import java.util.Date
 
 class InputMethodService : InputMethodService(), KeyboardView.ClickListener, KeyboardView.SwipeListener {
+    private enum class ActionKeyAction { ENTER, NEWLINE, ORIGINAL }
+
     private lateinit var prefs: Prefs
     private var darkTheme = true
     private var keyBorders = true
@@ -40,6 +42,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
     private var swipeToMoveCursor = true
     private var textSize = Prefs.DEFAULT_TEXT_SIZE
     private val swipeErasedContent = mutableListOf<String>()
+    private var currentActionKeyAction: ActionKeyAction = ActionKeyAction.NEWLINE
 
     override fun onWindowHidden() {
         keyboardView.keyboardVisible = false
@@ -158,34 +161,56 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         super.onStartInput(attribute, restarting)
     }
 
+    private fun getImeAction() = currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION
+
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         symbols = false
         updateKeySet()
-        keyboardView.buttonActionAction.setImageResource(
-            when (currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION) {
-                EditorInfo.IME_ACTION_SEND ->
-                    if (currentInputEditorInfo.inputType and EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE == 0)
-                        R.drawable.ic_send
-                    else
-                        R.drawable.ic_keyboard_return
+        val isSingleLine: Boolean = currentInputEditorInfo.inputType and EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE == 0
 
-                EditorInfo.IME_ACTION_GO, EditorInfo.IME_ACTION_NEXT ->
-                    R.drawable.ic_keyboard_arrow_right
+        val icon: Int
 
-                EditorInfo.IME_ACTION_SEARCH ->
-                    R.drawable.ic_search
-
-                EditorInfo.IME_ACTION_DONE ->
-                    R.drawable.ic_check
-
-                EditorInfo.IME_ACTION_PREVIOUS ->
-                    R.drawable.ic_keyboard_arrow_left
-
-                else ->
-                    R.drawable.ic_keyboard_return
+        if (isSingleLine) when (getImeAction()) {
+            EditorInfo.IME_ACTION_GO -> {
+                icon = R.drawable.ic_keyboard_arrow_right
+                currentActionKeyAction = ActionKeyAction.ORIGINAL
             }
-        )
 
+            EditorInfo.IME_ACTION_NEXT -> {
+                icon = R.drawable.ic_keyboard_arrow_right
+                currentActionKeyAction = ActionKeyAction.ORIGINAL
+            }
+
+            EditorInfo.IME_ACTION_SEARCH -> {
+                icon = R.drawable.ic_search
+                currentActionKeyAction = ActionKeyAction.ORIGINAL
+            }
+
+            EditorInfo.IME_ACTION_PREVIOUS -> {
+                icon = R.drawable.ic_keyboard_arrow_left
+                currentActionKeyAction = ActionKeyAction.ORIGINAL
+            }
+
+            EditorInfo.IME_ACTION_DONE -> {
+                icon = R.drawable.ic_check
+                currentActionKeyAction = ActionKeyAction.ENTER
+            }
+
+            EditorInfo.IME_ACTION_SEND -> {
+                icon = R.drawable.ic_send
+                currentActionKeyAction = ActionKeyAction.ENTER
+            }
+
+            else -> {
+                icon = R.drawable.ic_keyboard_return
+                currentActionKeyAction = ActionKeyAction.NEWLINE
+            }
+        } else {
+            icon = R.drawable.ic_keyboard_return
+            currentActionKeyAction = ActionKeyAction.NEWLINE
+        }
+
+        keyboardView.buttonActionAction.setImageResource(icon)
 
         super.onStartInputView(info, restarting)
     }
@@ -418,22 +443,15 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
     }
 
     private fun actionClick() {
-        when (val action: Int = currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION) {
-            EditorInfo.IME_ACTION_GO,
-            EditorInfo.IME_ACTION_SEARCH,
-            EditorInfo.IME_ACTION_NEXT,
-            EditorInfo.IME_ACTION_PREVIOUS -> currentInputConnection.performEditorAction(action)
+        when (currentActionKeyAction) {
+            ActionKeyAction.ENTER -> currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
 
-            EditorInfo.IME_ACTION_UNSPECIFIED,
-            EditorInfo.IME_ACTION_NONE,
-            EditorInfo.IME_ACTION_SEND -> {
+            ActionKeyAction.NEWLINE -> {
                 clearLastTypedInfo()
                 commitText("\n")
             }
 
-            EditorInfo.IME_ACTION_DONE -> currentInputConnection.sendKeyEvent(
-                KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER)
-            )
+            ActionKeyAction.ORIGINAL -> currentInputConnection.performEditorAction(currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION)
         }
     }
 
