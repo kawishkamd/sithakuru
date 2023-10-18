@@ -1,0 +1,7 @@
+• Add swipe to erase
+• Add 'ළු' for 'J' key in Wijesekara layout
+• Release with Wijesekara layout with 'Sinhala key labels' enabled, instead of Singlish layout
+  (If needed Singlish layout can be enabled)
+• Add option to change font size
+• Add swipe to move cursor
+• Fix: An issue with 'Enter' key
