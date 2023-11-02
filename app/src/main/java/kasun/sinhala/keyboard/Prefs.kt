@@ -39,7 +39,7 @@ class Prefs(context: Context) {
         get() = preferences.getBoolean(keyKeyBorders, true)
         set(value) = preferences.edit().putBoolean(keyKeyBorders, value).apply()
     var heightPercentage: Int
-        get() = preferences.getInt(keyHeightPercentage, 100)
+        get() = preferences.getInt(keyHeightPercentage, DEFAULT_HEIGHT_PERCENTAGE)
         set(value) = preferences.edit().putInt(keyHeightPercentage, value).apply()
     var textSize: Int
         get() = preferences.getInt(keyTextSize, DEFAULT_TEXT_SIZE)
@@ -61,15 +61,16 @@ class Prefs(context: Context) {
         private const val keyEnglish = "LAYOUT_ENGLISH"
         private const val keyWijesekara = "LAYOUT_WIJESEKARA"
         private const val keySinglish = "LAYOUT_SINGLISH"
-        const val keyDarkTheme = "DARK_THEME"
-        const val keyKeyBorders = "KEY_BORDERS"
-        const val keyHeightPercentage = "HEIGHT_PERCENTAGE"
+        private const val keyDarkTheme = "DARK_THEME"
+        private const val keyKeyBorders = "KEY_BORDERS"
+        private const val keyHeightPercentage = "HEIGHT_PERCENTAGE"
         private const val keyTextSize = "TEXT_SIZE"
-        const val keySinhalaKeyLabels = "SINHALA_KEY_LABELS"
-        const val keySwipeToErase = "SWIPE_TO_ERASE"
+        private const val keySinhalaKeyLabels = "SINHALA_KEY_LABELS"
+        private const val keySwipeToErase = "SWIPE_TO_ERASE"
         private const val keySwipeToMoveCursor = "SWIPE_TO_MOVE_CURSOR"
-        const val keyCurrentLayout = "CURRENT_LAYOUT"
+        private const val keyCurrentLayout = "CURRENT_LAYOUT"
 
+        const val DEFAULT_HEIGHT_PERCENTAGE = 100
         const val DEFAULT_TEXT_SIZE = 20
     }
 }

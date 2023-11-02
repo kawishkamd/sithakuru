@@ -37,7 +37,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
     private lateinit var prefs: Prefs
     private var darkTheme = true
     private var keyBorders = true
-    private var heightPercentage = 100
+    private var heightPercentage = Prefs.DEFAULT_HEIGHT_PERCENTAGE
     private var swipeToErase = true
     private var swipeToMoveCursor = true
     private var textSize = Prefs.DEFAULT_TEXT_SIZE
