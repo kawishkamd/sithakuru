@@ -15,7 +15,7 @@
  *
  */
 
-package kasun.sinhala.keyboard
+package sithakuru.sinhala.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -27,7 +27,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.view.children
 import androidx.core.view.isVisible
-import kasun.sinhala.keyboard.databinding.KeyboardLayoutBinding
+import sithakuru.sinhala.keyboard.databinding.KeyboardLayoutBinding
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
 class KeyboardView(

@@ -15,7 +15,7 @@
  *
  */
 
-package kasun.sinhala.keyboard
+package sithakuru.sinhala.keyboard
 
 import android.content.res.Resources
 import android.inputmethodservice.InputMethodService
@@ -28,7 +28,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
-import kasun.sinhala.keyboard.KeyboardLayout.*
+import sithakuru.sinhala.keyboard.KeyboardLayout.*
 import java.util.Date
 
 class InputMethodService : InputMethodService(), KeyboardView.ClickListener, KeyboardView.SwipeListener {

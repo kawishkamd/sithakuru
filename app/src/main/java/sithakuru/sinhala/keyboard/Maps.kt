@@ -15,7 +15,7 @@
  *
  */
 
-package kasun.sinhala.keyboard
+package sithakuru.sinhala.keyboard
 
 val wijesekaraMap: Map<String, CHAR> = mapOf(
     "a" to CHAR.SIGN_AL_LAKUNA,

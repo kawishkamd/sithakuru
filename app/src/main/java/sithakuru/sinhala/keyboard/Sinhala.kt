@@ -15,7 +15,7 @@
  *
  */
 
-package kasun.sinhala.keyboard
+package sithakuru.sinhala.keyboard
 
 fun isSwara(code: Int) = code >= CHAR.AYANNA.code && code <= CHAR.AUYANNA.code
 

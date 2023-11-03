@@ -15,7 +15,7 @@
  *
  */
 
-package kasun.sinhala.keyboard
+package sithakuru.sinhala.keyboard
 
 enum class Function { ACTION, SHIFT, LANG, IME, BACKSPACE, PANEL }
 enum class KeyboardLayout { ENGLISH, WIJESEKARA, SINGLISH }

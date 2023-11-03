@@ -15,7 +15,7 @@
  *
  */
 
-package kasun.sinhala.keyboard
+package sithakuru.sinhala.keyboard
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -42,9 +42,9 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.view.isVisible
-import kasun.sinhala.keyboard.databinding.ActivityMainBinding
-import kasun.sinhala.keyboard.databinding.HelpListItemBinding
-import kasun.sinhala.keyboard.databinding.KeyboardHelpDialogBinding
+import sithakuru.sinhala.keyboard.databinding.ActivityMainBinding
+import sithakuru.sinhala.keyboard.databinding.HelpListItemBinding
+import sithakuru.sinhala.keyboard.databinding.KeyboardHelpDialogBinding
 
 class MainActivity : Activity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

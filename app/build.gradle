@@ -7,10 +7,10 @@ android {
     compileSdkVersion = 34
     buildToolsVersion = "34.0.0"
 
-    namespace "kasun.sinhala.keyboard"
+    namespace "sithakuru.sinhala.keyboard"
 
     defaultConfig {
-        applicationId "kasun.sinhala.keyboard"
+        applicationId "sithakuru.sinhala.keyboard"
         minSdkVersion 21
         versionCode 11
         versionName "1.1.0"
