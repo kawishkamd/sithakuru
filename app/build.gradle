@@ -10,7 +10,6 @@ android {
     namespace "sithakuru.sinhala.keyboard"
 
     defaultConfig {
-        applicationId "sithakuru.sinhala.keyboard"
         minSdkVersion 21
         versionCode 11
         versionName "1.1.0"
@@ -21,6 +20,17 @@ android {
         release {
             minifyEnabled true
             shrinkResources true
+        }
+    }
+    flavorDimensions += "app_id"
+    productFlavors {
+        sithakuru {
+            dimension = "app_id"
+            applicationId "sithakuru.sinhala.keyboard"
+        }
+        old {
+            dimension = "app_id"
+            applicationId "kasun.sinhala.keyboard"
         }
     }
 
