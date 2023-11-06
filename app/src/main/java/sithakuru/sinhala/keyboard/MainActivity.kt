@@ -96,6 +96,17 @@ class MainActivity : Activity() {
 
         actionBar?.title = resources.getString(R.string.app_name_si)
 
+        if (packageName == "kasun.sinhala.keyboard") {
+            binding.flavorHelp.isVisible = true
+            binding.newFdroidPageButton.setOnClickListener {
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(getString(R.string.fdroid_link_url))
+                )
+                startActivity(intent)
+            }
+        } else binding.flavorHelp.isVisible = false
+
         val prefs = Prefs(this)
 
         binding.switchEnglish.isChecked = prefs.layoutEnglish

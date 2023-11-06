@@ -32,6 +32,79 @@
         android:padding="12dp">
 
         <LinearLayout
+            android:id="@+id/flavor_help"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="#f57f7f"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:padding="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/light_1"
+                android:gravity="center_horizontal"
+                android:padding="8dp"
+                android:text="නව නිකුතු ලබා ගැනීම"
+                android:textColor="@color/night_1"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:padding="4dp"
+                android:text="සිතකුරු යෙදුමේ මෙම ප්‍රභේදය සඳහා නව නිකුතු ලැබීම ඉදිරියේදී නවනිනු ඇත."
+                android:textColor="@color/night_1"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:padding="4dp"
+                android:text="නව නිකුතු ලබා ගැනීම සඳහා නව සිතකුරු යෙදුම ස්ථාපනය කරගන්න."
+                android:textColor="@color/night_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:padding="4dp"
+                android:text="නව යෙදුමේ F-Droid පිටුව වෙත යොමු වීමට පහත බොත්තම ඔබන්න."
+                android:textColor="@color/night_1"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/new_fdroid_page_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/blue"
+                android:text="F-Droid පිටුව වෙත යන්න"
+                android:textColor="@color/light_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:text="@string/fdroid_link_text"
+                android:textColor="@color/night_1"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+
+        <LinearLayout
             android:id="@+id/enable_help"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
