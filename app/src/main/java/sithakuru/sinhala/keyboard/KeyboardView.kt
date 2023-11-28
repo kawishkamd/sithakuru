@@ -27,6 +27,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.view.children
 import androidx.core.view.isVisible
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import sithakuru.sinhala.keyboard.databinding.KeyboardLayoutBinding
 
 @SuppressLint("ViewConstructor", "ClickableViewAccessibility")
@@ -58,7 +64,6 @@ class KeyboardView(
     }
 
     private var lastBackspaceDownTime = 0L
-    private var lastBackspaceEraseTime = 0L
 
     var keyboardVisible = false
 
@@ -72,6 +77,26 @@ class KeyboardView(
     val buttonSpecialComma: KeyboardButton get() = binding.comma
     val buttonSpecialCommaWijesekara: KeyboardButton get() = binding.commaWijesekara
     val buttonActionAction: ImageView get() = binding.action
+
+    private val backspaceRepeater = flow<Unit> {
+        while (true) {
+            val currentTimeMillis = System.currentTimeMillis()
+            val timeSinceLastDown = currentTimeMillis - lastBackspaceDownTime
+            delay(
+                when {
+                    timeSinceLastDown > 5000 -> 4
+                    timeSinceLastDown > 4000 -> 8
+                    timeSinceLastDown > 3000 -> 16
+                    timeSinceLastDown > 2000 -> 32
+                    timeSinceLastDown > 1000 -> 64
+                    timeSinceLastDown > 500 -> 128
+                    else -> 500
+                }
+            )
+            clickListener.functionClick(Function.BACKSPACE)
+        }
+    }
+    private lateinit var backspaceRepeaterJob: Job
 
     private var swipeStepStartX: Float = 0F
     private val swipeStepDistance = resources.displayMetrics.widthPixels / 15
@@ -227,30 +252,12 @@ class KeyboardView(
                     clickListener.functionClick(Function.BACKSPACE)
                     lastBackspaceDownTime = System.currentTimeMillis()
                     v.performClick()
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    val currentTimeMillis = System.currentTimeMillis()
-                    val timeSinceLastDown = currentTimeMillis - lastBackspaceDownTime
-                    if (timeSinceLastDown > 500) {
-                        val delay = when {
-                            timeSinceLastDown > 6000 -> 4
-                            timeSinceLastDown > 5000 -> 8
-                            timeSinceLastDown > 4000 -> 16
-                            timeSinceLastDown > 3000 -> 32
-                            timeSinceLastDown > 2000 -> 64
-                            timeSinceLastDown > 1000 -> 128
-                            else -> 256
-                        }
-                        if (currentTimeMillis - lastBackspaceEraseTime > delay) {
-                            clickListener.functionClick(Function.BACKSPACE)
-                            lastBackspaceEraseTime = currentTimeMillis
-                        }
-                    }
+                    backspaceRepeaterJob = backspaceRepeater.launchIn(CoroutineScope(Dispatchers.IO))
                 }
 
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     v.background = contextThemeWrapper.getDrawable(R.drawable.key_background)
+                    backspaceRepeaterJob.cancel()
                 }
             }
             true
