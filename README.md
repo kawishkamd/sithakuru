@@ -2,7 +2,7 @@
 **නිදහස් සිංහල යතුරු පුවරුව**
 
 ### ලබාගන්න
-<a href="https://f-droid.org/packages/kasun.sinhala.keyboard/" rel="noopener noreferrer nofollow"><img src="get-it-on.png" width="250"></a>
+<a href="https://f-droid.org/packages/sithakuru.sinhala.keyboard/" rel="noopener noreferrer nofollow"><img src="get-it-on.png" width="250"></a>
 
 ### යතුරු පුවරු මාදිළි
 - විජේසේකර
