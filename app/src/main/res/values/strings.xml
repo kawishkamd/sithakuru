@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Sithakuru</string>
     <string name="app_name_si">සිතකුරු</string>
+    <string name="enable_help_step_2">2. එහි \'%s\' නමින් ඇති යතුරු පුවරුව සක්‍රිය කරන්න.</string>
     <string name="info">විස්තර</string>
     <string name="about_title">යෙදුම පිළිබඳ තොරතුරු</string>
     <string name="description_text">නිදහස් සිංහල යතුරු පුවරුව</string>

@@ -194,7 +194,12 @@ class MainActivity : Activity() {
                 Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
                     .contains(BuildConfig.APPLICATION_ID)
 
-            binding.enableHelp.isVisible = !keyboardEnabled
+            if (keyboardEnabled)
+                binding.enableHelp.isVisible = false
+            else {
+                binding.enableHelp.isVisible = true
+                binding.enableHelpStep2.text = getString(R.string.enable_help_step_2, getString(R.string.app_name))
+            }
             binding.selectHelp.isVisible = keyboardEnabled && !keyboardSelected
 
             if (!keyboardEnabled)
