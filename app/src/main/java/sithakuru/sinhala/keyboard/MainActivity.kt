@@ -47,6 +47,8 @@ import sithakuru.sinhala.keyboard.databinding.HelpListItemBinding
 import sithakuru.sinhala.keyboard.databinding.KeyboardHelpDialogBinding
 
 class MainActivity : Activity() {
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main, menu)
         return true
@@ -91,8 +93,10 @@ class MainActivity : Activity() {
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
         actionBar?.title = resources.getString(R.string.app_name_si)
 
@@ -177,8 +181,6 @@ class MainActivity : Activity() {
 
         binding.wijesekaraHelp.setOnClickListener { showHelpDialog(getString(R.string.wijesekara), helpMapWijesekara) }
         binding.singlishHelp.setOnClickListener { showHelpDialog(getString(R.string.singlish), helpMapSinglish) }
-
-        super.onCreate(savedInstanceState)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -192,18 +194,13 @@ class MainActivity : Activity() {
                 Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
                     .contains(BuildConfig.APPLICATION_ID)
 
-            findViewById<LinearLayout>(R.id.enable_help).isVisible = !keyboardEnabled
-            findViewById<LinearLayout>(R.id.select_help).isVisible =
-                keyboardEnabled && !keyboardSelected
+            binding.enableHelp.isVisible = !keyboardEnabled
+            binding.selectHelp.isVisible = keyboardEnabled && !keyboardSelected
 
             if (!keyboardEnabled)
-                findViewById<Button>(R.id.enable_button).setOnClickListener {
-                    startActivity(
-                        Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
-                    )
-                }
+                binding.enableButton.setOnClickListener { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) }
             else if (!keyboardSelected)
-                findViewById<Button>(R.id.select_button).setOnClickListener { inputMethodManager.showInputMethodPicker() }
+                binding.selectButton.setOnClickListener { inputMethodManager.showInputMethodPicker() }
         }
 
         super.onWindowFocusChanged(hasFocus)
