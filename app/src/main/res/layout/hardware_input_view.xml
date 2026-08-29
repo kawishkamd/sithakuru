@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of Sithakuru.
+  ~
+  ~ Sithakuru is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, version 3.
+  ~
+  ~ Sithakuru is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with Sithakuru.  If not, see <https://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="6dp"
+    tools:background="?background"
+    tools:ignore="HardcodedText">
+
+    <FrameLayout
+        android:id="@+id/layout_indicator_container"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="2dp"
+        tools:background="?border">
+
+        <TextView
+            android:id="@+id/layout_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="18sp"
+            tools:background="?background"
+            tools:text="වි"
+            tools:textColor="?foreground" />
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginStart="6dp"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/help_text_line_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start|bottom"
+            android:text="මාරු කිරීමට"
+            android:textSize="12sp"
+            tools:textColor="?foreground_2" />
+
+        <TextView
+            android:id="@+id/help_text_line_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start|top"
+            android:text="Alt + i"
+            android:textSize="14sp"
+            tools:textColor="?foreground" />
+
+    </LinearLayout>
+
+</LinearLayout>

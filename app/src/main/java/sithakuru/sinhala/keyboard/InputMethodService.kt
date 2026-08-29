@@ -17,7 +17,7 @@
 
 package sithakuru.sinhala.keyboard
 
-import android.content.res.Resources
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.view.KeyEvent
@@ -26,211 +26,219 @@ import android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.isVisible
-import sithakuru.sinhala.keyboard.KeyboardLayout.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import sithakuru.sinhala.keyboard.data.Action
+import sithakuru.sinhala.keyboard.data.KeyboardLayoutId
+import sithakuru.sinhala.keyboard.databinding.HardwareInputViewBinding
+import sithakuru.sinhala.keyboard.layouts.BaseLayout
+import sithakuru.sinhala.keyboard.layouts.English
+import sithakuru.sinhala.keyboard.layouts.Singlish
+import sithakuru.sinhala.keyboard.layouts.Symbols
+import sithakuru.sinhala.keyboard.layouts.Wijesekara
 import java.util.Date
 
-class InputMethodService : InputMethodService(), KeyboardView.ClickListener, KeyboardView.SwipeListener {
-    private enum class ActionKeyAction { ENTER, NEWLINE, ORIGINAL }
-
+class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private lateinit var prefs: Prefs
-    private var darkTheme = true
-    private var keyBorders = true
-    private var heightPercentage = Prefs.DEFAULT_HEIGHT_PERCENTAGE
-    private var swipeToErase = true
-    private var swipeToMoveCursor = true
-    private var textSize = Prefs.DEFAULT_TEXT_SIZE
-    private val swipeErasedContent = mutableListOf<String>()
-    private var currentActionKeyAction: ActionKeyAction = ActionKeyAction.NEWLINE
 
-    override fun onWindowHidden() {
-        keyboardView.keyboardVisible = false
-        super.onWindowHidden()
-    }
+    private var darkTheme: Boolean = Prefs.DEFAULT_DARK_THEME
 
-    override fun onWindowShown() {
-        keyboardView.keyboardVisible = true
-        super.onWindowShown()
-    }
+    private val swipeErasedContent: MutableList<String> = mutableListOf()
 
-    private var currentLayout: KeyboardLayout = SINGLISH
-        set(value) {
-            field = value
-            toggleWijesekaraLayoutButtons(value)
-            updateLangIndicator(value)
-            resetInputMarkers()
-            prefs.currentLayout = value.name
-        }
+    @DrawableRes
+    private var currentActionKeyIconRes: Int = -1
+    private var currentActionKeyAction: Int = ActionKeyAction.NEWLINE
+
+    private val keyboardLayoutEnglish: English by lazy { English() }
+    private val keyboardLayoutSinglish: Singlish by lazy { Singlish() }
+    private val keyboardLayoutWijesekara: Wijesekara by lazy { Wijesekara() }
+    private val keyboardLayoutSymbols: Symbols by lazy { Symbols() }
+
+    private var currentLayout: Int = -1
+    private var currentKeyboardLayout: BaseLayout = keyboardLayoutWijesekara
 
     private var symbols: Boolean = false
-        set(value) {
-            shift = false
-            field = value
 
-            keyboardView.showSymbols(value, currentLayout, symbolsMap)
-        }
+    private var hardwareInputViewBinding: HardwareInputViewBinding? = null
+    private lateinit var keyboardView: Keyboard
+    private var insetBottom: Int = 0
 
-    private lateinit var keyboardView: KeyboardView
-
-    private val isCurrentLayoutEnabled: Boolean
-        get() {
-            return when (currentLayout) {
-                ENGLISH -> prefs.layoutEnglish
-                WIJESEKARA -> prefs.layoutWijesekara
-                SINGLISH -> prefs.layoutSinglish
-            }
-        }
-
-    private val nextAvailableLayout: KeyboardLayout
-        get() {
-            return when (currentLayout) {
-                ENGLISH -> {
-                    when {
-                        prefs.layoutWijesekara -> WIJESEKARA
-                        prefs.layoutSinglish -> SINGLISH
-                        else -> ENGLISH
-                    }
-                }
-
-                WIJESEKARA -> {
-                    when {
-                        prefs.layoutSinglish -> SINGLISH
-                        prefs.layoutEnglish -> ENGLISH
-                        else -> WIJESEKARA
-                    }
-                }
-
-                SINGLISH -> {
-                    when {
-                        prefs.layoutEnglish -> ENGLISH
-                        prefs.layoutWijesekara -> WIJESEKARA
-                        else -> SINGLISH
-                    }
-                }
-            }
-        }
-
-    private var shiftLastPressed = 0L
+    private var keyDownEventHandler: (keyCode: Int, event: KeyEvent) -> Boolean? = { _, _ -> false }
+    private var keyCodeToCharCodeConverter: (keyCode: Int, isShiftPressed: Boolean) -> Int? = { _, _ -> null }
 
     private var shift = false
-        set(value) {
-            field = value
-            if (symbols)
-                keyboardView.showSymbols(
-                    symbolsVisibility = true,
-                    keyMap = if (value) symbolsMapShifted else symbolsMap,
-                    currentLayout = currentLayout
-                )
-            else {
-                keyboardView.buttonActionShift.setImageResource(if (field) R.drawable.ic_shift_pressed else R.drawable.ic_shift)
-            }
-        }
-
+    private var shiftLastPressed = 0L
     private var caps = false
 
     private var positionFlag: CharSequence = ""
     private var lastText: String = ""
-    private var lastChar: CHAR? = null
-    private var lastLetter: CHAR? = null
+    private var lastChar: Int? = null
+    private var lastLetter: Int? = null
 
     /* Without this, kombuva keeps going forward with each new letter in Wijesekara layout */
     private var kombuvaNew: Boolean = false
 
     override fun onCreate() {
-        prefs = Prefs(this)
         super.onCreate()
+        prefs = Prefs(this)
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
-        if (!::keyboardView.isInitialized)
-            setInputView(onCreateInputView())
-        if (!isCurrentLayoutEnabled)
-            currentLayout = nextAvailableLayout
-
-        if (darkTheme != prefs.darkTheme || keyBorders != prefs.keyBorders || heightPercentage != prefs.heightPercentage ||
-            swipeToErase != prefs.swipeToErase || swipeToMoveCursor != prefs.swipeToMoveCursor || textSize != prefs.textSize
-        ) setInputView(onCreateInputView())
+        darkTheme = prefs.darkTheme
 
         shift = false
         caps = false
         symbols = false
         resetInputMarkers()
-        currentLayout = KeyboardLayout.valueOf(prefs.currentLayout)
-        updateKeySet()
+        attribute?.let { editorInfo ->
+            val action: Int = editorInfo.imeOptions and EditorInfo.IME_MASK_ACTION
+            val isSingleLine: Boolean = editorInfo.inputType and EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE == 0
+
+            currentActionKeyAction = if (isSingleLine) when (action) {
+                EditorInfo.IME_ACTION_GO,
+                EditorInfo.IME_ACTION_SEARCH,
+                EditorInfo.IME_ACTION_NEXT,
+                EditorInfo.IME_ACTION_PREVIOUS -> ActionKeyAction.ORIGINAL
+
+                EditorInfo.IME_ACTION_SEND,
+                EditorInfo.IME_ACTION_DONE -> ActionKeyAction.ENTER
+
+                else -> ActionKeyAction.NEWLINE
+            } else ActionKeyAction.NEWLINE
+
+            currentActionKeyIconRes = if (isSingleLine) when (action) {
+                EditorInfo.IME_ACTION_GO,
+                EditorInfo.IME_ACTION_NEXT -> R.drawable.ic_keyboard_arrow_right
+
+                EditorInfo.IME_ACTION_SEARCH -> R.drawable.ic_search
+
+                EditorInfo.IME_ACTION_SEND -> R.drawable.ic_send
+
+                EditorInfo.IME_ACTION_DONE -> R.drawable.ic_check
+
+                EditorInfo.IME_ACTION_PREVIOUS -> R.drawable.ic_keyboard_arrow_left
+
+                else -> R.drawable.ic_keyboard_return
+            } else R.drawable.ic_keyboard_return
+        }
+        if (isLayoutEnabled(prefs.currentLayout)) {
+            setCurrentLayout(prefs.currentLayout)
+        } else {
+            switchToNextAvailableLayout()
+        }
+        updateNavigationBarTheme()
+
         super.onStartInput(attribute, restarting)
     }
 
-    private fun getImeAction() = currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION
+    override fun onCreateInputView(): View {
+        if (isHardwareKeyboardAvailable()) {
+            hardwareInputViewBinding = HardwareInputViewBinding.inflate(layoutInflater)
+
+            hardwareInputViewBinding?.root?.setBackgroundColor(prefs.colorBackground)
+            hardwareInputViewBinding?.layoutIndicatorContainer?.setBackgroundColor(prefs.colorKeyBorder)
+            hardwareInputViewBinding?.layoutIndicator?.setTextColor(prefs.colorText)
+            hardwareInputViewBinding?.layoutIndicator?.setBackgroundColor(prefs.colorBackground)
+            hardwareInputViewBinding?.helpTextLine1?.setTextColor(prefs.colorTextDim)
+            hardwareInputViewBinding?.helpTextLine2?.setTextColor(prefs.colorText)
+
+            ViewCompat.setOnApplyWindowInsetsListener(hardwareInputViewBinding!!.root) { _, windowInsets ->
+                insetBottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+                hardwareInputViewBinding!!.root.let {
+                    it.setPadding(it.paddingLeft, it.paddingTop, it.paddingRight, insetBottom)
+                }
+                WindowInsetsCompat.CONSUMED
+            }
+
+            return hardwareInputViewBinding!!.root
+        } else {
+            keyboardView = Keyboard(
+                context = this,
+                prefs = prefs,
+                eventListener = this,
+                insetBottom = insetBottom
+            )
+            updateKeySet()
+
+            ViewCompat.setOnApplyWindowInsetsListener(keyboardView) { _, windowInsets ->
+                insetBottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+                setInputView(onCreateInputView())
+                WindowInsetsCompat.CONSUMED
+            }
+
+            return keyboardView
+        }
+    }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
-        symbols = false
-        updateKeySet()
-        val isSingleLine: Boolean = currentInputEditorInfo.inputType and EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE == 0
-
-        val icon: Int
-
-        if (isSingleLine) when (getImeAction()) {
-            EditorInfo.IME_ACTION_GO -> {
-                icon = R.drawable.ic_keyboard_arrow_right
-                currentActionKeyAction = ActionKeyAction.ORIGINAL
-            }
-
-            EditorInfo.IME_ACTION_NEXT -> {
-                icon = R.drawable.ic_keyboard_arrow_right
-                currentActionKeyAction = ActionKeyAction.ORIGINAL
-            }
-
-            EditorInfo.IME_ACTION_SEARCH -> {
-                icon = R.drawable.ic_search
-                currentActionKeyAction = ActionKeyAction.ORIGINAL
-            }
-
-            EditorInfo.IME_ACTION_PREVIOUS -> {
-                icon = R.drawable.ic_keyboard_arrow_left
-                currentActionKeyAction = ActionKeyAction.ORIGINAL
-            }
-
-            EditorInfo.IME_ACTION_DONE -> {
-                icon = R.drawable.ic_check
-                currentActionKeyAction = ActionKeyAction.ENTER
-            }
-
-            EditorInfo.IME_ACTION_SEND -> {
-                icon = R.drawable.ic_send
-                currentActionKeyAction = ActionKeyAction.ENTER
-            }
-
-            else -> {
-                icon = R.drawable.ic_keyboard_return
-                currentActionKeyAction = ActionKeyAction.NEWLINE
-            }
-        } else {
-            icon = R.drawable.ic_keyboard_return
-            currentActionKeyAction = ActionKeyAction.NEWLINE
-        }
-
-        keyboardView.buttonActionAction.setImageResource(icon)
-
         super.onStartInputView(info, restarting)
+
+        switchSymbols(false)
+        updateKeySet()
     }
 
-    private fun toggleWijesekaraLayoutButtons(layout: KeyboardLayout) {
-        (layout == WIJESEKARA).let { isWijesekara ->
-            keyboardView.buttonSpecialComma.isVisible = isWijesekara.not()
-            keyboardView.buttonSpecialCommaWijesekara.isVisible = isWijesekara
-            keyboardView.buttonColon.isVisible = isWijesekara
-            keyboardView.viewBlank1.isVisible = isWijesekara.not()
-            keyboardView.viewBlank2.isVisible = isWijesekara.not()
+    private fun isHardwareKeyboardAvailable() = resources.configuration.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO
+
+    private fun setCurrentLayout(newCurrentLayout: Int) {
+        if (currentLayout != newCurrentLayout) {
+            currentLayout = newCurrentLayout
+            prefs.currentLayout = newCurrentLayout
+            resetInputMarkers()
+
+            if (newCurrentLayout == KeyboardLayoutId.WIJESEKARA) {
+                keyboardLayoutSymbols.setCustomRowBottom(keyboardLayoutWijesekara.wijesekaraSymbolsRowBottom)
+            } else {
+                keyboardLayoutSymbols.setCustomRowBottom(null)
+            }
+
+            currentKeyboardLayout = when (newCurrentLayout) {
+                KeyboardLayoutId.WIJESEKARA -> keyboardLayoutWijesekara
+                KeyboardLayoutId.SINGLISH -> keyboardLayoutSinglish
+                else -> keyboardLayoutEnglish
+            }
+            updateKeyDownEventHandlers(currentLayout)
         }
     }
 
-    private fun updateLangIndicator(layout: KeyboardLayout) {
-        keyboardView.setLangIndicator(
-            when (layout) {
-                ENGLISH -> "E"
-                WIJESEKARA -> "වි"
-                SINGLISH -> "සි"
+    private fun isLayoutEnabled(keyboardLayoutId: Int): Boolean = when (keyboardLayoutId) {
+        KeyboardLayoutId.ENGLISH -> prefs.layoutEnglish
+        KeyboardLayoutId.SINGLISH -> prefs.layoutSinglish
+        KeyboardLayoutId.WIJESEKARA -> prefs.layoutWijesekara
+        else -> false
+    }
+
+    private fun switchToNextAvailableLayout() {
+        setCurrentLayout(
+            when (currentLayout) {
+                KeyboardLayoutId.ENGLISH -> {
+                    when {
+                        prefs.layoutWijesekara -> KeyboardLayoutId.WIJESEKARA
+                        prefs.layoutSinglish -> KeyboardLayoutId.SINGLISH
+                        else -> KeyboardLayoutId.ENGLISH
+                    }
+                }
+
+                KeyboardLayoutId.WIJESEKARA -> {
+                    when {
+                        prefs.layoutSinglish -> KeyboardLayoutId.SINGLISH
+                        prefs.layoutEnglish -> KeyboardLayoutId.ENGLISH
+                        else -> KeyboardLayoutId.WIJESEKARA
+                    }
+                }
+
+                KeyboardLayoutId.SINGLISH -> {
+                    when {
+                        prefs.layoutEnglish -> KeyboardLayoutId.ENGLISH
+                        prefs.layoutWijesekara -> KeyboardLayoutId.WIJESEKARA
+                        else -> KeyboardLayoutId.SINGLISH
+                    }
+                }
+
+                else -> {
+                    KeyboardLayoutId.ENGLISH
+                }
             }
         )
     }
@@ -242,59 +250,26 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         lastLetter = null
     }
 
-    override fun onCreateInputView(): View {
-        darkTheme = prefs.darkTheme
-        keyBorders = prefs.keyBorders
-        heightPercentage = prefs.heightPercentage
-        swipeToErase = prefs.swipeToErase
-        swipeToMoveCursor = prefs.swipeToMoveCursor
-        textSize = prefs.textSize
-
-        val rowHeight: Int = ((48 * heightPercentage / 100) * Resources.getSystem().displayMetrics.density).toInt()
-
-        setTheme(darkTheme)
-        keyboardView = KeyboardView(this, this, this, rowHeight, darkTheme, keyBorders, swipeToErase, swipeToMoveCursor, textSize)
-        updateKeySet()
-        currentLayout.let { layout ->
-            toggleWijesekaraLayoutButtons(layout)
-            updateLangIndicator(layout)
-        }
-        return keyboardView
-    }
-
     private fun updateKeySet() {
-        keyboardView.setNumberKeys(
-            if (currentLayout == WIJESEKARA && !symbols)
-                keyLabelsNumbersWijesekara
-            else
-                keyLabelsNumbers
-        )
-        keyboardView.setLetterKeys(
-            if (currentLayout == WIJESEKARA && prefs.sinhalaKeyLabels && !symbols)
-                if (shift) keyLabelsLettersWijesekaraShifted
-                else keyLabelsLettersWijesekara
-            else if (symbols)
-                if (shift) symbolsMapShifted
-                else symbolsMap
-            else
-                if (shift) keyLabelsLettersEnglishShifted
-                else keyLabelsLettersEnglish
-        )
-        keyboardView.setSpecialKeys(
-            if (currentLayout == WIJESEKARA && !symbols) {
-                if (prefs.sinhalaKeyLabels)
-                    if (shift) keyLabelsSpecialWijesekaraSinhalaShifted
-                    else keyLabelsSpecialWijesekaraSinhala
-                else
-                    if (shift) keyLabelsSpecialWijesekaraShifted
-                    else keyLabelsSpecialWijesekara
-            } else keyLabelsSpecialEnglish
-        )
+        if (isHardwareKeyboardAvailable()) {
+            hardwareInputViewBinding?.layoutIndicator?.text = currentKeyboardLayout.indicator
+        } else {
+            keyboardView.setActionKeyIcon(currentActionKeyIconRes)
+            keyboardView.setRows(
+                if (symbols) {
+                    if (shift) keyboardLayoutSymbols.upper else keyboardLayoutSymbols.lower
+                } else {
+                    if (shift) currentKeyboardLayout.upper else currentKeyboardLayout.lower
+                }
+            )
+        }
     }
 
-    private fun setTheme(dark: Boolean) {
-        if (dark) {
-            window.window?.navigationBarColor = ResourcesCompat.getColor(resources, R.color.night_1, null)
+    private fun updateNavigationBarTheme() {
+        if (darkTheme) {
+            @Suppress("DEPRECATION")
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM)
+                window.window?.navigationBarColor = ResourcesCompat.getColor(resources, R.color.night_1, null)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
                 window.window?.insetsController?.systemBarsAppearance?.let { existingFlags ->
                     window.window?.insetsController?.setSystemBarsAppearance(
@@ -308,7 +283,9 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                     window.window?.decorView?.systemUiVisibility = existingFlags and SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
                 }
         } else {
-            window.window?.navigationBarColor = ResourcesCompat.getColor(resources, R.color.light_1, null)
+            @Suppress("DEPRECATION")
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM)
+                window.window?.navigationBarColor = ResourcesCompat.getColor(resources, R.color.light_1, null)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
                 window.window?.insetsController?.systemBarsAppearance?.let { existingFlags ->
                     window.window?.insetsController?.setSystemBarsAppearance(
@@ -325,77 +302,205 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         }
     }
 
+    override fun onEvaluateInputViewShown(): Boolean {
+        super.onEvaluateInputViewShown()
+        return true
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (event?.isCtrlPressed == false) {
+            if (event.isAltPressed && keyCode == KeyEvent.KEYCODE_I) {
+                currentInputConnection.clearMetaKeyStates(KeyEvent.META_ALT_ON)
+                switchToNextAvailableLayout()
+                updateKeySet()
+                return true
+            }
+
+            if (keyCode == KeyEvent.KEYCODE_DEL) {
+                backspaceClick()
+                return true
+            }
+
+            keyDownEventHandler(keyCode, event)?.let { return it }
+        }
+
+        return super.onKeyDown(keyCode, event)
+    }
+
+    private fun keyCodeToCharCodeWijesekara(keyCode: Int, isShiftPressed: Boolean): Int? =
+        if (isShiftPressed) when (keyCode) {
+            KeyEvent.KEYCODE_GRAVE -> CharCode.SIGN_REEPAYA
+            KeyEvent.KEYCODE_Q -> CharCode.DIGA_PAA_PILLA
+            KeyEvent.KEYCODE_W -> CharCode.UYANNA
+            KeyEvent.KEYCODE_E -> CharCode.DIGA_AEDA_PILLA
+            KeyEvent.KEYCODE_R -> CharCode.IRUYANNA
+            KeyEvent.KEYCODE_T -> CharCode.OYANNA
+            KeyEvent.KEYCODE_Y -> CharCode.TAALUJA_SAYANNA
+            KeyEvent.KEYCODE_U -> CharCode.AMBA_BAYANNA
+            KeyEvent.KEYCODE_I -> CharCode.MUURDHAJA_SAYANNA
+            KeyEvent.KEYCODE_O -> CharCode.MAHAAPRAANA_DAYANNA
+            KeyEvent.KEYCODE_P -> CharCode.MAHAAPRAANA_CAYANNA
+            KeyEvent.KEYCODE_LEFT_BRACKET -> CharCode.TAALUJA_SANYOOGA_NAAKSIKYAYA
+            KeyEvent.KEYCODE_RIGHT_BRACKET -> CharCode.COLON
+            KeyEvent.KEYCODE_A -> CharCode.GAYANUKITTA
+            KeyEvent.KEYCODE_S -> CharCode.DIGA_IS_PILLA
+            KeyEvent.KEYCODE_D -> CharCode.GAETTA_PILLA
+            KeyEvent.KEYCODE_F -> CharCode.FAYANNA
+            KeyEvent.KEYCODE_G -> CharCode.MAHAAPRAANA_TTAYANNA
+            KeyEvent.KEYCODE_H -> CharCode.SIGN_YANSHAYA
+            KeyEvent.KEYCODE_J -> CharCode.MUURDHAJA_LUYANNA
+            KeyEvent.KEYCODE_K -> CharCode.MUURDHAJA_NAYANNA
+            KeyEvent.KEYCODE_L -> CharCode.MAHAAPRAANA_KAYANNA
+            KeyEvent.KEYCODE_SEMICOLON -> CharCode.MAHAAPRAANA_TAYANNA
+            KeyEvent.KEYCODE_APOSTROPHE -> CharCode.COMMA
+            KeyEvent.KEYCODE_Z -> CharCode.QUOTATION_MARK
+            KeyEvent.KEYCODE_X -> CharCode.KANTAJA_NAASIKYAYA
+            KeyEvent.KEYCODE_C -> CharCode.MAHAAPRAANA_JAYANNA
+            KeyEvent.KEYCODE_V -> CharCode.MAHAAPRAANA_DDAYANNA
+            KeyEvent.KEYCODE_B -> CharCode.IIYANNA
+            KeyEvent.KEYCODE_N -> CharCode.MAHAAPRAANA_BAYANNA
+            KeyEvent.KEYCODE_M -> CharCode.MAHAAPRAANA_PAYANNA
+            KeyEvent.KEYCODE_COMMA -> CharCode.MUURDHAJA_LAYANNA
+            KeyEvent.KEYCODE_PERIOD -> CharCode.MAHAAPRAANA_GAYANNA
+            else -> null
+        } else when (keyCode) {
+            KeyEvent.KEYCODE_GRAVE -> CharCode.SIGN_RAKARANSHAYA
+            KeyEvent.KEYCODE_Q -> CharCode.KETTI_PAA_PILLA
+            KeyEvent.KEYCODE_W -> CharCode.AYANNA
+            KeyEvent.KEYCODE_E -> CharCode.KETTI_AEDA_PILLA
+            KeyEvent.KEYCODE_R -> CharCode.RAYANNA
+            KeyEvent.KEYCODE_T -> CharCode.EYANNA
+            KeyEvent.KEYCODE_Y -> CharCode.HAYANNA
+            KeyEvent.KEYCODE_U -> CharCode.MAYANNA
+            KeyEvent.KEYCODE_I -> CharCode.DANTAJA_SAYANNA
+            KeyEvent.KEYCODE_O -> CharCode.ALPAPRAANA_DAYANNA
+            KeyEvent.KEYCODE_P -> CharCode.ALPAPRAANA_CAYANNA
+            KeyEvent.KEYCODE_LEFT_BRACKET -> CharCode.TAALUJA_NAASIKYAYA
+            KeyEvent.KEYCODE_RIGHT_BRACKET -> CharCode.SEMICOLON
+            KeyEvent.KEYCODE_A -> CharCode.SIGN_AL_LAKUNA
+            KeyEvent.KEYCODE_S -> CharCode.KETTI_IS_PILLA
+            KeyEvent.KEYCODE_D -> CharCode.AELA_PILLA
+            KeyEvent.KEYCODE_F -> CharCode.KOMBUVA
+            KeyEvent.KEYCODE_G -> CharCode.ALPAPRAANA_TTAYANNA
+            KeyEvent.KEYCODE_H -> CharCode.YAYANNA
+            KeyEvent.KEYCODE_J -> CharCode.VAYANNA
+            KeyEvent.KEYCODE_K -> CharCode.DANTAJA_NAYANNA
+            KeyEvent.KEYCODE_L -> CharCode.ALPAPRAANA_KAYANNA
+            KeyEvent.KEYCODE_SEMICOLON -> CharCode.ALPAPRAANA_TAYANNA
+            KeyEvent.KEYCODE_APOSTROPHE -> CharCode.FULL_STOP
+            KeyEvent.KEYCODE_Z -> CharCode.APOSTROPHE
+            KeyEvent.KEYCODE_X -> CharCode.SIGN_ANUSVARAYA
+            KeyEvent.KEYCODE_C -> CharCode.ALPAPRAANA_JAYANNA
+            KeyEvent.KEYCODE_V -> CharCode.ALPAPRAANA_DDAYANNA
+            KeyEvent.KEYCODE_B -> CharCode.IYANNA
+            KeyEvent.KEYCODE_N -> CharCode.ALPAPRAANA_BAYANNA
+            KeyEvent.KEYCODE_M -> CharCode.ALPAPRAANA_PAYANNA
+            KeyEvent.KEYCODE_COMMA -> CharCode.DANTAJA_LAYANNA
+            KeyEvent.KEYCODE_PERIOD -> CharCode.ALPAPRAANA_GAYANNA
+            else -> null
+        }
+
+    private fun keyCodeToCharCodeSinglish(keyCode: Int, isShiftPressed: Boolean): Int? =
+        if (isShiftPressed) when (keyCode) {
+            KeyEvent.KEYCODE_Q -> CharCode.CAPITAL_LETTER_Q
+            KeyEvent.KEYCODE_W -> CharCode.CAPITAL_LETTER_W
+            KeyEvent.KEYCODE_E -> CharCode.CAPITAL_LETTER_E
+            KeyEvent.KEYCODE_R -> CharCode.CAPITAL_LETTER_R
+            KeyEvent.KEYCODE_T -> CharCode.CAPITAL_LETTER_T
+            KeyEvent.KEYCODE_Y -> CharCode.CAPITAL_LETTER_Y
+            KeyEvent.KEYCODE_U -> CharCode.CAPITAL_LETTER_U
+            KeyEvent.KEYCODE_I -> CharCode.CAPITAL_LETTER_I
+            KeyEvent.KEYCODE_O -> CharCode.CAPITAL_LETTER_O
+            KeyEvent.KEYCODE_P -> CharCode.CAPITAL_LETTER_P
+            KeyEvent.KEYCODE_A -> CharCode.CAPITAL_LETTER_A
+            KeyEvent.KEYCODE_S -> CharCode.CAPITAL_LETTER_S
+            KeyEvent.KEYCODE_D -> CharCode.CAPITAL_LETTER_D
+            KeyEvent.KEYCODE_F -> CharCode.CAPITAL_LETTER_F
+            KeyEvent.KEYCODE_G -> CharCode.CAPITAL_LETTER_G
+            KeyEvent.KEYCODE_H -> CharCode.CAPITAL_LETTER_H
+            KeyEvent.KEYCODE_J -> CharCode.CAPITAL_LETTER_J
+            KeyEvent.KEYCODE_K -> CharCode.CAPITAL_LETTER_K
+            KeyEvent.KEYCODE_L -> CharCode.CAPITAL_LETTER_L
+            KeyEvent.KEYCODE_Z -> CharCode.CAPITAL_LETTER_Z
+            KeyEvent.KEYCODE_X -> CharCode.CAPITAL_LETTER_X
+            KeyEvent.KEYCODE_C -> CharCode.CAPITAL_LETTER_C
+            KeyEvent.KEYCODE_V -> CharCode.CAPITAL_LETTER_V
+            KeyEvent.KEYCODE_B -> CharCode.CAPITAL_LETTER_B
+            KeyEvent.KEYCODE_N -> CharCode.CAPITAL_LETTER_N
+            KeyEvent.KEYCODE_M -> CharCode.CAPITAL_LETTER_M
+            else -> null
+        } else when (keyCode) {
+            KeyEvent.KEYCODE_Q -> CharCode.SMALL_LETTER_Q
+            KeyEvent.KEYCODE_W -> CharCode.SMALL_LETTER_W
+            KeyEvent.KEYCODE_E -> CharCode.SMALL_LETTER_E
+            KeyEvent.KEYCODE_R -> CharCode.SMALL_LETTER_R
+            KeyEvent.KEYCODE_T -> CharCode.SMALL_LETTER_T
+            KeyEvent.KEYCODE_Y -> CharCode.SMALL_LETTER_Y
+            KeyEvent.KEYCODE_U -> CharCode.SMALL_LETTER_U
+            KeyEvent.KEYCODE_I -> CharCode.SMALL_LETTER_I
+            KeyEvent.KEYCODE_O -> CharCode.SMALL_LETTER_O
+            KeyEvent.KEYCODE_P -> CharCode.SMALL_LETTER_P
+            KeyEvent.KEYCODE_A -> CharCode.SMALL_LETTER_A
+            KeyEvent.KEYCODE_S -> CharCode.SMALL_LETTER_S
+            KeyEvent.KEYCODE_D -> CharCode.SMALL_LETTER_D
+            KeyEvent.KEYCODE_F -> CharCode.SMALL_LETTER_F
+            KeyEvent.KEYCODE_G -> CharCode.SMALL_LETTER_G
+            KeyEvent.KEYCODE_H -> CharCode.SMALL_LETTER_H
+            KeyEvent.KEYCODE_J -> CharCode.SMALL_LETTER_J
+            KeyEvent.KEYCODE_K -> CharCode.SMALL_LETTER_K
+            KeyEvent.KEYCODE_L -> CharCode.SMALL_LETTER_L
+            KeyEvent.KEYCODE_Z -> CharCode.SMALL_LETTER_Z
+            KeyEvent.KEYCODE_X -> CharCode.SMALL_LETTER_X
+            KeyEvent.KEYCODE_C -> CharCode.SMALL_LETTER_C
+            KeyEvent.KEYCODE_V -> CharCode.SMALL_LETTER_V
+            KeyEvent.KEYCODE_B -> CharCode.SMALL_LETTER_B
+            KeyEvent.KEYCODE_N -> CharCode.SMALL_LETTER_N
+            KeyEvent.KEYCODE_M -> CharCode.SMALL_LETTER_M
+            else -> null
+        }
+
+    private fun updateKeyDownEventHandlers(keyboardLayoutId: Int) {
+        keyCodeToCharCodeConverter = this::keyCodeToCharCodeWijesekara
+        keyDownEventHandler = when (keyboardLayoutId) {
+            KeyboardLayoutId.WIJESEKARA -> { keyCode: Int, event: KeyEvent ->
+                keyCodeToCharCodeWijesekara(keyCode, event.isShiftPressed)?.let {
+                    wijesekaraInput(it)
+                    true
+                }
+            }
+
+            KeyboardLayoutId.SINGLISH -> { keyCode: Int, event: KeyEvent ->
+                keyCodeToCharCodeSinglish(keyCode, event.isShiftPressed)?.let {
+                    singlishInput(it)
+                    true
+                }
+            }
+
+            else -> { _, _ -> null }
+        }
+    }
+
+    private fun switchSymbols(newSymbolsState: Boolean) {
+        shift = false
+        symbols = newSymbolsState
+    }
+
     private fun shiftClick() {
-        if (shift && !symbols && Date().time - shiftLastPressed < 500)
+        if (shift && !symbols && Date().time - shiftLastPressed < DOUBLE_PRESS_TIME_RANGE) {
             caps = true
-        else {
+        } else {
             shiftLastPressed = Date().time
-            caps = false
-            shift = shift.not()
+            if (caps) {
+                caps = false
+            }
+            shift = !shift
             updateKeySet()
-        }
-    }
-
-    private fun symbolsInput(tag: String) {
-        if (shift)
-            symbolsMapShifted[tag]?.let { commitText(it) }
-        else
-            symbolsMap[tag]?.let { commitText(it) }
-    }
-
-    override fun letterOrSymbolClick(tag: String) {
-        if (symbols)
-            symbolsInput(tag)
-        else
-            (if (shift) tag.uppercase() else tag).let { char ->
-                when (currentLayout) {
-                    ENGLISH -> commitText(char)
-                    WIJESEKARA -> wijesekaraInput(char)
-                    SINGLISH -> singlishInput(char)
-                }
-            }
-    }
-
-    override fun numberClick(tag: String) {
-        when (currentLayout) {
-            ENGLISH, SINGLISH -> commitText(tag)
-            WIJESEKARA -> if (!symbols) wijesekaraInput(tag) else commitText(tag)
-        }
-    }
-
-    override fun specialClick(tag: String) {
-        when (currentLayout) {
-            WIJESEKARA -> when (tag) {
-                "44" -> {
-                    if (symbols) commitText(CHAR.COMMA.text)
-                    else wijesekaraInput(if (shift) CHAR.LESS_THAN.text else CHAR.COMMA.text)
-                }
-
-                "46" -> {
-                    if (symbols) commitText(CHAR.FULL_STOP.text)
-                    else wijesekaraInput(if (shift) CHAR.GREATER_THAN.text else CHAR.FULL_STOP.text)
-                }
-
-                "59" -> wijesekaraInput(if (shift) CHAR.COLON.text else CHAR.SEMICOLON.text)
-                else -> {
-                    lastText = ""
-                    commitText(tag.toInt())
-                }
-            }
-
-            SINGLISH -> {
-                lastChar = null
-                lastLetter = null
-                commitText(tag.toInt())
-            }
-
-            ENGLISH -> commitText(tag.toInt())
         }
     }
 
     private fun backspaceClick() {
         if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
-            when (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrElse(0) { ' ' }) {
+            when (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0)) {
                 'ෲ' -> eraseAndCommit("ෘ")
                 'ෛ' -> eraseAndCommit("ෙ")
                 'ො' -> eraseAndCommit("ෙ")
@@ -406,6 +511,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                 'ඎ' -> eraseAndCommit("ඍ")
                 'ඐ' -> eraseAndCommit("ඏ")
                 'ඒ' -> eraseAndCommit("එ")
+                'ඓ' -> eraseAndCommit("එ")
                 'ඕ', 'ඖ' -> eraseAndCommit("ඔ")
 
                 else -> erasePrevious()
@@ -416,28 +522,11 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
     }
 
     private fun clearLastTypedInfo() {
-        if (currentLayout == SINGLISH) {
-            lastLetter = null
-            lastChar = null
-        }
-        if (currentLayout == WIJESEKARA)
-            lastText = ""
-    }
-
-    override fun functionClick(type: Function) {
-        when (type) {
-            Function.ACTION -> actionClick()
-            Function.SHIFT -> shiftClick()
-            Function.LANG -> {
-                currentLayout = nextAvailableLayout
-                updateKeySet()
-            }
-
-            Function.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
-            Function.BACKSPACE -> backspaceClick()
-            Function.PANEL -> {
-                symbols = symbols.not()
-                updateKeySet()
+        when (currentLayout) {
+            KeyboardLayoutId.WIJESEKARA -> lastText = ""
+            KeyboardLayoutId.SINGLISH -> {
+                lastLetter = null
+                lastChar = null
             }
         }
     }
@@ -455,11 +544,9 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         }
     }
 
-    private fun commitText(code: Int) = commitText(Char(code))
-    private fun commitText(char: Char) = commitText(char.toString())
     private fun commitText(text: String) {
         currentInputConnection.commitText(text, 1)
-        positionFlag = currentInputConnection.getTextBeforeCursor(5, 0).toString()
+        positionFlag = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) ?: ""
         if (!caps && shift && !symbols) {
             shift = false
             updateKeySet()
@@ -483,7 +570,7 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
             currentInputConnection.deleteSurroundingText(count, 0)
         }
 
-        if (currentInputConnection.getTextBeforeCursor(1, 0) == CHAR.ZERO_WIDTH_JOINER.text) {
+        if (currentInputConnection.getTextBeforeCursor(1, 0) == CharText.ZERO_WIDTH_JOINER) {
             val erasedTextNested = erasePrevious(1, returnDeletedText)
             if (returnDeletedText) erasedText = erasedTextNested + erasedText
         }
@@ -495,114 +582,132 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         commitText(text)
     }
 
-    private fun wijesekaraInput(input: String) {
+    private fun wijesekaraInput(input: Int) {
         var erasePrevious = false
         var lastTextOverride: String? = null
-        var output = getWijesekaraChars(input)
 
         if (lastText.isBlank() or hasPositionChanged())
-            lastText = currentInputConnection.getTextBeforeCursor(1, 0)?.getOrElse(0) { ' ' }.toString()
+            lastText = (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0) ?: ' ').toString()
 
-
-        when (lastText) {
-            CHAR.AYANNA.text -> {
-                when (output) {
-                    CHAR.AELA_PILLA.text -> {
-                        output = CHAR.AAYANNA.text
+        val output: String = when (lastText) {
+            CharText.AYANNA -> {
+                when (input) {
+                    CharCode.AELA_PILLA -> {
                         erasePrevious = true
+                        CharText.AAYANNA
                     }
 
-                    CHAR.KETTI_AEDA_PILLA.text -> {
-                        output = CHAR.AEYANNA.text
+                    CharCode.KETTI_AEDA_PILLA -> {
                         erasePrevious = true
+                        CharText.AEYANNA
                     }
 
-                    CHAR.DIGA_AEDA_PILLA.text -> {
-                        output = CHAR.AEEYANNA.text
+                    CharCode.DIGA_AEDA_PILLA -> {
                         erasePrevious = true
+                        CharText.AEEYANNA
                     }
+
+                    else -> input.text
                 }
             }
 
-            CHAR.UYANNA.text ->
-                if (output == CHAR.GAYANUKITTA.text) {
-                    output = CHAR.UUYANNA.text
+            CharText.UYANNA ->
+                if (input == CharCode.GAYANUKITTA) {
                     erasePrevious = true
-                }
+                    CharText.UUYANNA
+                } else input.text
 
-            CHAR.IRUYANNA.text ->
-                if (output == CHAR.GAETTA_PILLA.text) {
-                    output = CHAR.IRUUYANNA.text
+            CharText.IRUYANNA ->
+                if (input == CharCode.GAETTA_PILLA) {
                     erasePrevious = true
-                }
+                    CharText.IRUUYANNA
+                } else input.text
 
-            CHAR.ILUYANNA.text ->
-                if (output == CHAR.GAYANUKITTA.text) {
-                    output = CHAR.ILUUYANNA.text
+            CharText.ILUYANNA ->
+                if (input == CharCode.GAYANUKITTA) {
                     erasePrevious = true
-                }
+                    CharText.ILUUYANNA
+                } else input.text
 
-            CHAR.EYANNA.text ->
-                if (output == CHAR.SIGN_AL_LAKUNA.text) {
-                    output = CHAR.EEYANNA.text
+            CharText.EYANNA ->
+                if (input == CharCode.SIGN_AL_LAKUNA) {
                     erasePrevious = true
-                }
+                    CharText.EEYANNA
+                } else input.text
 
-            CHAR.OYANNA.text -> {
-                if (output == CHAR.SIGN_AL_LAKUNA.text) {
-                    output = CHAR.OOYANNA.text
-                    erasePrevious = true
-                } else if (output == CHAR.GAYANUKITTA.text) {
-                    output = CHAR.AUYANNA.text
-                    erasePrevious = true
+            CharText.OYANNA -> {
+                when (input) {
+                    CharCode.SIGN_AL_LAKUNA -> {
+                        erasePrevious = true
+                        CharText.OOYANNA
+                    }
+
+                    CharCode.GAYANUKITTA -> {
+                        erasePrevious = true
+                        CharText.AUYANNA
+                    }
+
+                    else -> input.text
                 }
             }
 
-            CHAR.KOMBUVA.text -> {
+            CharText.KOMBUVA -> {
                 if (kombuvaNew) {
                     erasePrevious = true
-                    if ((getCharType(output) == CharType.SWARA || getCharType(output) == CharType.WYANJANA)) {
-                        lastTextOverride = CHAR.KOMBUVA.text
-                        output += CHAR.KOMBUVA.text
-                    } else {
-                        when (output) {
-                            CHAR.EYANNA.text -> output = CHAR.AIYANNA.text
-                            CHAR.KOMBUVA.text -> output = CHAR.KOMBU_DEKA.text
-                            CHAR.SIGN_AL_LAKUNA.text -> output = CHAR.DIGA_KOMBUVA.text
-                            CHAR.AELA_PILLA.text -> output = CHAR.KOMBUVA_HAA_AELA_PILLA.text
-                            CHAR.GAYANUKITTA.text -> output = CHAR.KOMBUVA_HAA_GAYANUKITTA.text
+                    when (input.type) {
+                        CharType.SWARA,
+                        CharType.WYANJANA -> {
+                            lastTextOverride = CharText.KOMBUVA
+                            if (input == CharCode.EYANNA)
+                                CharText.AIYANNA
+                            else
+                                input.text + CharText.KOMBUVA
+                        }
+
+                        else -> {
+                            when (input) {
+                                CharCode.KOMBUVA -> CharText.KOMBU_DEKA
+                                CharCode.SIGN_AL_LAKUNA -> CharText.DIGA_KOMBUVA
+                                CharCode.AELA_PILLA -> CharText.KOMBUVA_HAA_AELA_PILLA
+                                CharCode.GAYANUKITTA -> CharText.KOMBUVA_HAA_GAYANUKITTA
+                                else -> input.text
+                            }
                         }
                     }
-                } else if (output == CHAR.SIGN_RAKARANSHAYA.text) {
+                } else if (input == CharCode.SIGN_RAKARANSHAYA) {
                     erasePrevious = true
-                    output = CHAR.SIGN_RAKARANSHAYA.text + CHAR.KOMBUVA.text
-                    lastTextOverride = CHAR.KOMBUVA.text
-                }
+                    lastTextOverride = CharText.KOMBUVA
+                    CharText.SIGN_RAKARANSHAYA + CharText.KOMBUVA
+                } else input.text
             }
 
-            CHAR.KOMBUVA_HAA_AELA_PILLA.text -> {
-                if (output == CHAR.SIGN_AL_LAKUNA.text) {
-                    output = CHAR.KOMBUVA_HAA_DIGA_AELA_PILLA.text
+            CharText.KOMBUVA_HAA_AELA_PILLA -> {
+                if (input == CharCode.SIGN_AL_LAKUNA) {
                     erasePrevious = true
-                }
+                    CharText.KOMBUVA_HAA_DIGA_AELA_PILLA
+                } else input.text
             }
 
-            CHAR.KOMBU_DEKA.text -> {
-                if ((getCharType(output) == CharType.SWARA || getCharType(output) == CharType.WYANJANA)) {
-                    output += CHAR.KOMBU_DEKA.text
-                    erasePrevious = true
+            CharText.KOMBU_DEKA -> {
+                when (input.type) {
+                    CharType.SWARA, CharType.WYANJANA -> {
+                        erasePrevious = true
+                        input.text + CharText.KOMBU_DEKA
+                    }
+
+                    else -> input.text
                 }
             }
 
             else -> {
-                if (output == CHAR.SIGN_REEPAYA.text) {
-                    output = CHAR.SIGN_REEPAYA.text + lastText
+                if (input == CharCode.SIGN_REEPAYA) {
                     erasePrevious = true
-                }
+                    CharText.SIGN_REEPAYA + lastText
+                } else input.text
             }
         }
 
-        kombuvaNew = output == CHAR.KOMBUVA.text
+        kombuvaNew = output == CharText.KOMBUVA
 
         if (erasePrevious)
             eraseAndCommit(output)
@@ -612,197 +717,185 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         lastText = lastTextOverride ?: output
     }
 
-    private fun getCombinedWijesekaraChars(input: String): String? = when (input) {
-        "J" -> CHAR.MUURDHAJA_LAYANNA.text + CHAR.KETTI_PAA_PILLA.text
-        else -> null
-    }
+    private fun hasPositionChanged(): Boolean = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) != positionFlag
 
-    private fun getWijesekaraChars(input: String): String =
-        wijesekaraMap[input]?.text ?: getCombinedWijesekaraChars(input) ?: input
-
-    private fun hasPositionChanged(): Boolean =
-        currentInputConnection.getTextBeforeCursor(5, 0) != positionFlag
-
-    private fun singlishInput(input: String) {
+    private fun singlishInput(input: Int) {
         var output = ""
         var erasePreviousChars = 0
-        var mLastChar: CHAR? = null
-        var mLastLetter: CHAR? = null
-        var tLastChar: CHAR? = null
-        var tLastLetter: CHAR? = null
+
+        var tLastChar: Int? = null
+
+        var tLastLetter: Int? = null
+
+        val mLastChar: Int?
+
+        val mLastLetter: Int?
 
         if (!hasPositionChanged()) {
             mLastChar = lastChar
             mLastLetter = lastLetter
+        } else {
+            mLastChar = null
+            mLastLetter = null
         }
 
         lastChar = null
         lastLetter = null
 
-        var singlishChar: CHAR = getSinglishChars(input) ?: CHAR.EMPTY
+        var singlishChar: Int = input.toSinglish()
 
         fun newLetter() {
             output = singlishChar.text
             if (singlishChar.type == CharType.WYANJANA) {
-                output += CHAR.SIGN_AL_LAKUNA.text
-                tLastChar = CHAR.SIGN_AL_LAKUNA
+                output += CharText.SIGN_AL_LAKUNA
+                tLastChar = CharCode.SIGN_AL_LAKUNA
             }
         }
 
         if (mLastChar == null) {
-            if (input == "z" || input == "Z") tLastChar = CHAR.MARK_SANYAKA
-            else newLetter()
+            when (input) {
+                CharCode.SMALL_LETTER_Z,
+                CharCode.CAPITAL_LETTER_Z ->
+                    tLastChar = CharCode.MARK_SANYAKA
+
+                else ->
+                    newLetter()
+            }
         } else {
             when {
-                input == "z" || input == "Z" -> tLastChar = CHAR.MARK_SANYAKA
+                input == CharCode.SMALL_LETTER_Z || input == CharCode.CAPITAL_LETTER_Z -> tLastChar = CharCode.MARK_SANYAKA
+
                 mLastChar.type == CharType.WYANJANA ->
-                    when (singlishChar.code) {
-                        CHAR.AYANNA.code -> output = CHAR.AELA_PILLA.text
-                        CHAR.IYANNA.code -> output = CHAR.KOMBU_DEKA.text
-                        CHAR.UYANNA.code -> output = CHAR.KOMBUVA_HAA_GAYANUKITTA.text
+                    when (singlishChar) {
+                        CharCode.AYANNA -> output = CharText.AELA_PILLA
+                        CharCode.IYANNA -> output = CharText.KOMBU_DEKA
+                        CharCode.UYANNA -> output = CharText.KOMBUVA_HAA_GAYANUKITTA
                         else -> newLetter()
                     }
 
-                mLastChar.code == CHAR.SIGN_AL_LAKUNA.code -> {
-                    when (singlishChar.code) {
-                        CHAR.AYANNA.code -> {
+                mLastChar == CharCode.SIGN_AL_LAKUNA -> {
+                    when (singlishChar) {
+                        CharCode.AYANNA -> {
                             erasePreviousChars = 1
                             tLastChar = mLastLetter
                         }
 
-                        CHAR.RAYANNA.code -> {
-                            output =
-                                CHAR.ZERO_WIDTH_JOINER.text + CHAR.RAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
-                            tLastChar = CHAR.SIGN_AL_LAKUNA
+                        CharCode.RAYANNA -> {
+                            output = CharText.ZERO_WIDTH_JOINER + CharText.RAYANNA + CharText.SIGN_AL_LAKUNA
+                            tLastChar = CharCode.SIGN_AL_LAKUNA
                         }
 
-                        CHAR.YAYANNA.code -> {
-                            output =
-                                CHAR.ZERO_WIDTH_JOINER.text + CHAR.YAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
-                            tLastChar = CHAR.SIGN_AL_LAKUNA
+                        CharCode.YAYANNA -> {
+                            output = CharText.ZERO_WIDTH_JOINER + CharText.YAYANNA + CharText.SIGN_AL_LAKUNA
+                            tLastChar = CharCode.SIGN_AL_LAKUNA
                         }
 
-                        CHAR.HAYANNA.code -> {
+                        CharCode.HAYANNA -> {
                             if (mLastLetter != null) {
-                                when (mLastLetter.code) {
-                                    CHAR.ALPAPRAANA_TTAYANNA.code -> {
-                                        output =
-                                            CHAR.ALPAPRAANA_TAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                when (mLastLetter) {
+                                    CharCode.ALPAPRAANA_TTAYANNA -> {
+                                        output = CharText.ALPAPRAANA_TAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.ALPAPRAANA_TAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.ALPAPRAANA_TAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.MAHAAPRAANA_TTAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_TAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.MAHAAPRAANA_TTAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_TAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_TAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_TAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_DDAYANNA.code -> {
-                                        output =
-                                            CHAR.ALPAPRAANA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_DDAYANNA -> {
+                                        output = CharText.ALPAPRAANA_DAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.ALPAPRAANA_DAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.ALPAPRAANA_DAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.MAHAAPRAANA_DDAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.MAHAAPRAANA_DDAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_DAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_DAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_DAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_KAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_KAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_KAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_KAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_KAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_KAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_GAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_GAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_GAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_GAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_GAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_GAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_CAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_CAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_CAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_CAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_CAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_CAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_JAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_JAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_JAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_JAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_JAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_JAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_TAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_TAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_TAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_TAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_TAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_TAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_DAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_DAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_DAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_DAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_DAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_PAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_PAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_PAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_PAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_PAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_PAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.ALPAPRAANA_BAYANNA.code -> {
-                                        output =
-                                            CHAR.MAHAAPRAANA_BAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.ALPAPRAANA_BAYANNA -> {
+                                        output = CharText.MAHAAPRAANA_BAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MAHAAPRAANA_BAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MAHAAPRAANA_BAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.DANTAJA_SAYANNA.code -> {
-                                        output =
-                                            CHAR.TAALUJA_SAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.DANTAJA_SAYANNA -> {
+                                        output = CharText.TAALUJA_SAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.TAALUJA_SAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.TAALUJA_SAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.SANYAKA_DDAYANNA.code -> {
-                                        output =
-                                            CHAR.SANYAKA_DAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.SANYAKA_DDAYANNA -> {
+                                        output = CharText.SANYAKA_DAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.SANYAKA_DAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.SANYAKA_DAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
-                                    CHAR.MUURDHAJA_SAYANNA.code -> {
-                                        output =
-                                            CHAR.MUURDHAJA_SAYANNA.text + CHAR.SIGN_AL_LAKUNA.text
+                                    CharCode.MUURDHAJA_SAYANNA -> {
+                                        output = CharText.MUURDHAJA_SAYANNA + CharText.SIGN_AL_LAKUNA
                                         erasePreviousChars = 2
-                                        tLastLetter = CHAR.MUURDHAJA_SAYANNA
-                                        tLastChar = CHAR.SIGN_AL_LAKUNA
+                                        tLastLetter = CharCode.MUURDHAJA_SAYANNA
+                                        tLastChar = CharCode.SIGN_AL_LAKUNA
                                     }
 
                                     else -> newLetter()
@@ -814,16 +907,12 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                             when (singlishChar.type) {
                                 CharType.SWARA -> {
                                     if (mLastLetter != null) {
-                                        if (singlishChar.code == CHAR.AYANNA.code)
-                                            erasePreviousChars = 1
-                                        else {
-                                            swaraSignMap[singlishChar.code].let { sign ->
-                                                if (sign != null) {
-                                                    output += sign.text
-                                                    tLastChar = sign
-                                                    erasePreviousChars = 1
-                                                } else output = singlishChar.text
-                                            }
+                                        getSwaraSigns(singlishChar).let { sign ->
+                                            if (sign != null) {
+                                                output += sign.text
+                                                tLastChar = sign
+                                                erasePreviousChars = 1
+                                            } else output = singlishChar.text
                                         }
                                     } else output = singlishChar.text
                                 }
@@ -835,55 +924,56 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                 }
 
                 mLastChar.type == CharType.PILI -> {
-                    when {
-                        mLastChar.code == CHAR.KETTI_AEDA_PILLA.code && singlishChar.code == CHAR.AYANNA.code -> {
-                            output = CHAR.DIGA_AEDA_PILLA.text
+                    when (mLastChar) {
+                        CharCode.KETTI_AEDA_PILLA if singlishChar == CharCode.AYANNA -> {
+                            output = CharText.DIGA_AEDA_PILLA
                             erasePreviousChars = 1
-                            tLastChar = CHAR.DIGA_AEDA_PILLA
+                            tLastChar = CharCode.DIGA_AEDA_PILLA
                         }
 
-                        mLastChar.code == CHAR.KETTI_IS_PILLA.code && singlishChar.code == CHAR.IYANNA.code -> {
-                            output = CHAR.DIGA_IS_PILLA.text
+                        CharCode.KETTI_IS_PILLA if singlishChar == CharCode.IYANNA -> {
+                            output = CharText.DIGA_IS_PILLA
                             erasePreviousChars = 1
-                            tLastChar = CHAR.DIGA_IS_PILLA
+                            tLastChar = CharCode.DIGA_IS_PILLA
                         }
 
-                        mLastChar.code == CHAR.KETTI_PAA_PILLA.code && singlishChar.code == CHAR.UYANNA.code -> {
-                            output = CHAR.DIGA_PAA_PILLA.text
+                        CharCode.KETTI_PAA_PILLA if singlishChar == CharCode.UYANNA -> {
+                            output = CharText.DIGA_PAA_PILLA
                             erasePreviousChars = 1
-                            tLastChar = CHAR.DIGA_PAA_PILLA
+                            tLastChar = CharCode.DIGA_PAA_PILLA
                         }
 
-                        mLastChar.code == CHAR.GAETTA_PILLA.code && singlishChar.code == CHAR.IYANNA.code -> {
-                            output = CHAR.DIGA_GAETTA_PILLA.text
+                        CharCode.GAETTA_PILLA if singlishChar == CharCode.IYANNA -> {
+                            output = CharText.DIGA_GAETTA_PILLA
                             erasePreviousChars = 1
-                            tLastChar = CHAR.DIGA_GAETTA_PILLA
+                            tLastChar = CharCode.DIGA_GAETTA_PILLA
                         }
 
-                        mLastChar.code == CHAR.KOMBUVA.code && singlishChar.code == CHAR.EYANNA.code -> {
-                            output = CHAR.DIGA_KOMBUVA.text
+                        CharCode.KOMBUVA if singlishChar == CharCode.EYANNA -> {
+                            output = CharText.DIGA_KOMBUVA
                             erasePreviousChars = 1
-                            tLastChar = CHAR.DIGA_KOMBUVA
+                            tLastChar = CharCode.DIGA_KOMBUVA
                         }
 
-                        mLastChar.code == CHAR.KOMBUVA_HAA_AELA_PILLA.code && singlishChar.code == CHAR.OYANNA.code -> {
-                            output = CHAR.KOMBUVA_HAA_DIGA_AELA_PILLA.text
+                        CharCode.KOMBUVA_HAA_AELA_PILLA if singlishChar == CharCode.OYANNA -> {
+                            output = CharText.KOMBUVA_HAA_DIGA_AELA_PILLA
                             erasePreviousChars = 1
-                            tLastChar = CHAR.KOMBUVA_HAA_DIGA_AELA_PILLA
+                            tLastChar = CharCode.KOMBUVA_HAA_DIGA_AELA_PILLA
                         }
 
                         else -> newLetter()
                     }
                 }
 
-                mLastChar.code == CHAR.MARK_SANYAKA.code -> {
-                    when (singlishChar.code) {
-                        CHAR.ALPAPRAANA_KAYANNA.code -> singlishChar = CHAR.TAALUJA_NAASIKYAYA
-                        CHAR.ALPAPRAANA_GAYANNA.code -> singlishChar = CHAR.SANYAKA_GAYANNA
-                        CHAR.ALPAPRAANA_JAYANNA.code -> singlishChar = CHAR.SANYAKA_JAYANNA
-                        CHAR.ALPAPRAANA_DDAYANNA.code -> singlishChar = CHAR.SANYAKA_DDAYANNA
-                        CHAR.ALPAPRAANA_BAYANNA.code -> singlishChar = CHAR.AMBA_BAYANNA
-                        CHAR.HAYANNA.code -> singlishChar = CHAR.TAALUJA_SANYOOGA_NAAKSIKYAYA
+                mLastChar == CharCode.MARK_SANYAKA -> {
+                    when (singlishChar) {
+                        CharCode.ALPAPRAANA_KAYANNA -> singlishChar = CharCode.TAALUJA_NAASIKYAYA
+                        CharCode.ALPAPRAANA_GAYANNA -> singlishChar = CharCode.SANYAKA_GAYANNA
+                        CharCode.ALPAPRAANA_JAYANNA -> singlishChar = CharCode.SANYAKA_JAYANNA
+                        CharCode.ALPAPRAANA_DDAYANNA -> singlishChar = CharCode.SANYAKA_DDAYANNA
+                        CharCode.ALPAPRAANA_BAYANNA -> singlishChar = CharCode.AMBA_BAYANNA
+                        CharCode.HAYANNA -> singlishChar = CharCode.TAALUJA_SANYOOGA_NAAKSIKYAYA
+                        else -> {}
                     }
                     newLetter()
                 }
@@ -891,75 +981,75 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
                 else -> {
                     if (mLastLetter != null) {
                         when (mLastLetter) {
-                            CHAR.AYANNA -> {
-                                when (singlishChar.code) {
-                                    CHAR.AYANNA.code -> {
-                                        output = CHAR.AAYANNA.text
+                            CharCode.AYANNA -> {
+                                when (singlishChar) {
+                                    CharCode.AYANNA -> {
+                                        output = CharText.AAYANNA
                                         erasePreviousChars = 1
-                                        tLastLetter = CHAR.AAYANNA
+                                        tLastLetter = CharCode.AAYANNA
                                     }
 
-                                    CHAR.IYANNA.code -> {
-                                        output = CHAR.AIYANNA.text
+                                    CharCode.IYANNA -> {
+                                        output = CharText.AIYANNA
                                         erasePreviousChars = 1
-                                        tLastLetter = CHAR.AIYANNA
+                                        tLastLetter = CharCode.AIYANNA
                                     }
 
-                                    CHAR.UYANNA.code -> {
-                                        output = CHAR.AUYANNA.text
+                                    CharCode.UYANNA -> {
+                                        output = CharText.AUYANNA
                                         erasePreviousChars = 1
-                                        tLastLetter = CHAR.AUYANNA
+                                        tLastLetter = CharCode.AUYANNA
                                     }
 
                                     else -> newLetter()
                                 }
                             }
 
-                            CHAR.AEYANNA -> {
-                                if (singlishChar.code == CHAR.AYANNA.code) {
-                                    output = CHAR.AEEYANNA.text
+                            CharCode.AEYANNA -> {
+                                if (singlishChar == CharCode.AYANNA) {
+                                    output = CharText.AEEYANNA
                                     erasePreviousChars = 1
-                                    tLastLetter = CHAR.AEEYANNA
+                                    tLastLetter = CharCode.AEEYANNA
                                 } else newLetter()
                             }
 
-                            CHAR.IYANNA -> {
-                                if (singlishChar.code == CHAR.IYANNA.code) {
-                                    output = CHAR.IIYANNA.text
+                            CharCode.IYANNA -> {
+                                if (singlishChar == CharCode.IYANNA) {
+                                    output = CharText.IIYANNA
                                     erasePreviousChars = 1
-                                    tLastLetter = CHAR.IIYANNA
+                                    tLastLetter = CharCode.IIYANNA
                                 } else newLetter()
                             }
 
-                            CHAR.UYANNA -> {
-                                if (singlishChar.code == CHAR.UYANNA.code) {
-                                    output = CHAR.UUYANNA.text
+                            CharCode.UYANNA -> {
+                                if (singlishChar == CharCode.UYANNA) {
+                                    output = CharText.UUYANNA
                                     erasePreviousChars = 1
-                                    tLastLetter = CHAR.UUYANNA
+                                    tLastLetter = CharCode.UUYANNA
                                 } else newLetter()
                             }
 
-                            CHAR.IRUYANNA -> {
-                                if (singlishChar.code == CHAR.IYANNA.code) {
-                                    output = CHAR.IRUUYANNA.text
+                            CharCode.IRUYANNA -> {
+                                if (singlishChar == CharCode.IYANNA) {
+                                    output = CharText.IRUUYANNA
                                     erasePreviousChars = 1
-                                    tLastLetter = CHAR.IRUUYANNA
+                                    tLastLetter = CharCode.IRUUYANNA
                                 } else newLetter()
                             }
 
-                            CHAR.EYANNA -> {
-                                if (singlishChar.code == CHAR.EYANNA.code) {
-                                    output = CHAR.EEYANNA.text
+                            CharCode.EYANNA -> {
+                                if (singlishChar == CharCode.EYANNA) {
+                                    output = CharText.EEYANNA
                                     erasePreviousChars = 1
-                                    tLastLetter = CHAR.EEYANNA
+                                    tLastLetter = CharCode.EEYANNA
                                 } else newLetter()
                             }
 
-                            CHAR.OYANNA -> {
-                                if (singlishChar.code == CHAR.OYANNA.code) {
-                                    output = CHAR.OOYANNA.text
+                            CharCode.OYANNA -> {
+                                if (singlishChar == CharCode.OYANNA) {
+                                    output = CharText.OOYANNA
                                     erasePreviousChars = 1
-                                    tLastLetter = CHAR.OOYANNA
+                                    tLastLetter = CharCode.OOYANNA
                                 } else newLetter()
                             }
 
@@ -978,32 +1068,72 @@ class InputMethodService : InputMethodService(), KeyboardView.ClickListener, Key
         lastChar = tLastChar ?: tLastLetter ?: singlishChar
     }
 
-    private fun getSinglishChars(input: String): CHAR? = singlishMap[input]
+    override fun onClickEvent(value: Int) {
+        when {
+            value < 0 -> when (value) {
+                Action.ACTION -> actionClick()
+                Action.BACKSPACE -> backspaceClick()
+                Action.EMOJI -> {}
+                Action.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
+                Action.LANG -> {
+                    switchToNextAvailableLayout()
+                    updateKeySet()
+                }
 
-    override fun eraseDo() {
+                Action.SHIFT -> shiftClick()
+                Action.SYMBOLS -> {
+                    switchSymbols(!symbols)
+                    updateKeySet()
+                }
+            }
+
+            symbols -> {
+                val x = value.text
+                commitText(x)
+            }
+
+            else -> when (currentLayout) {
+                KeyboardLayoutId.ENGLISH -> commitText(value.text)
+                KeyboardLayoutId.WIJESEKARA -> wijesekaraInput(value)
+                KeyboardLayoutId.SINGLISH -> singlishInput(value)
+            }
+        }
+    }
+
+    override fun swipeErase() {
         val erasedText = erasePrevious(1, true)
         swipeErasedContent.add(0, erasedText)
     }
 
-    override fun eraseUndo() {
-        if (swipeErasedContent.size > 0) {
+    override fun swipeEraseUndo() {
+        if (!swipeErasedContent.isEmpty()) {
             val erasedText = swipeErasedContent[0]
             commitText(erasedText)
             swipeErasedContent.removeAt(0)
         }
     }
 
-    override fun eraseDone() {
-        swipeErasedContent.clear()
+    override fun swipeMoveLeft() {
+        if (!currentInputConnection.getTextBeforeCursor(1, 0).isNullOrEmpty())
+            currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
     }
 
-    override fun moveRight() {
+    override fun swipeMoveRight() {
         if (!currentInputConnection.getTextAfterCursor(1, 0).isNullOrEmpty())
             currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
     }
 
-    override fun moveLeft() {
-        if (!currentInputConnection.getTextBeforeCursor(1, 0).isNullOrEmpty())
-            currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
+    companion object {
+        private const val POSITION_FLAG_LENGTH: Int = 5
+        private const val DOUBLE_PRESS_TIME_RANGE: Long = 500
+    }
+
+    @Retention(AnnotationRetention.SOURCE)
+    private annotation class ActionKeyAction {
+        companion object {
+            const val ENTER: Int = 1
+            const val NEWLINE: Int = 2
+            const val ORIGINAL: Int = 3
+        }
     }
 }

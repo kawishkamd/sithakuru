@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">Sithakuru</string>
     <string name="app_name_si">සිතකුරු</string>
     <string name="enable_help_step_2">2. එහි \'%s\' නමින් ඇති යතුරු පුවරුව සක්‍රිය කරන්න.</string>
