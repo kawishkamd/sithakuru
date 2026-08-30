@@ -18,6 +18,8 @@ android {
             proguardFiles("proguard-rules.pro")
         }
     }
+    flavorDimensions += "app_id"
+    productFlavors { create("sithakuru") }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
