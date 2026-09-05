@@ -32,79 +32,6 @@
         android:padding="12dp">
 
         <LinearLayout
-            android:id="@+id/flavor_help"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="#f57f7f"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="vertical"
-            android:padding="8dp"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:background="@color/light_1"
-                android:gravity="center_horizontal"
-                android:padding="8dp"
-                android:text="නව නිකුතු ලබා ගැනීම"
-                android:textColor="@color/night_1"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:padding="4dp"
-                android:text="සිතකුරු යෙදුමේ මෙම ප්‍රභේදය සඳහා නව නිකුතු ලැබීම ඉදිරියේදී නවනිනු ඇත."
-                android:textColor="@color/night_1"
-                android:textSize="16sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:padding="4dp"
-                android:text="නව නිකුතු ලබා ගැනීම සඳහා නව සිතකුරු යෙදුම ස්ථාපනය කරගන්න."
-                android:textColor="@color/night_1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:padding="4dp"
-                android:text="නව යෙදුමේ F-Droid පිටුව වෙත යොමු වීමට පහත බොත්තම ඔබන්න."
-                android:textColor="@color/night_1"
-                android:textSize="16sp" />
-
-            <Button
-                android:id="@+id/new_fdroid_page_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/blue"
-                android:text="F-Droid පිටුව වෙත යන්න"
-                android:textColor="@color/light_1"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="4dp"
-                android:text="@string/fdroid_link_text"
-                android:textColor="@color/night_1"
-                android:textSize="12sp" />
-
-        </LinearLayout>
-
-
-        <LinearLayout
             android:id="@+id/enable_help"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -154,10 +81,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="4dp"
-                tools:text="@string/enable_help_step_2"
                 android:textColor="@color/light_1"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:text="@string/enable_help_step_2" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -283,6 +210,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
             android:paddingVertical="8dp"
             android:text="English"
             android:textColor="@color/light_1"
@@ -293,6 +221,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
             android:paddingVertical="8dp"
             android:text="@string/wijesekara"
             android:textColor="@color/light_1"
@@ -303,6 +232,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
             android:paddingVertical="8dp"
             android:text="@string/singlish"
             android:textColor="@color/light_1"
@@ -319,32 +249,24 @@
             android:textStyle="bold" />
 
         <Switch
-            android:id="@+id/switch_dark"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="4dp"
-            android:paddingVertical="8dp"
-            android:text="අඳුරු වර්ණ"
-            android:textColor="@color/light_1"
-            android:textSize="16sp" />
-
-        <Switch
             android:id="@+id/switch_border"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
             android:paddingVertical="8dp"
             android:text="යතුරු මායිම්"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
         <Switch
-            android:id="@+id/sinhala_labels"
+            android:id="@+id/long_press_keys_labels"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="සිංහල යතුරු (විජේසේකර)"
+            android:text="ඔබාගෙන සිටීමෙන් ලිවිය හැකි අකුරු"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -415,16 +337,323 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="8dp"
             android:gravity="center_horizontal"
+            android:text="යතුරු පුවරුවේ වර්ණ"
+            android:textColor="@color/light_1"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/colors_radio_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/colors_night"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/night_2"
+                android:buttonTint="@color/light_1"
+                android:minHeight="48dp"
+                android:text="අඳුර"
+                android:textColor="@color/light_1" />
+
+            <RadioButton
+                android:id="@+id/colors_light"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/light_1"
+                android:buttonTint="@color/night_1"
+                android:minHeight="48dp"
+                android:text="එළිය"
+                android:textColor="@color/night_1"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/colors_custom"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@color/yellow"
+                android:buttonTint="@color/blue"
+                android:minHeight="48dp"
+                android:text="සිතැඟි"
+                android:textColor="@color/blue"
+                android:textStyle="bold" />
+
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:labelFor="@id/color_background"
+                android:text="පුවරුවේ පසුබිම"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/color_square_border"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/color_background"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    tools:background="?background" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:labelFor="@id/color_pressed_key_background"
+                android:text="යතුරු එබීමේදී පසුබිම"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/color_square_border"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/color_pressed_key_background"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    tools:background="?foreground_2" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:labelFor="@id/color_long_pressed_key_background"
+                android:text="යතුරු ඔබාගෙන සිටීමේදී පසුබිම"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/color_square_border"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/color_long_pressed_key_background"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    tools:background="?accent" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:labelFor="@id/color_key_border"
+                android:text="යතුරුවල මායිම"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/color_square_border"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/color_key_border"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    tools:background="?foreground_2" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:labelFor="@id/color_text"
+                android:text="අකුරු, ඉලක්කම්, සංකේත"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/color_square_border"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/color_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    tools:background="?foreground" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:labelFor="@id/color_text_dim"
+                android:text="අප්‍රධාන අකුරු/සංකේත"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/color_square_border"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/color_text_dim"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    tools:background="?foreground_2" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:labelFor="@id/color_text_long_press"
+                android:text="ඔබාගෙන සිටීමෙන් ලියන අකුරු"
+                android:textColor="@color/light_1"
+                android:textSize="16sp" />
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/color_square_border"
+                android:padding="4dp">
+
+                <Button
+                    android:id="@+id/color_text_long_press"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    tools:background="?foreground" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <Switch
+            android:id="@+id/switch_dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="පද්ධතියේ තීරු සඳහා අඳුරු වර්ණ"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="8dp"
+            android:gravity="center_horizontal"
             android:text="යතුරු පුවරුවේ හැසිරීම"
             android:textColor="@color/light_1"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <Switch
+            android:id="@+id/long_press_keys"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="ඔබාගෙන සිටීමෙන් අකුරු ලිවීම"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <Switch
             android:id="@+id/swipe_to_erase"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
             android:paddingVertical="8dp"
             android:text="ඇදගෙන යාමෙන් මැකීම"
             android:textColor="@color/light_1"
@@ -435,6 +664,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
             android:paddingVertical="8dp"
             android:text="ඇදගෙන යාමෙන් ලියන තැන වෙනස් කිරීම"
             android:textColor="@color/light_1"

@@ -1,0 +1,10 @@
+[versions]
+agp = "9.3.2"
+#noinspection GradleDependency
+core = "1.17.0"
+
+[libraries]
+androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
