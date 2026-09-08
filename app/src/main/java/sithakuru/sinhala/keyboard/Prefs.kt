@@ -19,6 +19,8 @@ package sithakuru.sinhala.keyboard
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.ColorRes
+import androidx.core.content.res.ResourcesCompat
 import sithakuru.sinhala.keyboard.data.KeyboardLayoutId
 
 class Prefs(context: Context) {
@@ -104,6 +106,43 @@ class Prefs(context: Context) {
         get() = preferences.getInt(KEY_CURRENT_LAYOUT, KeyboardLayoutId.WIJESEKARA)
         set(value) = preferences.edit().putInt(KEY_CURRENT_LAYOUT, value).apply()
 
+    private var colorsMigrated: Boolean
+        get() = preferences.getBoolean(KEY_COLORS_MIGRATED, false)
+        set(value) = preferences.edit().putBoolean(KEY_COLORS_MIGRATED, value).apply()
+
+    init {
+        fun Context.getColorInt(@ColorRes id: Int) = ResourcesCompat.getColor(resources, id, null)
+        if (!colorsMigrated) {
+            if (darkTheme) {
+                colorBackground = context.getColorInt(R.color.night_1)
+                colorPressedKeyBackground = context.getColorInt(R.color.night_2)
+                colorLongPressedKeyBackground = context.getColorInt(R.color.yellow)
+                colorKeyBorder = context.getColorInt(R.color.night_2)
+                colorText = context.getColorInt(R.color.light_1)
+                colorTextDim = context.getColorInt(R.color.night_2)
+                colorTextLongPress = context.getColorInt(R.color.light_1)
+            } else {
+                colorBackground = context.getColorInt(R.color.light_1)
+                colorPressedKeyBackground = context.getColorInt(R.color.light_2)
+                colorLongPressedKeyBackground = context.getColorInt(R.color.blue)
+                colorKeyBorder = context.getColorInt(R.color.light_2)
+                colorText = context.getColorInt(R.color.night_1)
+                colorTextDim = context.getColorInt(R.color.light_2)
+                colorTextLongPress = context.getColorInt(R.color.night_1)
+            }
+
+            colorCustomBackground = colorBackground
+            colorCustomPressedKeyBackground = colorPressedKeyBackground
+            colorCustomLongPressedKeyBackground = colorLongPressedKeyBackground
+            colorCustomKeyBorder = colorKeyBorder
+            colorCustomText = colorText
+            colorCustomTextDim = colorTextDim
+            colorCustomTextLongPress = colorTextLongPress
+
+            colorsMigrated = true
+        }
+    }
+
     companion object {
         private const val KEY_ENGLISH = "LAYOUT_ENGLISH"
         private const val KEY_WIJESEKARA = "LAYOUT_WIJESEKARA"
@@ -114,6 +153,7 @@ class Prefs(context: Context) {
         private const val KEY_HEIGHT_PERCENTAGE = "HEIGHT_PERCENTAGE"
         private const val KEY_TEXT_SIZE = "TEXT_SIZE"
 
+        private const val KEY_COLORS_MIGRATED = "COLORS_MIGRATED"
         private const val KEY_COLOR_BACKGROUND = "COLOR_BACKGROUND"
         private const val KEY_COLOR_PRESSED_KEY_BACKGROUND = "COLOR_PRESSED_KEY_BACKGROUND"
         private const val KEY_COLOR_LONG_PRESSED_KEY_BACKGROUND = "COLOR_LONG_PRESSED_KEY_BACKGROUND"
