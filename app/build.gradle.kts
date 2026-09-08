@@ -9,8 +9,8 @@ android {
         applicationId = "sithakuru.sinhala.keyboard"
         minSdk = 21
         targetSdk = 37
-        versionCode = 12
-        versionName = "1.2.0"
+        versionCode = 20
+        versionName = "2.0.0"
     }
     buildTypes {
         release {
