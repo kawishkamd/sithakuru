@@ -1,6 +1,8 @@
 # සිතකුරු
 **නිදහස් සිංහල යතුරු පුවරුව**
 
+ස්මාට් දුරකථන, ටැබ් ඇතුළු සියලු Android උපකරණවල සිංහලෙන ලිවීම සඳහා විසඳුමක්.
+
 ### ලබාගන්න
 <a href="https://f-droid.org/packages/sithakuru.sinhala.keyboard/" rel="noopener noreferrer nofollow"><img src="get-it-on.png" width="250"></a>
 
