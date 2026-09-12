@@ -6,6 +6,8 @@
 ### ලබාගන්න
 <a href="https://f-droid.org/packages/sithakuru.sinhala.keyboard/" rel="noopener noreferrer nofollow"><img src="get-it-on.png" width="250"></a>
 
+### විකල්ප ස්ථාපනය
+apk ගොනුව ලබාගෙන ස්ථාපනය කරගන්න https://codeberg.org/sinhala/sithakuru/releases/download/2.0.0/Sithakuru_2.0.0.apk
 ### යතුරු පුවරු මාදිළි
 - විජේසේකර
 - සිංග්‍රීසි
