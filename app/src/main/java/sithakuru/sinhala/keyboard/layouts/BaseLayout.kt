@@ -25,7 +25,7 @@ import sithakuru.sinhala.keyboard.CharCode
 import sithakuru.sinhala.keyboard.CharText
 import sithakuru.sinhala.keyboard.datatype.KeyData
 
-abstract class BaseLayout(val indicator: String) {
+abstract class BaseLayout(val indicator: String, val showEmojiKey: Boolean = true) {
     abstract val lower: Map<Int, List<KeyData>>
     abstract val upper: Map<Int, List<KeyData>>
 
@@ -41,19 +41,29 @@ abstract class BaseLayout(val indicator: String) {
         KeyData(CharCode.NINE, CharText.NINE),
         KeyData(CharCode.ZERO, CharText.ZERO)
     )
-    internal val rowBottom: MutableList<KeyData> = mutableListOf(
-        Action.SYMBOLS.toKeyData(label = "#!", dim = true),
-        // Todo: Action.EMOJI.toKeyData(label = ":)", dim = true),
-        Action.LANG.toKeyData(label = indicator, dim = true),
-        KeyData(CharCode.COMMA, CharText.COMMA),
-        KeyData(
-            KeyInputData(CharCode.SPACE, null, R.drawable.ic_space_bar),
-            widthMultiplier = 5f,
-            popupInputData = Action.IME.toKeyInputData()
-        ),
-        KeyData(CharCode.FULL_STOP, CharText.FULL_STOP),
-        Action.ACTION.toKeyData()
-    )
+    internal val rowBottom: MutableList<KeyData> = mutableListOf<KeyData>().apply {
+        add(Action.SYMBOLS.toKeyData(label = "#!", dim = true))
+        if (showEmojiKey) {
+            add(Action.EMOJI.toKeyData(iconRes = R.drawable.ic_emoji, dim = true))
+        }
+        add(Action.LANG.toKeyData(label = indicator, dim = true))
+        add(
+            KeyData(
+                CharCode.COMMA,
+                CharText.COMMA,
+                popupInputData = if (!showEmojiKey) Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji) else null
+            )
+        )
+        add(
+            KeyData(
+                KeyInputData(CharCode.SPACE, null, R.drawable.ic_space_bar),
+                widthMultiplier = if (showEmojiKey) 4f else 5f,
+                popupInputData = Action.IME.toKeyInputData()
+            )
+        )
+        add(KeyData(CharCode.FULL_STOP, CharText.FULL_STOP))
+        add(Action.ACTION.toKeyData())
+    }
 
     internal fun @receiver:Action Int.toKeyInputData(label: String? = null, @DrawableRes iconRes: Int? = null, dim: Boolean = false) =
         KeyInputData(this, label = label, iconRes = iconRes, dim = dim)

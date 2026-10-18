@@ -260,6 +260,17 @@
             android:textSize="16sp" />
 
         <Switch
+            android:id="@+id/switch_emoji"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="ඉමෝජි යතුර"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <Switch
             android:id="@+id/long_press_keys_labels"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

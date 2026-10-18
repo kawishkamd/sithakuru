@@ -313,7 +313,7 @@ class Keyboard(
             for (keyIndex in row.value.indices) {
                 val keyData = row.value[keyIndex]
 
-                if (row.key == 5 && keyIndex == 5)
+                if (keyData.inputData.value == Action.ACTION)
                     keyData.inputData.iconRes = currentActionButtonIcon
 
                 if (longPressKeys) {

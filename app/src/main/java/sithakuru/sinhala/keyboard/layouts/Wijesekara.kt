@@ -24,7 +24,7 @@ import sithakuru.sinhala.keyboard.CharText
 import sithakuru.sinhala.keyboard.datatype.KeyData
 import sithakuru.sinhala.keyboard.datatype.KeyInputData
 
-class Wijesekara : BaseLayout(indicator = "වි") {
+class Wijesekara(showEmojiKey: Boolean = true) : BaseLayout(indicator = "වි", showEmojiKey = showEmojiKey) {
     override val lower = mutableMapOf(
         1 to listOf(
             KeyData(CharCode.SIGN_RAKARANSHAYA, CharText.SIGN_RAKARANSHAYA),
@@ -151,10 +151,7 @@ class Wijesekara : BaseLayout(indicator = "වි") {
             ),
             Action.BACKSPACE.toKeyData(iconRes = R.drawable.ic_backspace, widthMultiplier = 1.5F)
         ),
-        5 to listOf(
-            rowBottom[0],
-            rowBottom[1],
-            rowBottom[3],
+        5 to createWijesekaraRowBottom(
             KeyData(
                 CharCode.DANTAJA_LAYANNA, CharText.DANTAJA_LAYANNA,
                 popupInputData = KeyInputData(CharCode.MUURDHAJA_LAYANNA, CharText.MUURDHAJA_LAYANNA)
@@ -162,8 +159,7 @@ class Wijesekara : BaseLayout(indicator = "වි") {
             KeyData(
                 CharCode.ALPAPRAANA_GAYANNA, CharText.ALPAPRAANA_GAYANNA,
                 popupInputData = KeyInputData(CharCode.MAHAAPRAANA_GAYANNA, CharText.MAHAAPRAANA_GAYANNA)
-            ),
-            rowBottom[5]
+            )
         )
     )
 
@@ -204,21 +200,45 @@ class Wijesekara : BaseLayout(indicator = "වි") {
             KeyData(CharCode.MAHAAPRAANA_PAYANNA, CharText.MAHAAPRAANA_PAYANNA),
             Action.BACKSPACE.toKeyData(iconRes = R.drawable.ic_backspace, widthMultiplier = 1.5F)
         ),
-        5 to listOf(
-            rowBottom[0],
-            rowBottom[1],
-            rowBottom[3],
+        5 to createWijesekaraRowBottom(
             KeyData(CharCode.MUURDHAJA_LAYANNA, CharText.MUURDHAJA_LAYANNA),
-            KeyData(CharCode.MAHAAPRAANA_GAYANNA, CharText.MAHAAPRAANA_GAYANNA),
-            rowBottom[5]
+            KeyData(CharCode.MAHAAPRAANA_GAYANNA, CharText.MAHAAPRAANA_GAYANNA)
         )
     )
 
-    val wijesekaraSymbolsRowBottom: MutableList<KeyData> = mutableListOf<KeyData>()
-        .apply { addAll(rowBottom) }
-        .apply {
-            set(1, KeyData(CharCode.SOLIDUS, CharText.SOLIDUS))
-            add(4, rowBottom[2])
-            removeAt(2)
+    private fun createWijesekaraRowBottom(key1: KeyData, key2: KeyData): MutableList<KeyData> = mutableListOf<KeyData>().apply {
+        add(Action.SYMBOLS.toKeyData(label = "#!", dim = true))
+        if (showEmojiKey) {
+            add(Action.EMOJI.toKeyData(iconRes = R.drawable.ic_emoji, dim = true))
         }
+        add(Action.LANG.toKeyData(label = indicator, dim = true))
+        add(
+            KeyData(
+                KeyInputData(CharCode.SPACE, null, R.drawable.ic_space_bar),
+                widthMultiplier = if (showEmojiKey) 4f else 5f,
+                popupInputData = Action.IME.toKeyInputData()
+            )
+        )
+        add(key1)
+        add(key2)
+        add(Action.ACTION.toKeyData())
+    }
+
+    val wijesekaraSymbolsRowBottom: MutableList<KeyData> = mutableListOf<KeyData>().apply {
+        add(Action.SYMBOLS.toKeyData(label = "#!", dim = true))
+        if (showEmojiKey) {
+            add(Action.EMOJI.toKeyData(iconRes = R.drawable.ic_emoji, dim = true))
+        }
+        add(KeyData(CharCode.SOLIDUS, CharText.SOLIDUS))
+        add(
+            KeyData(
+                KeyInputData(CharCode.SPACE, null, R.drawable.ic_space_bar),
+                widthMultiplier = if (showEmojiKey) 4f else 5f,
+                popupInputData = Action.IME.toKeyInputData()
+            )
+        )
+        add(KeyData(CharCode.COMMA, CharText.COMMA))
+        add(KeyData(CharCode.FULL_STOP, CharText.FULL_STOP))
+        add(Action.ACTION.toKeyData())
+    }
 }

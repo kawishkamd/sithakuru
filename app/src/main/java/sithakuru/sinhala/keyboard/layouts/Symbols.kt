@@ -23,9 +23,12 @@ import sithakuru.sinhala.keyboard.CharCode
 import sithakuru.sinhala.keyboard.CharText
 import sithakuru.sinhala.keyboard.datatype.KeyData
 
-class Symbols : BaseLayout(indicator = "#!") {
+class Symbols(showEmojiKey: Boolean = true) : BaseLayout(indicator = "#!", showEmojiKey = showEmojiKey) {
     init {
-        rowBottom.apply { set(1, KeyData(CharCode.SOLIDUS, CharText.SOLIDUS)) }
+        val langIndex = rowBottom.indexOfFirst { it.inputData.value == Action.LANG }
+        if (langIndex != -1) {
+            rowBottom[langIndex] = KeyData(CharCode.SOLIDUS, CharText.SOLIDUS)
+        }
     }
 
     override val lower = mutableMapOf(

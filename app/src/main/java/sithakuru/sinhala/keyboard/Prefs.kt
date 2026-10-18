@@ -102,6 +102,24 @@ class Prefs(context: Context) {
         get() = preferences.getBoolean(KEY_SWIPE_TO_MOVE_CURSOR, DEFAULT_SWIPE_TO_MOVE_CURSOR)
         set(value) = preferences.edit().putBoolean(KEY_SWIPE_TO_MOVE_CURSOR, value).apply()
 
+    var emojiKey: Boolean
+        get() = preferences.getBoolean(KEY_EMOJI_KEY, DEFAULT_EMOJI_KEY)
+        set(value) = preferences.edit().putBoolean(KEY_EMOJI_KEY, value).apply()
+
+    var recentEmojis: List<String>
+        get() {
+            val raw = preferences.getString(KEY_RECENT_EMOJIS, "") ?: ""
+            return if (raw.isBlank()) emptyList() else raw.split("\n")
+        }
+        set(value) = preferences.edit().putString(KEY_RECENT_EMOJIS, value.joinToString("\n")).apply()
+
+    fun addRecentEmoji(emoji: String) {
+        val list = recentEmojis.toMutableList()
+        list.remove(emoji)
+        list.add(0, emoji)
+        recentEmojis = if (list.size > MAX_RECENT_EMOJIS) list.take(MAX_RECENT_EMOJIS) else list
+    }
+
     var currentLayout: Int
         get() = preferences.getInt(KEY_CURRENT_LAYOUT, KeyboardLayoutId.WIJESEKARA)
         set(value) = preferences.edit().putInt(KEY_CURRENT_LAYOUT, value).apply()
@@ -174,6 +192,8 @@ class Prefs(context: Context) {
         private const val KEY_SWIPE_TO_ERASE = "SWIPE_TO_ERASE"
         private const val KEY_SWIPE_TO_MOVE_CURSOR = "SWIPE_TO_MOVE_CURSOR"
         private const val KEY_CURRENT_LAYOUT = "CURRENT_LAYOUT"
+        private const val KEY_EMOJI_KEY = "EMOJI_KEY"
+        private const val KEY_RECENT_EMOJIS = "RECENT_EMOJIS"
 
         const val DEFAULT_DARK_THEME = true
         const val DEFAULT_KEY_BORDERS = true
@@ -183,5 +203,7 @@ class Prefs(context: Context) {
         const val DEFAULT_LONG_PRESS_KEYS = false
         const val DEFAULT_SWIPE_TO_ERASE = true
         const val DEFAULT_SWIPE_TO_MOVE_CURSOR = true
+        const val DEFAULT_EMOJI_KEY = true
+        const val MAX_RECENT_EMOJIS = 30
     }
 }

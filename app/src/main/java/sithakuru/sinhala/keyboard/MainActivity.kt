@@ -129,6 +129,7 @@ class MainActivity : Activity() {
         binding.switchSinglish.isChecked = prefs.layoutSinglish
         binding.switchDark.isChecked = prefs.darkTheme
         binding.switchBorder.isChecked = prefs.keyBorders
+        binding.switchEmoji.isChecked = prefs.emojiKey
         binding.longPressKeysLabels.isChecked = prefs.longPressKeysLabels
         binding.longPressKeys.isChecked = prefs.longPressKeys
         binding.swipeToErase.isChecked = prefs.swipeToErase
@@ -170,6 +171,10 @@ class MainActivity : Activity() {
         }
         binding.switchBorder.setOnCheckedChangeListener { _, isChecked ->
             prefs.keyBorders = isChecked
+            settingsChanged = true
+        }
+        binding.switchEmoji.setOnCheckedChangeListener { _, isChecked ->
+            prefs.emojiKey = isChecked
             settingsChanged = true
         }
         binding.longPressKeysLabels.setOnCheckedChangeListener { _, isChecked ->

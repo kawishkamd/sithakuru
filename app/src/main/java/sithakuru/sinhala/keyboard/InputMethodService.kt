@@ -26,6 +26,7 @@ import android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
@@ -51,10 +52,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var currentActionKeyIconRes: Int = -1
     private var currentActionKeyAction: Int = ActionKeyAction.NEWLINE
 
-    private val keyboardLayoutEnglish: English by lazy { English() }
-    private val keyboardLayoutSinglish: Singlish by lazy { Singlish() }
-    private val keyboardLayoutWijesekara: Wijesekara by lazy { Wijesekara() }
-    private val keyboardLayoutSymbols: Symbols by lazy { Symbols() }
+    private val keyboardLayoutEnglish: English by lazy { English(showEmojiKey = prefs.emojiKey) }
+    private val keyboardLayoutSinglish: Singlish by lazy { Singlish(showEmojiKey = prefs.emojiKey) }
+    private val keyboardLayoutWijesekara: Wijesekara by lazy { Wijesekara(showEmojiKey = prefs.emojiKey) }
+    private val keyboardLayoutSymbols: Symbols by lazy { Symbols(showEmojiKey = prefs.emojiKey) }
 
     private var currentLayout: Int = -1
     private var currentKeyboardLayout: BaseLayout = keyboardLayoutWijesekara
@@ -62,7 +63,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var symbols: Boolean = false
 
     private var hardwareInputViewBinding: HardwareInputViewBinding? = null
+    private lateinit var inputViewContainer: FrameLayout
     private lateinit var keyboardView: Keyboard
+    private var emojiView: EmojiView? = null
     private var insetBottom: Int = 0
 
     private var keyDownEventHandler: (keyCode: Int, event: KeyEvent) -> Boolean? = { _, _ -> false }
@@ -154,6 +157,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
             return hardwareInputViewBinding!!.root
         } else {
+            inputViewContainer = FrameLayout(this)
             keyboardView = Keyboard(
                 context = this,
                 prefs = prefs,
@@ -161,20 +165,22 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 insetBottom = insetBottom
             )
             updateKeySet()
+            inputViewContainer.addView(keyboardView)
 
-            ViewCompat.setOnApplyWindowInsetsListener(keyboardView) { _, windowInsets ->
+            ViewCompat.setOnApplyWindowInsetsListener(inputViewContainer) { _, windowInsets ->
                 insetBottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
                 setInputView(onCreateInputView())
                 WindowInsetsCompat.CONSUMED
             }
 
-            return keyboardView
+            return inputViewContainer
         }
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
 
+        hideEmojiView()
         switchSymbols(false)
         updateKeySet()
     }
@@ -308,6 +314,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK && emojiView?.visibility == View.VISIBLE) {
+            hideEmojiView()
+            return true
+        }
+
         if (event?.isCtrlPressed == false) {
             if (event.isAltPressed && keyCode == KeyEvent.KEYCODE_I) {
                 currentInputConnection.clearMetaKeyStates(KeyEvent.META_ALT_ON)
@@ -477,6 +488,47 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             }
 
             else -> { _, _ -> null }
+        }
+    }
+
+    private fun showEmojiView() {
+        if (emojiView == null) {
+            emojiView = EmojiView(
+                context = this,
+                prefs = prefs,
+                eventListener = object : EmojiView.EventListener {
+                    override fun onEmojiClick(emoji: String) {
+                        commitText(emoji)
+                        prefs.addRecentEmoji(emoji)
+                        emojiView?.updateRecents()
+                    }
+
+                    override fun onBackToKeyboard() {
+                        hideEmojiView()
+                    }
+
+                    override fun onBackspaceClick() {
+                        backspaceClick()
+                    }
+
+                    override fun onSpaceClick() {
+                        commitText(" ")
+                    }
+                },
+                insetBottom = insetBottom
+            )
+            inputViewContainer.addView(emojiView)
+        } else {
+            emojiView?.updateRecents()
+        }
+        keyboardView.visibility = View.GONE
+        emojiView?.visibility = View.VISIBLE
+    }
+
+    private fun hideEmojiView() {
+        emojiView?.visibility = View.GONE
+        if (::keyboardView.isInitialized) {
+            keyboardView.visibility = View.VISIBLE
         }
     }
 
@@ -1073,7 +1125,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             value < 0 -> when (value) {
                 Action.ACTION -> actionClick()
                 Action.BACKSPACE -> backspaceClick()
-                Action.EMOJI -> {}
+                Action.EMOJI -> showEmojiView()
                 Action.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
                 Action.LANG -> {
                     switchToNextAvailableLayout()

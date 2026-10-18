@@ -17,4 +17,4 @@
 
 package sithakuru.sinhala.keyboard.layouts
 
-class Singlish : English(indicator = "සි")
+class Singlish(showEmojiKey: Boolean = true) : English(indicator = "සි", showEmojiKey = showEmojiKey)
