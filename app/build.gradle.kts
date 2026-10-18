@@ -16,6 +16,7 @@ android {
         release {
             optimization { enable = true }
             proguardFiles("proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     flavorDimensions += "app_id"
