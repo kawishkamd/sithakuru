@@ -291,10 +291,15 @@ class Keyboard(
                 row.value[keyIndex].rect = RectF(previousKeyRight, keyTop, keyRight, keyBottom)
 
                 row.value[keyIndex].data.inputData.iconRes?.let {
-                    val iconDrawable = resources.getDrawable(it, drawableTheme)
-                    iconDrawable.setTint(colorText)
-                    iconDrawable.bounds = row.value[keyIndex].iconRect()
-                    row.value[keyIndex].data.inputData.iconDrawable = iconDrawable
+                    if (it > 0) {
+                        try {
+                            val iconDrawable = resources.getDrawable(it, drawableTheme)
+                            iconDrawable.setTint(colorText)
+                            iconDrawable.bounds = row.value[keyIndex].iconRect()
+                            row.value[keyIndex].data.inputData.iconDrawable = iconDrawable
+                        } catch (_: Exception) {
+                        }
+                    }
                 }
 
                 previousKeyRight = keyRight
@@ -304,7 +309,9 @@ class Keyboard(
     }
 
     fun setActionKeyIcon(@DrawableRes iconRes: Int) {
-        currentActionButtonIcon = iconRes
+        if (iconRes > 0) {
+            currentActionButtonIcon = iconRes
+        }
     }
 
     fun setRows(rows: Map<Int, List<KeyData>>) {
@@ -313,7 +320,7 @@ class Keyboard(
             for (keyIndex in row.value.indices) {
                 val keyData = row.value[keyIndex]
 
-                if (keyData.inputData.value == Action.ACTION)
+                if (keyData.inputData.value == Action.ACTION && (currentActionButtonIcon ?: -1) > 0)
                     keyData.inputData.iconRes = currentActionButtonIcon
 
                 if (longPressKeys) {

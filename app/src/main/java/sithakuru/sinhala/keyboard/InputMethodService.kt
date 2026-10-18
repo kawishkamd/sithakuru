@@ -49,16 +49,16 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private val swipeErasedContent: MutableList<String> = mutableListOf()
 
     @DrawableRes
-    private var currentActionKeyIconRes: Int = -1
+    private var currentActionKeyIconRes: Int = R.drawable.ic_keyboard_return
     private var currentActionKeyAction: Int = ActionKeyAction.NEWLINE
 
-    private val keyboardLayoutEnglish: English by lazy { English(showEmojiKey = prefs.emojiKey) }
-    private val keyboardLayoutSinglish: Singlish by lazy { Singlish(showEmojiKey = prefs.emojiKey) }
-    private val keyboardLayoutWijesekara: Wijesekara by lazy { Wijesekara(showEmojiKey = prefs.emojiKey) }
-    private val keyboardLayoutSymbols: Symbols by lazy { Symbols(showEmojiKey = prefs.emojiKey) }
+    private lateinit var keyboardLayoutEnglish: English
+    private lateinit var keyboardLayoutSinglish: Singlish
+    private lateinit var keyboardLayoutWijesekara: Wijesekara
+    private lateinit var keyboardLayoutSymbols: Symbols
 
     private var currentLayout: Int = -1
-    private var currentKeyboardLayout: BaseLayout = keyboardLayoutWijesekara
+    private lateinit var currentKeyboardLayout: BaseLayout
 
     private var symbols: Boolean = false
 
@@ -86,6 +86,29 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(this)
+        currentActionKeyIconRes = R.drawable.ic_keyboard_return
+        initKeyboardLayouts()
+        currentKeyboardLayout = keyboardLayoutWijesekara
+    }
+
+    private fun initKeyboardLayouts() {
+        val showEmoji = prefs.emojiKey
+        keyboardLayoutEnglish = English(showEmojiKey = showEmoji)
+        keyboardLayoutSinglish = Singlish(showEmojiKey = showEmoji)
+        keyboardLayoutWijesekara = Wijesekara(showEmojiKey = showEmoji)
+        keyboardLayoutSymbols = Symbols(showEmojiKey = showEmoji)
+        if (currentLayout == KeyboardLayoutId.WIJESEKARA) {
+            keyboardLayoutSymbols.setCustomRowBottom(keyboardLayoutWijesekara.wijesekaraSymbolsRowBottom)
+        } else {
+            keyboardLayoutSymbols.setCustomRowBottom(null)
+        }
+        if (::currentKeyboardLayout.isInitialized) {
+            currentKeyboardLayout = when (currentLayout) {
+                KeyboardLayoutId.WIJESEKARA -> keyboardLayoutWijesekara
+                KeyboardLayoutId.SINGLISH -> keyboardLayoutSinglish
+                else -> keyboardLayoutEnglish
+            }
+        }
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
@@ -95,6 +118,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         caps = false
         symbols = false
         resetInputMarkers()
+        initKeyboardLayouts()
         attribute?.let { editorInfo ->
             val action: Int = editorInfo.imeOptions and EditorInfo.IME_MASK_ACTION
             val isSingleLine: Boolean = editorInfo.inputType and EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE == 0
@@ -125,6 +149,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
                 else -> R.drawable.ic_keyboard_return
             } else R.drawable.ic_keyboard_return
+        } ?: run {
+            currentActionKeyAction = ActionKeyAction.NEWLINE
+            currentActionKeyIconRes = R.drawable.ic_keyboard_return
         }
         if (isLayoutEnabled(prefs.currentLayout)) {
             setCurrentLayout(prefs.currentLayout)
@@ -157,6 +184,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
             return hardwareInputViewBinding!!.root
         } else {
+            emojiView = null
             inputViewContainer = FrameLayout(this)
             keyboardView = Keyboard(
                 context = this,
@@ -492,6 +520,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun showEmojiView() {
+        if (isHardwareKeyboardAvailable()) return
+        if (!::inputViewContainer.isInitialized || !::keyboardView.isInitialized) return
+
         if (emojiView == null) {
             emojiView = EmojiView(
                 context = this,
