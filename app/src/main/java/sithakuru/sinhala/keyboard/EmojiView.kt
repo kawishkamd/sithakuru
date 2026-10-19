@@ -69,20 +69,9 @@ class EmojiView(
     private val paddingTop = 2f.dpToPx()
 
     private var selectedCategoryIndex = 0
-    private val categoryViews = mutableListOf<TextView>()
-
-    private val recentCategory = EmojiCategory(
-        icon = "🕒",
-        name = "Recent",
-        emojis = prefs.recentEmojis
-    )
-
-    private val allCategories: MutableList<EmojiCategory> = mutableListOf<EmojiCategory>().apply {
-        if (prefs.recentEmojis.isNotEmpty()) {
-            add(recentCategory)
-        }
-        addAll(EmojiData.categories)
-    }
+    private val categoryViews = mutableListOf<ImageView>()
+    private val allCategories: MutableList<EmojiCategory> = mutableListOf()
+    private val categoryContainer: LinearLayout
 
     private val emojiGridAdapter = EmojiGridAdapter()
     private val gridView: GridView
@@ -97,31 +86,15 @@ class EmojiView(
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         }
 
-        val categoryContainer = LinearLayout(context).apply {
+        categoryContainer = LinearLayout(context).apply {
             orientation = HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(4f.dpToPx().toInt(), 4f.dpToPx().toInt(), 4f.dpToPx().toInt(), 4f.dpToPx().toInt())
             layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
         }
 
-        for (i in allCategories.indices) {
-            val category = allCategories[i]
-            val tabView = TextView(context).apply {
-                text = category.icon
-                textSize = 20f
-                gravity = Gravity.CENTER
-                val padH = 10f.dpToPx().toInt()
-                val padV = 6f.dpToPx().toInt()
-                setPadding(padH, padV, padH, padV)
-                isClickable = true
-                isFocusable = true
-                setOnClickListener {
-                    selectCategory(i)
-                }
-            }
-            categoryViews.add(tabView)
-            categoryContainer.addView(tabView)
-        }
+        buildCategoryTabs()
+
         categoryScrollView.addView(categoryContainer)
         addView(categoryScrollView)
 
@@ -240,13 +213,54 @@ class EmojiView(
         super.onMeasure(widthMeasureSpec, exactHeightSpec)
     }
 
-    fun updateRecents() {
+    private fun buildCategoryTabs() {
+        categoryContainer.removeAllViews()
+        categoryViews.clear()
+        allCategories.clear()
+
         val recentEmojis = prefs.recentEmojis
         if (recentEmojis.isNotEmpty()) {
-            val hasRecentTab = allCategories.firstOrNull()?.name == "Recent"
-            if (!hasRecentTab) {
-                allCategories.add(0, EmojiCategory("🕒", "Recent", recentEmojis))
+            allCategories.add(
+                EmojiCategory(
+                    iconRes = R.drawable.ic_category_recent,
+                    name = "Recent",
+                    emojis = recentEmojis
+                )
+            )
+        }
+        allCategories.addAll(EmojiData.categories)
+
+        if (selectedCategoryIndex >= allCategories.size) {
+            selectedCategoryIndex = 0
+        }
+
+        for (i in allCategories.indices) {
+            val category = allCategories[i]
+            val tabView = ImageView(context).apply {
+                val drawable = ResourcesCompat.getDrawable(resources, category.iconRes, context.theme)?.mutate()
+                setImageDrawable(drawable)
+                scaleType = ImageView.ScaleType.CENTER_INSIDE
+                val padH = 12f.dpToPx().toInt()
+                val padV = 8f.dpToPx().toInt()
+                setPadding(padH, padV, padH, padV)
+                layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, 36f.dpToPx().toInt())
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    selectCategory(i)
+                }
             }
+            categoryViews.add(tabView)
+            categoryContainer.addView(tabView)
+        }
+        updateCategoryHighlight()
+    }
+
+    fun updateRecents() {
+        val hadRecent = allCategories.firstOrNull()?.name == "Recent"
+        val hasRecent = prefs.recentEmojis.isNotEmpty()
+        if (hadRecent != hasRecent) {
+            buildCategoryTabs()
         }
         emojiGridAdapter.notifyDataSetChanged()
     }
@@ -265,8 +279,10 @@ class EmojiView(
             val view = categoryViews[i]
             if (i == selectedCategoryIndex) {
                 view.background = createKeyDrawable(prefs.colorPressedKeyBackground, prefs.colorKeyBorder, keyBorderRadius)
+                view.setColorFilter(prefs.colorText)
             } else {
                 view.setBackgroundColor(Color.TRANSPARENT)
+                view.setColorFilter(prefs.colorTextDim)
             }
         }
     }

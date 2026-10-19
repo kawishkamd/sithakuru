@@ -17,8 +17,11 @@
 
 package sithakuru.sinhala.keyboard.data
 
+import androidx.annotation.DrawableRes
+import sithakuru.sinhala.keyboard.R
+
 data class EmojiCategory(
-    val icon: String,
+    @DrawableRes val iconRes: Int,
     val name: String,
     val emojis: List<String>
 )
@@ -26,7 +29,7 @@ data class EmojiCategory(
 object EmojiData {
     val categories: List<EmojiCategory> = listOf(
         EmojiCategory(
-            icon = "😀",
+            iconRes = R.drawable.ic_category_smileys,
             name = "Smileys",
             emojis = listOf(
                 "😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "🥲", "🥹",
@@ -43,7 +46,7 @@ object EmojiData {
             )
         ),
         EmojiCategory(
-            icon = "👍",
+            iconRes = R.drawable.ic_category_people,
             name = "People",
             emojis = listOf(
                 "👍", "👎", "👌", "🤌", "🤏", "✌️", "🤞", "🫰", "🤟", "🤘",
@@ -59,7 +62,7 @@ object EmojiData {
             )
         ),
         EmojiCategory(
-            icon = "🐶",
+            iconRes = R.drawable.ic_category_animals,
             name = "Animals & Nature",
             emojis = listOf(
                 "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯",
@@ -78,7 +81,7 @@ object EmojiData {
             )
         ),
         EmojiCategory(
-            icon = "🍔",
+            iconRes = R.drawable.ic_category_food,
             name = "Food & Drink",
             emojis = listOf(
                 "🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐",
@@ -96,7 +99,7 @@ object EmojiData {
             )
         ),
         EmojiCategory(
-            icon = "⚽",
+            iconRes = R.drawable.ic_category_activities,
             name = "Activities",
             emojis = listOf(
                 "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱",
@@ -109,7 +112,7 @@ object EmojiData {
             )
         ),
         EmojiCategory(
-            icon = "🚗",
+            iconRes = R.drawable.ic_category_travel,
             name = "Travel",
             emojis = listOf(
                 "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚐",
@@ -124,7 +127,7 @@ object EmojiData {
             )
         ),
         EmojiCategory(
-            icon = "💡",
+            iconRes = R.drawable.ic_category_objects,
             name = "Objects & Symbols",
             emojis = listOf(
                 "💡", "🔦", "📱", "📲", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "📷",
@@ -149,7 +152,7 @@ object EmojiData {
             )
         ),
         EmojiCategory(
-            icon = "🇱🇰",
+            iconRes = R.drawable.ic_category_flags,
             name = "Flags",
             emojis = listOf(
                 "🇱🇰", "🏁", "🚩", "🎌", "🏴", "🏳️", "🏳️‍🌈", "🏳️‍⚧️", "🏴‍☠️",

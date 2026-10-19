@@ -1,0 +1,25 @@
+<!--
+  ~ This file is part of Sithakuru.
+  ~
+  ~ Sithakuru is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, version 3.
+  ~
+  ~ Sithakuru is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with Sithakuru.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#fff"
+        android:pathData="M4.5,11c1.38,0 2.5,-1.12 2.5,-2.5S5.88,6 4.5,6 2,7.12 2,8.5 3.12,11 4.5,11zm4,-4C9.88,7 11,5.88 11,4.5S9.88,2 8.5,2 6,3.12 6,4.5 7.12,7 8.5,7zm7,0c1.38,0 2.5,-1.12 2.5,-2.5S16.88,2 15.5,2 13,3.12 13,4.5 14.12,7 15.5,7zm4,4c1.38,0 2.5,-1.12 2.5,-2.5S20.88,6 19.5,6 17,7.12 17,8.5s1.12,2.5 2.5,2.5zM12,11.5c-2.48,0 -4.5,1.57 -4.5,3.5 0,1.73 1.83,3.5 4.5,3.5s4.5,-1.77 4.5,-3.5c0,-1.93 -2.02,-3.5 -4.5,-3.5z" />
+</vector>
