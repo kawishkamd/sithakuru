@@ -38,6 +38,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import sithakuru.sinhala.keyboard.data.EmojiCategory
+import sithakuru.sinhala.keyboard.data.EmojiCategoryId
 import sithakuru.sinhala.keyboard.data.EmojiData
 
 @SuppressLint("ViewConstructor")
@@ -214,6 +215,7 @@ class EmojiView(
     }
 
     private fun buildCategoryTabs() {
+        val previousSelectedCategory = allCategories.getOrNull(selectedCategoryIndex)?.id
         categoryContainer.removeAllViews()
         categoryViews.clear()
         allCategories.clear()
@@ -222,21 +224,25 @@ class EmojiView(
         if (recentEmojis.isNotEmpty()) {
             allCategories.add(
                 EmojiCategory(
+                    id = EmojiCategoryId.RECENT,
                     iconRes = R.drawable.ic_category_recent,
-                    name = "Recent",
                     emojis = recentEmojis
                 )
             )
         }
         allCategories.addAll(EmojiData.categories)
 
-        if (selectedCategoryIndex >= allCategories.size) {
+        if (previousSelectedCategory != null) {
+            val newIndex = allCategories.indexOfFirst { it.id == previousSelectedCategory }
+            selectedCategoryIndex = if (newIndex != -1) newIndex else 0
+        } else if (selectedCategoryIndex >= allCategories.size) {
             selectedCategoryIndex = 0
         }
 
         for (i in allCategories.indices) {
             val category = allCategories[i]
             val tabView = ImageView(context).apply {
+                contentDescription = context.getString(category.id.labelRes)
                 val drawable = ResourcesCompat.getDrawable(resources, category.iconRes, context.theme)?.mutate()
                 setImageDrawable(drawable)
                 scaleType = ImageView.ScaleType.CENTER_INSIDE
@@ -257,7 +263,7 @@ class EmojiView(
     }
 
     fun updateRecents() {
-        val hadRecent = allCategories.firstOrNull()?.name == "Recent"
+        val hadRecent = allCategories.firstOrNull()?.isRecent == true
         val hasRecent = prefs.recentEmojis.isNotEmpty()
         if (hadRecent != hasRecent) {
             buildCategoryTabs()
@@ -310,7 +316,7 @@ class EmojiView(
         private fun getCurrentList(): List<String> {
             if (allCategories.isEmpty()) return emptyList()
             val category = allCategories.getOrNull(selectedCategoryIndex) ?: allCategories[0]
-            return if (category.name == "Recent") prefs.recentEmojis else category.emojis
+            return if (category.isRecent) prefs.recentEmojis else category.emojis
         }
 
         override fun getCount(): Int = getCurrentList().size

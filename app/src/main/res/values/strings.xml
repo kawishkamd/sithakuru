@@ -20,4 +20,14 @@
 
     <string name="fdroid_link_text">f-droid.org/packages/sithakuru.sinhala.keyboard/</string>
     <string name="fdroid_link_url">https://f-droid.org/packages/sithakuru.sinhala.keyboard/</string>
+
+    <string name="emoji_category_recent">මෑත භාවිත</string>
+    <string name="emoji_category_smileys">මුහුණු සහ හැඟීම්</string>
+    <string name="emoji_category_people">පුද්ගලයන්</string>
+    <string name="emoji_category_animals_nature">සත්වයන් සහ ස්වභාවය</string>
+    <string name="emoji_category_food_drink">ආහාර සහ පාන</string>
+    <string name="emoji_category_activities">ක්‍රියාකාරකම්</string>
+    <string name="emoji_category_travel">සංචාර</string>
+    <string name="emoji_category_objects_symbols">වස්තු සහ සංකේත</string>
+    <string name="emoji_category_flags">ධජ</string>
 </resources>
