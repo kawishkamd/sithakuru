@@ -80,6 +80,12 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var lastChar: Int? = null
     private var lastLetter: Int? = null
 
+    // Raw keys of the Singlish word being typed, and how many UTF-16 units
+    // have been committed for it (what deleteSurroundingText needs).
+    private var singlishKeys = ""
+    private var singlishShown = 0
+    private var singlishTyping = false
+
     /* Without this, kombuva keeps going forward with each new letter in Wijesekara layout */
     private var kombuvaNew: Boolean = false
 
@@ -282,6 +288,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         lastText = ""
         lastChar = null
         lastLetter = null
+        singlishReset()
     }
 
     private fun updateKeySet() {
@@ -582,6 +589,23 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun backspaceClick() {
+        // Inside a Singlish word the raw keys are the source of truth: drop
+        // one and re-render instead of deleting a rendered character.
+        if (currentLayout == KeyboardLayoutId.SINGLISH) {
+            if (hasPositionChanged()) singlishReset()
+            if (singlishKeys.isNotEmpty() &&
+                currentInputConnection.getSelectedText(0).isNullOrBlank()
+            ) {
+                singlishKeys = singlishKeys.dropLast(1)
+                if (singlishShown > 0) {
+                    currentInputConnection.deleteSurroundingText(singlishShown, 0)
+                }
+                val text = SinglishKeymap.render(singlishKeys)
+                singlishCommit(text)
+                singlishShown = text.length
+                return
+            }
+        }
         if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
             when (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0)) {
                 'ෲ' -> eraseAndCommit("ෘ")
@@ -610,6 +634,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             KeyboardLayoutId.SINGLISH -> {
                 lastLetter = null
                 lastChar = null
+                singlishReset()
             }
         }
     }
@@ -628,6 +653,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun commitText(text: String) {
+        // Anything committed from outside the Singlish path (symbols, emoji,
+        // a swipe, the emoji space bar) ends the word: the buffered keys no
+        // longer describe what is on screen, so the next key must not erase it.
+        if (!singlishTyping) singlishReset()
         currentInputConnection.commitText(text, 1)
         positionFlag = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) ?: ""
         if (!caps && shift && !symbols) {
@@ -802,353 +831,49 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
     private fun hasPositionChanged(): Boolean = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) != positionFlag
 
+    /**
+     * Helakuru phonetic input: keep the raw keys of the word being typed,
+     * render the whole word again after every key, and replace what was
+     * committed for it. A key that is not a letter ends the word.
+     */
     private fun singlishInput(input: Int) {
-        var output = ""
-        var erasePreviousChars = 0
-
-        var tLastChar: Int? = null
-
-        var tLastLetter: Int? = null
-
-        val mLastChar: Int?
-
-        val mLastLetter: Int?
-
-        if (!hasPositionChanged()) {
-            mLastChar = lastChar
-            mLastLetter = lastLetter
-        } else {
-            mLastChar = null
-            mLastLetter = null
+        // A moved caret or a live selection means the buffered keys no longer
+        // describe the text in front of the cursor, so the word starts over.
+        if (hasPositionChanged() || !currentInputConnection.getSelectedText(0).isNullOrBlank()) {
+            singlishReset()
         }
 
-        lastChar = null
-        lastLetter = null
-
-        var singlishChar: Int = input.toSinglish()
-
-        fun newLetter() {
-            output = singlishChar.text
-            if (singlishChar.type == CharType.WYANJANA) {
-                output += CharText.SIGN_AL_LAKUNA
-                tLastChar = CharCode.SIGN_AL_LAKUNA
-            }
+        val ch = input.toChar()
+        if (ch !in 'a'..'z' && ch !in 'A'..'Z') {
+            // Word boundary. The buffered word is already committed and
+            // correct, so only the separator is new.
+            singlishReset()
+            commitText(ch.toString())
+            return
         }
 
-        if (mLastChar == null) {
-            when (input) {
-                CharCode.SMALL_LETTER_Z,
-                CharCode.CAPITAL_LETTER_Z ->
-                    tLastChar = CharCode.MARK_SANYAKA
-
-                else ->
-                    newLetter()
-            }
-        } else {
-            when {
-                input == CharCode.SMALL_LETTER_Z || input == CharCode.CAPITAL_LETTER_Z -> tLastChar = CharCode.MARK_SANYAKA
-
-                mLastChar.type == CharType.WYANJANA ->
-                    when (singlishChar) {
-                        CharCode.AYANNA -> output = CharText.AELA_PILLA
-                        CharCode.IYANNA -> output = CharText.KOMBU_DEKA
-                        CharCode.UYANNA -> output = CharText.KOMBUVA_HAA_GAYANUKITTA
-                        else -> newLetter()
-                    }
-
-                mLastChar == CharCode.SIGN_AL_LAKUNA -> {
-                    when (singlishChar) {
-                        CharCode.AYANNA -> {
-                            erasePreviousChars = 1
-                            tLastChar = mLastLetter
-                        }
-
-                        CharCode.RAYANNA -> {
-                            output = CharText.ZERO_WIDTH_JOINER + CharText.RAYANNA + CharText.SIGN_AL_LAKUNA
-                            tLastChar = CharCode.SIGN_AL_LAKUNA
-                        }
-
-                        CharCode.YAYANNA -> {
-                            output = CharText.ZERO_WIDTH_JOINER + CharText.YAYANNA + CharText.SIGN_AL_LAKUNA
-                            tLastChar = CharCode.SIGN_AL_LAKUNA
-                        }
-
-                        CharCode.HAYANNA -> {
-                            if (mLastLetter != null) {
-                                when (mLastLetter) {
-                                    CharCode.ALPAPRAANA_TTAYANNA -> {
-                                        output = CharText.ALPAPRAANA_TAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.ALPAPRAANA_TAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.MAHAAPRAANA_TTAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_TAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_TAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_DDAYANNA -> {
-                                        output = CharText.ALPAPRAANA_DAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.ALPAPRAANA_DAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.MAHAAPRAANA_DDAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_DAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_DAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_KAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_KAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_KAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_GAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_GAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_GAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_CAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_CAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_CAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_JAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_JAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_JAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_TAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_TAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_TAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_DAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_DAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_DAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_PAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_PAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_PAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.ALPAPRAANA_BAYANNA -> {
-                                        output = CharText.MAHAAPRAANA_BAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MAHAAPRAANA_BAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.DANTAJA_SAYANNA -> {
-                                        output = CharText.TAALUJA_SAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.TAALUJA_SAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.SANYAKA_DDAYANNA -> {
-                                        output = CharText.SANYAKA_DAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.SANYAKA_DAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    CharCode.MUURDHAJA_SAYANNA -> {
-                                        output = CharText.MUURDHAJA_SAYANNA + CharText.SIGN_AL_LAKUNA
-                                        erasePreviousChars = 2
-                                        tLastLetter = CharCode.MUURDHAJA_SAYANNA
-                                        tLastChar = CharCode.SIGN_AL_LAKUNA
-                                    }
-
-                                    else -> newLetter()
-                                }
-                            } else newLetter()
-                        }
-
-                        else -> {
-                            when (singlishChar.type) {
-                                CharType.SWARA -> {
-                                    if (mLastLetter != null) {
-                                        getSwaraSigns(singlishChar).let { sign ->
-                                            if (sign != null) {
-                                                output += sign.text
-                                                tLastChar = sign
-                                                erasePreviousChars = 1
-                                            } else output = singlishChar.text
-                                        }
-                                    } else output = singlishChar.text
-                                }
-
-                                else -> newLetter()
-                            }
-                        }
-                    }
-                }
-
-                mLastChar.type == CharType.PILI -> {
-                    when (mLastChar) {
-                        CharCode.KETTI_AEDA_PILLA if singlishChar == CharCode.AYANNA -> {
-                            output = CharText.DIGA_AEDA_PILLA
-                            erasePreviousChars = 1
-                            tLastChar = CharCode.DIGA_AEDA_PILLA
-                        }
-
-                        CharCode.KETTI_IS_PILLA if singlishChar == CharCode.IYANNA -> {
-                            output = CharText.DIGA_IS_PILLA
-                            erasePreviousChars = 1
-                            tLastChar = CharCode.DIGA_IS_PILLA
-                        }
-
-                        CharCode.KETTI_PAA_PILLA if singlishChar == CharCode.UYANNA -> {
-                            output = CharText.DIGA_PAA_PILLA
-                            erasePreviousChars = 1
-                            tLastChar = CharCode.DIGA_PAA_PILLA
-                        }
-
-                        CharCode.GAETTA_PILLA if singlishChar == CharCode.IYANNA -> {
-                            output = CharText.DIGA_GAETTA_PILLA
-                            erasePreviousChars = 1
-                            tLastChar = CharCode.DIGA_GAETTA_PILLA
-                        }
-
-                        CharCode.KOMBUVA if singlishChar == CharCode.EYANNA -> {
-                            output = CharText.DIGA_KOMBUVA
-                            erasePreviousChars = 1
-                            tLastChar = CharCode.DIGA_KOMBUVA
-                        }
-
-                        CharCode.KOMBUVA_HAA_AELA_PILLA if singlishChar == CharCode.OYANNA -> {
-                            output = CharText.KOMBUVA_HAA_DIGA_AELA_PILLA
-                            erasePreviousChars = 1
-                            tLastChar = CharCode.KOMBUVA_HAA_DIGA_AELA_PILLA
-                        }
-
-                        else -> newLetter()
-                    }
-                }
-
-                mLastChar == CharCode.MARK_SANYAKA -> {
-                    when (singlishChar) {
-                        CharCode.ALPAPRAANA_KAYANNA -> singlishChar = CharCode.TAALUJA_NAASIKYAYA
-                        CharCode.ALPAPRAANA_GAYANNA -> singlishChar = CharCode.SANYAKA_GAYANNA
-                        CharCode.ALPAPRAANA_JAYANNA -> singlishChar = CharCode.SANYAKA_JAYANNA
-                        CharCode.ALPAPRAANA_DDAYANNA -> singlishChar = CharCode.SANYAKA_DDAYANNA
-                        CharCode.ALPAPRAANA_BAYANNA -> singlishChar = CharCode.AMBA_BAYANNA
-                        CharCode.HAYANNA -> singlishChar = CharCode.TAALUJA_SANYOOGA_NAAKSIKYAYA
-                        else -> {}
-                    }
-                    newLetter()
-                }
-
-                else -> {
-                    if (mLastLetter != null) {
-                        when (mLastLetter) {
-                            CharCode.AYANNA -> {
-                                when (singlishChar) {
-                                    CharCode.AYANNA -> {
-                                        output = CharText.AAYANNA
-                                        erasePreviousChars = 1
-                                        tLastLetter = CharCode.AAYANNA
-                                    }
-
-                                    CharCode.IYANNA -> {
-                                        output = CharText.AIYANNA
-                                        erasePreviousChars = 1
-                                        tLastLetter = CharCode.AIYANNA
-                                    }
-
-                                    CharCode.UYANNA -> {
-                                        output = CharText.AUYANNA
-                                        erasePreviousChars = 1
-                                        tLastLetter = CharCode.AUYANNA
-                                    }
-
-                                    else -> newLetter()
-                                }
-                            }
-
-                            CharCode.AEYANNA -> {
-                                if (singlishChar == CharCode.AYANNA) {
-                                    output = CharText.AEEYANNA
-                                    erasePreviousChars = 1
-                                    tLastLetter = CharCode.AEEYANNA
-                                } else newLetter()
-                            }
-
-                            CharCode.IYANNA -> {
-                                if (singlishChar == CharCode.IYANNA) {
-                                    output = CharText.IIYANNA
-                                    erasePreviousChars = 1
-                                    tLastLetter = CharCode.IIYANNA
-                                } else newLetter()
-                            }
-
-                            CharCode.UYANNA -> {
-                                if (singlishChar == CharCode.UYANNA) {
-                                    output = CharText.UUYANNA
-                                    erasePreviousChars = 1
-                                    tLastLetter = CharCode.UUYANNA
-                                } else newLetter()
-                            }
-
-                            CharCode.IRUYANNA -> {
-                                if (singlishChar == CharCode.IYANNA) {
-                                    output = CharText.IRUUYANNA
-                                    erasePreviousChars = 1
-                                    tLastLetter = CharCode.IRUUYANNA
-                                } else newLetter()
-                            }
-
-                            CharCode.EYANNA -> {
-                                if (singlishChar == CharCode.EYANNA) {
-                                    output = CharText.EEYANNA
-                                    erasePreviousChars = 1
-                                    tLastLetter = CharCode.EEYANNA
-                                } else newLetter()
-                            }
-
-                            CharCode.OYANNA -> {
-                                if (singlishChar == CharCode.OYANNA) {
-                                    output = CharText.OOYANNA
-                                    erasePreviousChars = 1
-                                    tLastLetter = CharCode.OOYANNA
-                                } else newLetter()
-                            }
-
-                            else -> newLetter()
-                        }
-                    } else newLetter()
-                }
-            }
+        singlishKeys += ch
+        val text = SinglishKeymap.render(singlishKeys)
+        if (singlishShown > 0) {
+            currentInputConnection.deleteSurroundingText(singlishShown, 0)
         }
+        singlishCommit(text)
+        singlishShown = text.length
+    }
 
-        if (erasePreviousChars > 0) erasePrevious(erasePreviousChars)
+    private fun singlishReset() {
+        singlishKeys = ""
+        singlishShown = 0
+    }
 
-        commitText(output)
-
-        lastLetter = tLastLetter ?: singlishChar
-        lastChar = tLastChar ?: tLastLetter ?: singlishChar
+    /** commitText for the Singlish path, which owns the buffer it replaces. */
+    private fun singlishCommit(text: String) {
+        singlishTyping = true
+        try {
+            commitText(text)
+        } finally {
+            singlishTyping = false
+        }
     }
 
     override fun onClickEvent(value: Int) {
