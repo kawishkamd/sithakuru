@@ -35,6 +35,9 @@ class Prefs(context: Context) {
     var layoutSinglish: Boolean
         get() = preferences.getBoolean(KEY_SINGLISH, false)
         set(value) = preferences.edit().putBoolean(KEY_SINGLISH, value).apply()
+    var englishSuggestions: Boolean
+        get() = preferences.getBoolean(KEY_ENGLISH_SUGGESTIONS, DEFAULT_ENGLISH_SUGGESTIONS)
+        set(value) = preferences.edit().putBoolean(KEY_ENGLISH_SUGGESTIONS, value).apply()
     var darkTheme: Boolean
         get() = preferences.getBoolean(KEY_DARK_THEME, DEFAULT_DARK_THEME)
         set(value) = preferences.edit().putBoolean(KEY_DARK_THEME, value).apply()
@@ -165,6 +168,7 @@ class Prefs(context: Context) {
         private const val KEY_ENGLISH = "LAYOUT_ENGLISH"
         private const val KEY_WIJESEKARA = "LAYOUT_WIJESEKARA"
         private const val KEY_SINGLISH = "LAYOUT_SINGLISH"
+        private const val KEY_ENGLISH_SUGGESTIONS = "ENGLISH_SUGGESTIONS"
         private const val KEY_DARK_THEME = "DARK_THEME"
         private const val KEY_KEY_BORDERS = "KEY_BORDERS"
         private const val KEY_LONG_PRESS_KEYS_LABELS = "LONG_PRESS_KEYS_LABELS"
@@ -204,6 +208,7 @@ class Prefs(context: Context) {
         const val DEFAULT_SWIPE_TO_ERASE = true
         const val DEFAULT_SWIPE_TO_MOVE_CURSOR = true
         const val DEFAULT_EMOJI_KEY = true
+        const val DEFAULT_ENGLISH_SUGGESTIONS = true
         const val MAX_RECENT_EMOJIS = 30
     }
 }

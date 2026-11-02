@@ -20,6 +20,7 @@ package sithakuru.sinhala.keyboard
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
@@ -27,6 +28,7 @@ import android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
@@ -64,6 +66,8 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
     private var hardwareInputViewBinding: HardwareInputViewBinding? = null
     private lateinit var inputViewContainer: FrameLayout
+    private lateinit var keyboardContainer: LinearLayout
+    private var suggestionStrip: SuggestionStripView? = null
     private lateinit var keyboardView: Keyboard
     private var emojiView: EmojiView? = null
     private var insetBottom: Int = 0
@@ -79,6 +83,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var lastText: String = ""
     private var lastChar: Int? = null
     private var lastLetter: Int? = null
+    private var appliedWord: String? = null
 
     // Raw keys of the Singlish word being typed, and how many UTF-16 units
     // have been committed for it (what deleteSurroundingText needs).
@@ -95,6 +100,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         currentActionKeyIconRes = R.drawable.ic_keyboard_return
         initKeyboardLayouts()
         currentKeyboardLayout = keyboardLayoutWijesekara
+        EnglishDictionary.load(this)
     }
 
     private fun initKeyboardLayouts() {
@@ -165,6 +171,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             switchToNextAvailableLayout()
         }
         updateNavigationBarTheme()
+        suggestionStrip?.updateTheme()
 
         super.onStartInput(attribute, restarting)
     }
@@ -192,14 +199,32 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         } else {
             emojiView = null
             inputViewContainer = FrameLayout(this)
+            keyboardContainer = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+            suggestionStrip = SuggestionStripView(this, prefs).apply {
+                onSuggestionClick = { word ->
+                    applySuggestion(word)
+                }
+            }
+            keyboardContainer.addView(suggestionStrip)
+
             keyboardView = Keyboard(
                 context = this,
                 prefs = prefs,
                 eventListener = this,
                 insetBottom = insetBottom
             )
+            keyboardContainer.addView(keyboardView)
+
             updateKeySet()
-            inputViewContainer.addView(keyboardView)
+            updateSuggestionStripVisibility()
+            inputViewContainer.addView(keyboardContainer)
+            updateSuggestions()
 
             ViewCompat.setOnApplyWindowInsetsListener(inputViewContainer) { _, windowInsets ->
                 insetBottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
@@ -217,6 +242,8 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         hideEmojiView()
         switchSymbols(false)
         updateKeySet()
+        updateSuggestionStripVisibility()
+        updateSuggestions()
     }
 
     private fun isHardwareKeyboardAvailable() = resources.configuration.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO
@@ -239,6 +266,8 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 else -> keyboardLayoutEnglish
             }
             updateKeyDownEventHandlers(currentLayout)
+            updateSuggestionStripVisibility()
+            updateSuggestions()
         }
     }
 
@@ -288,6 +317,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         lastText = ""
         lastChar = null
         lastLetter = null
+        appliedWord = null
         singlishReset()
     }
 
@@ -559,20 +589,30 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         } else {
             emojiView?.updateRecents()
         }
-        keyboardView.visibility = View.GONE
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.GONE
+        } else {
+            keyboardView.visibility = View.GONE
+        }
         emojiView?.visibility = View.VISIBLE
     }
 
     private fun hideEmojiView() {
         emojiView?.visibility = View.GONE
-        if (::keyboardView.isInitialized) {
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.VISIBLE
+        } else if (::keyboardView.isInitialized) {
             keyboardView.visibility = View.VISIBLE
         }
+        updateSuggestionStripVisibility()
+        updateSuggestions()
     }
 
     private fun switchSymbols(newSymbolsState: Boolean) {
         shift = false
         symbols = newSymbolsState
+        updateSuggestionStripVisibility()
+        updateSuggestions()
     }
 
     private fun shiftClick() {
@@ -626,9 +666,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         } else commitText("")
 
         clearLastTypedInfo()
+        updateSuggestions()
     }
 
     private fun clearLastTypedInfo() {
+        appliedWord = null
         when (currentLayout) {
             KeyboardLayoutId.WIJESEKARA -> lastText = ""
             KeyboardLayoutId.SINGLISH -> {
@@ -898,10 +940,14 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             symbols -> {
                 val x = value.text
                 commitText(x)
+                updateSuggestions()
             }
 
             else -> when (currentLayout) {
-                KeyboardLayoutId.ENGLISH -> commitText(value.text)
+                KeyboardLayoutId.ENGLISH -> {
+                    commitText(value.text)
+                    updateSuggestions()
+                }
                 KeyboardLayoutId.WIJESEKARA -> wijesekaraInput(value)
                 KeyboardLayoutId.SINGLISH -> singlishInput(value)
             }
@@ -911,6 +957,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     override fun swipeErase() {
         val erasedText = erasePrevious(1, true)
         swipeErasedContent.add(0, erasedText)
+        updateSuggestions()
     }
 
     override fun swipeEraseUndo() {
@@ -918,6 +965,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             val erasedText = swipeErasedContent[0]
             commitText(erasedText)
             swipeErasedContent.removeAt(0)
+            updateSuggestions()
         }
     }
 
@@ -929,6 +977,106 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     override fun swipeMoveRight() {
         if (!currentInputConnection.getTextAfterCursor(1, 0).isNullOrEmpty())
             currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
+    }
+
+    override fun onUpdateSelection(
+        oldSelStart: Int,
+        oldSelEnd: Int,
+        newSelStart: Int,
+        newSelEnd: Int,
+        candidatesStart: Int,
+        candidatesEnd: Int
+    ) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        updateSuggestions()
+    }
+
+    private fun shouldShowSuggestions(): Boolean {
+        if (currentLayout != KeyboardLayoutId.ENGLISH || symbols || !prefs.englishSuggestions) return false
+        val info = currentInputEditorInfo ?: return false
+        val textClass = info.inputType and InputType.TYPE_MASK_CLASS
+        if (textClass != InputType.TYPE_CLASS_TEXT) return false
+        val variation = info.inputType and InputType.TYPE_MASK_VARIATION
+        val isPassword = variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+                variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+                variation == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+        if (isPassword) return false
+        val isNoSuggestions = (info.inputType and InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0
+        val isExcludedVariation = variation == InputType.TYPE_TEXT_VARIATION_URI ||
+                variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
+                variation == 0x000000d0 || // TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS
+                variation == InputType.TYPE_TEXT_VARIATION_FILTER
+        return !isNoSuggestions && !isExcludedVariation
+    }
+
+    private fun updateSuggestionStripVisibility() {
+        suggestionStrip?.visibility = if (shouldShowSuggestions()) View.VISIBLE else View.GONE
+    }
+
+    private fun updateSuggestions() {
+        if (!shouldShowSuggestions()) {
+            suggestionStrip?.clearSuggestions()
+            appliedWord = null
+            return
+        }
+
+        val ic = currentInputConnection
+        if (ic == null) {
+            suggestionStrip?.clearSuggestions()
+            appliedWord = null
+            return
+        }
+
+        // Selection guard: Never show suggestions when text is selected
+        if (!ic.getSelectedText(0).isNullOrEmpty()) {
+            suggestionStrip?.clearSuggestions()
+            appliedWord = null
+            return
+        }
+
+        val textBefore = ic.getTextBeforeCursor(40, 0)?.toString() ?: ""
+        val word = textBefore.takeLastWhile { it.isLetter() || it == '\'' }
+
+        if (word.isBlank()) {
+            suggestionStrip?.clearSuggestions()
+            appliedWord = null
+            return
+        }
+
+        if (appliedWord != null) {
+            if (word == appliedWord) {
+                suggestionStrip?.clearSuggestions()
+                return
+            } else {
+                appliedWord = null
+            }
+        }
+
+        val suggestions = EnglishDictionary.getSuggestions(word)
+        suggestionStrip?.setSuggestions(suggestions)
+    }
+
+    private fun applySuggestion(word: String) {
+        val ic = currentInputConnection ?: return
+        // Selection guard
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return
+
+        val textBefore = ic.getTextBeforeCursor(40, 0)?.toString() ?: ""
+        val textAfter = ic.getTextAfterCursor(40, 0)?.toString() ?: ""
+        val prefix = textBefore.takeLastWhile { it.isLetter() || it == '\'' }
+        val suffix = textAfter.takeWhile { it.isLetter() || it == '\'' }
+
+        if (prefix.isNotEmpty() || suffix.isNotEmpty()) {
+            ic.deleteSurroundingText(prefix.length, suffix.length)
+        }
+
+        // Smart spacing check: inspect remaining text AFTER the deleted suffix
+        val remainingAfter = textAfter.drop(suffix.length)
+        val appendSpace = remainingAfter.isEmpty() || (!remainingAfter.first().isWhitespace() && remainingAfter.first().isLetterOrDigit())
+
+        commitText(if (appendSpace) "$word " else word)
+        appliedWord = if (!appendSpace) word else null
+        suggestionStrip?.clearSuggestions()
     }
 
     companion object {

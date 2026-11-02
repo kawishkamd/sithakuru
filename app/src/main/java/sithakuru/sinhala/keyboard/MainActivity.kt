@@ -134,6 +134,7 @@ class MainActivity : Activity() {
         binding.longPressKeys.isChecked = prefs.longPressKeys
         binding.swipeToErase.isChecked = prefs.swipeToErase
         binding.swipeToMoveCursor.isChecked = prefs.swipeToMoveCursor
+        binding.switchEnglishSuggestions.isChecked = prefs.englishSuggestions
 
         binding.switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -363,6 +364,10 @@ class MainActivity : Activity() {
         }
         binding.swipeToMoveCursor.setOnCheckedChangeListener { _, isChecked ->
             prefs.swipeToMoveCursor = isChecked
+            settingsChanged = true
+        }
+        binding.switchEnglishSuggestions.setOnCheckedChangeListener { _, isChecked ->
+            prefs.englishSuggestions = isChecked
             settingsChanged = true
         }
 

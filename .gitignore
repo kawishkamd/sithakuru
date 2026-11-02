@@ -42,9 +42,11 @@ captures/
 .idea/
 
 # Keystore files
-# Uncomment the following lines if you do not want to check your keystore files in.
-#*.jks
-#*.keystore
+# Never commit signing material: the release key is the update path for every
+# installed copy of the app.
+*.jks
+*.keystore
+keystore.properties
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
