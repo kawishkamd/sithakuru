@@ -81,4 +81,5 @@ android {
 
 dependencies {
     implementation(libs.androidx.core)
+    testImplementation("junit:junit:4.13.2")
 }

@@ -681,6 +681,17 @@
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
+        <Switch
+            android:id="@+id/switch_english_suggestions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="@string/english_suggestions"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
