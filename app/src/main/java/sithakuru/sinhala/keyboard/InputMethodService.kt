@@ -18,6 +18,7 @@
 package sithakuru.sinhala.keyboard
 
 import android.content.res.Configuration
+import android.graphics.drawable.ColorDrawable
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.text.InputType
@@ -101,6 +102,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         initKeyboardLayouts()
         currentKeyboardLayout = keyboardLayoutWijesekara
         EnglishDictionary.load(this)
+        updateWindowBackground()
     }
 
     private fun initKeyboardLayouts() {
@@ -171,6 +173,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             switchToNextAvailableLayout()
         }
         updateNavigationBarTheme()
+        updateWindowBackground()
         suggestionStrip?.updateTheme()
 
         super.onStartInput(attribute, restarting)
@@ -198,7 +201,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             return hardwareInputViewBinding!!.root
         } else {
             emojiView = null
-            inputViewContainer = FrameLayout(this)
+            inputViewContainer = FrameLayout(this).apply {
+                setBackgroundColor(prefs.colorBackground)
+            }
             keyboardContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = FrameLayout.LayoutParams(
@@ -333,6 +338,18 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                     if (shift) currentKeyboardLayout.upper else currentKeyboardLayout.lower
                 }
             )
+        }
+    }
+
+    /**
+     * Paints the IME window itself so frames where no child has drawn yet show
+     * the keyboard color instead of the theme's window background. Kept in sync
+     * with [onStartInput], since the service can outlive a settings change.
+     */
+    private fun updateWindowBackground() {
+        window?.window?.setBackgroundDrawable(ColorDrawable(prefs.colorBackground))
+        if (::inputViewContainer.isInitialized) {
+            inputViewContainer.setBackgroundColor(prefs.colorBackground)
         }
     }
 
