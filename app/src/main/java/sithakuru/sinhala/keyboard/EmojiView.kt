@@ -208,8 +208,17 @@ class EmojiView(
         updateCategoryHighlight()
     }
 
+    /**
+     * When true the emoji panel must leave room for the keyboard's suggestion
+     * strip slot so switching to emoji does not resize the IME window.
+     */
+    var reserveStripHeight: Boolean = false
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val totalKeyboardHeight = (rowHeight * 5 + paddingTop + paddingBottom).toInt()
+        // Match the keyboard panel: its key rows plus the strip slot, but only
+        // when that slot is actually present in the current layout/field.
+        val stripHeight = if (reserveStripHeight) SuggestionStripView.heightFor(context, prefs) else 0
+        val totalKeyboardHeight = (rowHeight * 5 + paddingTop + paddingBottom).toInt() + stripHeight
         val exactHeightSpec = MeasureSpec.makeMeasureSpec(totalKeyboardHeight, MeasureSpec.EXACTLY)
         super.onMeasure(widthMeasureSpec, exactHeightSpec)
     }

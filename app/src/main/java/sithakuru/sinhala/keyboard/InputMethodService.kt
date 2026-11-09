@@ -589,6 +589,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         } else {
             emojiView?.updateRecents()
         }
+        // Keep the panel exactly as tall as the keyboard it replaces.
+        emojiView?.let { view ->
+            view.reserveStripHeight = suggestionStrip?.visibility == View.VISIBLE
+            view.requestLayout()
+        }
         if (::keyboardContainer.isInitialized) {
             keyboardContainer.visibility = View.GONE
         } else {

@@ -44,8 +44,7 @@ class SuggestionStripView(
     init {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        val heightPx = (42 * prefs.heightPercentage / 100).toFloat().dpToPx().toInt().coerceAtLeast(38f.dpToPx().toInt())
-        layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, heightPx)
+        layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, heightFor(context, prefs))
         setBackgroundColor(prefs.colorBackground)
 
         val selectableRes = resolveSelectableBackground()
@@ -168,4 +167,14 @@ class SuggestionStripView(
 
     private fun Float.dpToPx(): Float =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this, resources.displayMetrics)
+
+    companion object {
+        /** Height in pixels the strip reserves, shared by views that must match its slot. */
+        fun heightFor(context: Context, prefs: Prefs): Int {
+            fun Float.dpToPx(): Float =
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this, context.resources.displayMetrics)
+            return (42 * prefs.heightPercentage / 100).toFloat().dpToPx().toInt()
+                .coerceAtLeast(38f.dpToPx().toInt())
+        }
+    }
 }
