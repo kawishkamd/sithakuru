@@ -175,6 +175,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         updateNavigationBarTheme()
         updateWindowBackground()
         suggestionStrip?.updateTheme()
+        // The editor type (password, URL, number...) may have changed even when
+        // the layout did not, so re-evaluate the strip's slot here as well.
+        // Pass the new attribute explicitly: currentInputEditorInfo only updates
+        // once super.onStartInput() runs below.
+        updateSuggestionStripVisibility(attribute)
 
         super.onStartInput(attribute, restarting)
     }
@@ -242,12 +247,20 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
-        super.onStartInputView(info, restarting)
-
+        // Resolve the strip's slot before the window is shown. Toggling it after
+        // super.onStartInputView() resizes the IME mid-animation and flashes the
+        // window background through the gap.
         hideEmojiView()
         switchSymbols(false)
         updateKeySet()
-        updateSuggestionStripVisibility()
+        updateSuggestionStripVisibility(info)
+        // Blank the previous field's suggestions before the window paints; the
+        // new ones can only be computed after super, once the input connection
+        // exists.
+        suggestionStrip?.clearSuggestions()
+
+        super.onStartInputView(info, restarting)
+
         updateSuggestions()
     }
 
@@ -1014,8 +1027,21 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun shouldShowSuggestions(): Boolean {
-        if (currentLayout != KeyboardLayoutId.ENGLISH || symbols || !prefs.englishSuggestions) return false
-        val info = currentInputEditorInfo ?: return false
+        // The symbols layer has no words to suggest, but it shares the layout's
+        // slot, so only the transient state changes there.
+        if (symbols) return false
+        return stripHasSlot()
+    }
+
+    /**
+     * Whether the current layout and field can produce suggestions at all.
+     * Unlike [shouldShowSuggestions] this ignores whether a suggestion happens
+     * to be available right now, so it only changes when the strip's slot must
+     * appear or disappear.
+     */
+    private fun stripHasSlot(info: EditorInfo? = currentInputEditorInfo): Boolean {
+        if (currentLayout != KeyboardLayoutId.ENGLISH || !prefs.englishSuggestions) return false
+        info ?: return false
         val textClass = info.inputType and InputType.TYPE_MASK_CLASS
         if (textClass != InputType.TYPE_CLASS_TEXT) return false
         val variation = info.inputType and InputType.TYPE_MASK_VARIATION
@@ -1031,8 +1057,16 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         return !isNoSuggestions && !isExcludedVariation
     }
 
-    private fun updateSuggestionStripVisibility() {
-        suggestionStrip?.visibility = if (shouldShowSuggestions()) View.VISIBLE else View.GONE
+    /**
+     * Structural visibility: the strip only takes up space when the layout and
+     * field can actually suggest words. Sinhala layouts and excluded fields
+     * collapse it entirely so they don't lose vertical space to a blank bar.
+     *
+     * Call this before the window is shown (see [onStartInputView]) so the IME
+     * is already the final size when it starts animating in.
+     */
+    private fun updateSuggestionStripVisibility(info: EditorInfo? = currentInputEditorInfo) {
+        suggestionStrip?.visibility = if (stripHasSlot(info)) View.VISIBLE else View.GONE
     }
 
     private fun updateSuggestions() {
