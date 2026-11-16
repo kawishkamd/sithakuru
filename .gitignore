@@ -80,5 +80,8 @@ lint/tmp/
 # Android Profiling
 *.hprof
 
+# Android SDK
+android-sdk/
+
 # Kotlin
 .kotlin/

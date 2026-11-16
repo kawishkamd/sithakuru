@@ -23,7 +23,11 @@ import sithakuru.sinhala.keyboard.CharCode
 import sithakuru.sinhala.keyboard.CharText
 import sithakuru.sinhala.keyboard.datatype.KeyData
 
-open class English(indicator: String = "E", showEmojiKey: Boolean = true) : BaseLayout(indicator, showEmojiKey) {
+open class English(
+    indicator: String = "E",
+    showEmojiKey: Boolean = true,
+    showClipboardKey: Boolean = false
+) : BaseLayout(indicator, showEmojiKey, showClipboardKey) {
     override val lower = mutableMapOf(
         1 to rowNumbers,
         2 to listOf(

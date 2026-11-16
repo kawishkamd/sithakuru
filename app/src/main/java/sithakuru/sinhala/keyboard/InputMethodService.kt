@@ -17,6 +17,9 @@
 
 package sithakuru.sinhala.keyboard
 
+import android.content.ClipDescription
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.inputmethodservice.InputMethodService
@@ -34,6 +37,7 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import sithakuru.sinhala.keyboard.clipboard.ClipboardHistoryManager
 import sithakuru.sinhala.keyboard.data.Action
 import sithakuru.sinhala.keyboard.data.KeyboardLayoutId
 import sithakuru.sinhala.keyboard.databinding.HardwareInputViewBinding
@@ -71,6 +75,12 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var suggestionStrip: SuggestionStripView? = null
     private lateinit var keyboardView: Keyboard
     private var emojiView: EmojiView? = null
+    private var clipboardView: ClipboardView? = null
+    private lateinit var clipboardHistoryManager: ClipboardHistoryManager
+    private var clipboardManager: ClipboardManager? = null
+    private val clipChangedListener = ClipboardManager.OnPrimaryClipChangedListener {
+        capturePrimaryClip()
+    }
     private var insetBottom: Int = 0
 
     private var keyDownEventHandler: (keyCode: Int, event: KeyEvent) -> Boolean? = { _, _ -> false }
@@ -99,18 +109,69 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         super.onCreate()
         prefs = Prefs(this)
         currentActionKeyIconRes = R.drawable.ic_keyboard_return
+        clipboardHistoryManager = ClipboardHistoryManager(
+            saveCallback = { serialized ->
+                prefs.clipboardHistory = serialized
+            }
+        )
+        clipboardHistoryManager.loadFromString(prefs.clipboardHistory)
+        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+        try {
+            clipboardManager?.addPrimaryClipChangedListener(clipChangedListener)
+        } catch (_: Exception) {}
         initKeyboardLayouts()
         currentKeyboardLayout = keyboardLayoutWijesekara
         EnglishDictionary.load(this)
         updateWindowBackground()
     }
 
+    override fun onDestroy() {
+        try {
+            clipboardManager?.removePrimaryClipChangedListener(clipChangedListener)
+        } catch (_: Exception) {}
+        super.onDestroy()
+    }
+
+    private fun capturePrimaryClip() {
+        try {
+            val clip = clipboardManager?.primaryClip
+            if (clip != null && clip.itemCount > 0) {
+                val description = clip.description
+                val extras = description?.extras
+                @Suppress("DEPRECATION")
+                val isSensitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    extras?.getBoolean(ClipDescription.EXTRA_IS_SENSITIVE, false) == true
+                } else {
+                    // EXTRA_IS_SENSITIVE only became public in API 33; the value is stable.
+                    extras?.getBoolean("android.content.extra.IS_SENSITIVE", false) == true
+                }
+                if (isSensitive) return
+
+                // Skip non-text clips (URI, Intent, image, ...). coerceToText() would
+                // otherwise turn a content:// URI into plain text and persist it.
+                val isTextClip = description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true ||
+                    description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) == true
+                if (!isTextClip) return
+
+                val item = clip.getItemAt(0)
+                val text = item.coerceToText(this)?.toString()
+                if (!text.isNullOrBlank()) {
+                    clipboardHistoryManager.addItem(text)
+                    if (clipboardView?.visibility == View.VISIBLE) {
+                        clipboardView?.updateClips()
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
     private fun initKeyboardLayouts() {
         val showEmoji = prefs.emojiKey
-        keyboardLayoutEnglish = English(showEmojiKey = showEmoji)
-        keyboardLayoutSinglish = Singlish(showEmojiKey = showEmoji)
-        keyboardLayoutWijesekara = Wijesekara(showEmojiKey = showEmoji)
-        keyboardLayoutSymbols = Symbols(showEmojiKey = showEmoji)
+        val showClipboard = prefs.clipboardKey
+        keyboardLayoutEnglish = English(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
+        keyboardLayoutSinglish = Singlish(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
+        keyboardLayoutWijesekara = Wijesekara(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
+        keyboardLayoutSymbols = Symbols(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
         if (currentLayout == KeyboardLayoutId.WIJESEKARA) {
             keyboardLayoutSymbols.setCustomRowBottom(keyboardLayoutWijesekara.wijesekaraSymbolsRowBottom)
         } else {
@@ -206,6 +267,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             return hardwareInputViewBinding!!.root
         } else {
             emojiView = null
+            clipboardView = null
             inputViewContainer = FrameLayout(this).apply {
                 setBackgroundColor(prefs.colorBackground)
             }
@@ -251,6 +313,8 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         // super.onStartInputView() resizes the IME mid-animation and flashes the
         // window background through the gap.
         hideEmojiView()
+        hideClipboardView()
+        capturePrimaryClip()
         switchSymbols(false)
         updateKeySet()
         updateSuggestionStripVisibility(info)
@@ -409,9 +473,15 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK && emojiView?.visibility == View.VISIBLE) {
-            hideEmojiView()
-            return true
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (emojiView?.visibility == View.VISIBLE) {
+                hideEmojiView()
+                return true
+            }
+            if (clipboardView?.visibility == View.VISIBLE) {
+                hideClipboardView()
+                return true
+            }
         }
 
         if (event?.isCtrlPressed == false) {
@@ -612,6 +682,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                     override fun onSpaceClick() {
                         commitText(" ")
                     }
+
+                    override fun onClipboardClick() {
+                        hideEmojiView()
+                        showClipboardView()
+                    }
                 },
                 insetBottom = insetBottom
             )
@@ -624,6 +699,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             view.reserveStripHeight = suggestionStrip?.visibility == View.VISIBLE
             view.requestLayout()
         }
+        clipboardView?.visibility = View.GONE
         if (::keyboardContainer.isInitialized) {
             keyboardContainer.visibility = View.GONE
         } else {
@@ -640,6 +716,74 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             keyboardView.visibility = View.VISIBLE
         }
         updateSuggestionStripVisibility()
+        updateSuggestions()
+    }
+
+    private fun showClipboardView() {
+        if (isHardwareKeyboardAvailable()) return
+        if (!::inputViewContainer.isInitialized || !::keyboardView.isInitialized) return
+
+        capturePrimaryClip()
+
+        if (clipboardView == null) {
+            clipboardView = ClipboardView(
+                context = this,
+                prefs = prefs,
+                historyManager = clipboardHistoryManager,
+                eventListener = object : ClipboardView.EventListener {
+                    override fun onClipClick(text: String) {
+                        commitText(text)
+                    }
+
+                    override fun onBackToKeyboard() {
+                        hideClipboardView()
+                    }
+
+                    override fun onSwitchToEmoji() {
+                        hideClipboardView()
+                        showEmojiView()
+                    }
+
+                    override fun onBackspaceClick() {
+                        backspaceClick()
+                    }
+
+                    override fun onSpaceClick() {
+                        commitText(" ")
+                    }
+                },
+                insetBottom = insetBottom
+            )
+            inputViewContainer.addView(clipboardView)
+        } else {
+            clipboardView?.updateClips()
+        }
+
+        clipboardView?.let { view ->
+            view.reserveStripHeight = suggestionStrip?.visibility == View.VISIBLE
+            view.requestLayout()
+        }
+
+        emojiView?.visibility = View.GONE
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.GONE
+        } else {
+            keyboardView.visibility = View.GONE
+        }
+        // The strip is a sibling of the panel in tall canvases, so resolve its slot
+        // here. Hiding keeps it untouched: returning to the keyboard must not
+        // re-reveal a strip that the editor (e.g. a password field) suppressed.
+        updateSuggestionStripVisibility()
+        clipboardView?.visibility = View.VISIBLE
+    }
+
+    private fun hideClipboardView() {
+        clipboardView?.visibility = View.GONE
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.VISIBLE
+        } else if (::keyboardView.isInitialized) {
+            keyboardView.visibility = View.VISIBLE
+        }
         updateSuggestions()
     }
 
@@ -959,6 +1103,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 Action.ACTION -> actionClick()
                 Action.BACKSPACE -> backspaceClick()
                 Action.EMOJI -> showEmojiView()
+                Action.CLIPBOARD -> showClipboardView()
                 Action.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
                 Action.LANG -> {
                     switchToNextAvailableLayout()

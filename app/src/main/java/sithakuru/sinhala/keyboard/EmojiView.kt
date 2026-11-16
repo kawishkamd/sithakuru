@@ -54,6 +54,7 @@ class EmojiView(
         fun onBackToKeyboard()
         fun onBackspaceClick()
         fun onSpaceClick()
+        fun onClipboardClick()
     }
 
     private val repeatHandler = Handler(Looper.getMainLooper())
@@ -145,6 +146,28 @@ class EmojiView(
             }
         }
 
+        // Clipboard Key
+        val clipboardKey = ImageView(context).apply {
+            val clipDrawable = ResourcesCompat.getDrawable(resources, R.drawable.ic_clipboard, context.theme)?.mutate()
+            clipDrawable?.setTint(prefs.colorText)
+            setImageDrawable(clipDrawable)
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            background = createKeyStatesDrawable(
+                prefs.colorBackground,
+                prefs.colorPressedKeyBackground,
+                prefs.colorKeyBorder,
+                keyBorderRadius
+            )
+            layoutParams = LayoutParams(0, rowHeight.toInt(), 1.2f).apply {
+                setMargins(2f.dpToPx().toInt(), 2f.dpToPx().toInt(), 2f.dpToPx().toInt(), 2f.dpToPx().toInt())
+            }
+            isClickable = true
+            isFocusable = true
+            setOnClickListener {
+                eventListener.onClipboardClick()
+            }
+        }
+
         // Space Key
         val spaceKey = ImageView(context).apply {
             val spaceDrawable = ResourcesCompat.getDrawable(resources, R.drawable.ic_space_bar, context.theme)?.mutate()
@@ -157,7 +180,7 @@ class EmojiView(
                 prefs.colorKeyBorder,
                 keyBorderRadius
             )
-            layoutParams = LayoutParams(0, rowHeight.toInt(), 4.5f).apply {
+            layoutParams = LayoutParams(0, rowHeight.toInt(), 3.3f).apply {
                 setMargins(2f.dpToPx().toInt(), 2f.dpToPx().toInt(), 2f.dpToPx().toInt(), 2f.dpToPx().toInt())
             }
             isClickable = true
@@ -201,6 +224,7 @@ class EmojiView(
         }
 
         bottomRow.addView(abcKey)
+        bottomRow.addView(clipboardKey)
         bottomRow.addView(spaceKey)
         bottomRow.addView(backspaceKey)
         addView(bottomRow)

@@ -20,7 +20,7 @@ package sithakuru.sinhala.keyboard.data
 import androidx.annotation.IntDef
 
 @Retention(AnnotationRetention.SOURCE)
-@IntDef(Action.ACTION, Action.BACKSPACE, Action.EMOJI, Action.IME, Action.LANG, Action.SHIFT, Action.SYMBOLS)
+@IntDef(Action.ACTION, Action.BACKSPACE, Action.EMOJI, Action.IME, Action.LANG, Action.SHIFT, Action.SYMBOLS, Action.CLIPBOARD)
 annotation class Action {
     companion object {
         const val ACTION: Int = -1
@@ -30,5 +30,6 @@ annotation class Action {
         const val LANG: Int = -5
         const val SHIFT: Int = -6
         const val SYMBOLS: Int = -7
+        const val CLIPBOARD: Int = -8
     }
 }

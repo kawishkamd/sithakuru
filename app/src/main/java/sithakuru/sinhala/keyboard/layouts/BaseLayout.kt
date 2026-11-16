@@ -25,7 +25,11 @@ import sithakuru.sinhala.keyboard.CharCode
 import sithakuru.sinhala.keyboard.CharText
 import sithakuru.sinhala.keyboard.datatype.KeyData
 
-abstract class BaseLayout(val indicator: String, val showEmojiKey: Boolean = true) {
+abstract class BaseLayout(
+    val indicator: String,
+    val showEmojiKey: Boolean = true,
+    val showClipboardKey: Boolean = false
+) {
     abstract val lower: Map<Int, List<KeyData>>
     abstract val upper: Map<Int, List<KeyData>>
 
@@ -44,26 +48,51 @@ abstract class BaseLayout(val indicator: String, val showEmojiKey: Boolean = tru
     internal val rowBottom: MutableList<KeyData> = mutableListOf<KeyData>().apply {
         add(Action.SYMBOLS.toKeyData(label = "#!", dim = true))
         if (showEmojiKey) {
-            add(Action.EMOJI.toKeyData(iconRes = R.drawable.ic_emoji, dim = true))
+            val emojiPopup = if (!showClipboardKey) Action.CLIPBOARD.toKeyInputData(iconRes = R.drawable.ic_clipboard) else null
+            add(
+                KeyData(
+                    Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji, dim = true),
+                    popupInputData = emojiPopup
+                )
+            )
+        }
+        if (showClipboardKey) {
+            val clipboardPopup = if (!showEmojiKey) Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji) else null
+            add(
+                KeyData(
+                    Action.CLIPBOARD.toKeyInputData(iconRes = R.drawable.ic_clipboard, dim = true),
+                    popupInputData = clipboardPopup
+                )
+            )
         }
         add(Action.LANG.toKeyData(label = indicator, dim = true))
         add(
             KeyData(
                 CharCode.COMMA,
                 CharText.COMMA,
-                popupInputData = if (!showEmojiKey) Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji) else null
+                popupInputData = commaPopup()
             )
         )
+        val spaceMultiplier = (10 - 5 - (if (showEmojiKey) 1 else 0) - (if (showClipboardKey) 1 else 0)).toFloat()
         add(
             KeyData(
                 KeyInputData(CharCode.SPACE, null, R.drawable.ic_space_bar),
-                widthMultiplier = if (showEmojiKey) 4f else 5f,
+                widthMultiplier = spaceMultiplier,
                 popupInputData = Action.IME.toKeyInputData()
             )
         )
         add(KeyData(CharCode.FULL_STOP, CharText.FULL_STOP))
         add(Action.ACTION.toKeyData())
     }
+
+    /**
+     * Long-press popup for the bottom-row comma key. When the dedicated Emoji key is
+     * disabled this exposes emoji through the comma, so emoji stays reachable either
+     * way. Layouts that replace the comma with another key (see [Symbols]) override
+     * this to null to avoid a duplicate emoji popup.
+     */
+    protected open fun commaPopup(): KeyInputData? =
+        if (!showEmojiKey) Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji) else null
 
     internal fun @receiver:Action Int.toKeyInputData(label: String? = null, @DrawableRes iconRes: Int? = null, dim: Boolean = false) =
         KeyInputData(this, label = label, iconRes = iconRes, dim = dim)

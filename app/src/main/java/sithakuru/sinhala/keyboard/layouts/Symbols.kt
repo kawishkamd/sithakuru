@@ -22,14 +22,23 @@ import sithakuru.sinhala.keyboard.data.Action
 import sithakuru.sinhala.keyboard.CharCode
 import sithakuru.sinhala.keyboard.CharText
 import sithakuru.sinhala.keyboard.datatype.KeyData
+import sithakuru.sinhala.keyboard.datatype.KeyInputData
 
-class Symbols(showEmojiKey: Boolean = true) : BaseLayout(indicator = "#!", showEmojiKey = showEmojiKey) {
+class Symbols(
+    showEmojiKey: Boolean = true,
+    showClipboardKey: Boolean = false
+) : BaseLayout(indicator = "#!", showEmojiKey = showEmojiKey, showClipboardKey = showClipboardKey) {
     init {
         val langIndex = rowBottom.indexOfFirst { it.inputData.value == Action.LANG }
         if (langIndex != -1) {
             rowBottom[langIndex] = KeyData(CharCode.SOLIDUS, CharText.SOLIDUS)
         }
     }
+
+    // The Symbols row replaces the comma with a full stop and the language key with
+    // a solidus, so the comma's emoji popup must not carry over: the clipboard key
+    // already provides emoji here, and two emoji popups on one row is confusing.
+    override fun commaPopup(): KeyInputData? = null
 
     override val lower = mutableMapOf(
         1 to rowNumbers,

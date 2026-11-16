@@ -323,7 +323,8 @@ class Keyboard(
                 if (keyData.inputData.value == Action.ACTION && (currentActionButtonIcon ?: -1) > 0)
                     keyData.inputData.iconRes = currentActionButtonIcon
 
-                if (longPressKeys) {
+                val isActionPopup = keyData.popupInputData?.value?.let { it < 0 } == true
+                if (longPressKeys || isActionPopup) {
                     if (!longPressKeysLabels)
                         keyData.popupInputData?.label = null
                 } else keyData.popupInputData = null

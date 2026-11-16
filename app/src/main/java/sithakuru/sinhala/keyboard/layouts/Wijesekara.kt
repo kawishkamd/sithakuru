@@ -24,7 +24,10 @@ import sithakuru.sinhala.keyboard.CharText
 import sithakuru.sinhala.keyboard.datatype.KeyData
 import sithakuru.sinhala.keyboard.datatype.KeyInputData
 
-class Wijesekara(showEmojiKey: Boolean = true) : BaseLayout(indicator = "වි", showEmojiKey = showEmojiKey) {
+class Wijesekara(
+    showEmojiKey: Boolean = true,
+    showClipboardKey: Boolean = false
+) : BaseLayout(indicator = "වි", showEmojiKey = showEmojiKey, showClipboardKey = showClipboardKey) {
     override val lower = mutableMapOf(
         1 to listOf(
             KeyData(CharCode.SIGN_RAKARANSHAYA, CharText.SIGN_RAKARANSHAYA),
@@ -209,13 +212,29 @@ class Wijesekara(showEmojiKey: Boolean = true) : BaseLayout(indicator = "වි"
     private fun createWijesekaraRowBottom(key1: KeyData, key2: KeyData): MutableList<KeyData> = mutableListOf<KeyData>().apply {
         add(Action.SYMBOLS.toKeyData(label = "#!", dim = true))
         if (showEmojiKey) {
-            add(Action.EMOJI.toKeyData(iconRes = R.drawable.ic_emoji, dim = true))
+            val emojiPopup = if (!showClipboardKey) Action.CLIPBOARD.toKeyInputData(iconRes = R.drawable.ic_clipboard) else null
+            add(
+                KeyData(
+                    Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji, dim = true),
+                    popupInputData = emojiPopup
+                )
+            )
+        }
+        if (showClipboardKey) {
+            val clipboardPopup = if (!showEmojiKey) Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji) else null
+            add(
+                KeyData(
+                    Action.CLIPBOARD.toKeyInputData(iconRes = R.drawable.ic_clipboard, dim = true),
+                    popupInputData = clipboardPopup
+                )
+            )
         }
         add(Action.LANG.toKeyData(label = indicator, dim = true))
+        val spaceMultiplier = (10 - 5 - (if (showEmojiKey) 1 else 0) - (if (showClipboardKey) 1 else 0)).toFloat()
         add(
             KeyData(
                 KeyInputData(CharCode.SPACE, null, R.drawable.ic_space_bar),
-                widthMultiplier = if (showEmojiKey) 4f else 5f,
+                widthMultiplier = spaceMultiplier,
                 popupInputData = Action.IME.toKeyInputData()
             )
         )
@@ -227,13 +246,29 @@ class Wijesekara(showEmojiKey: Boolean = true) : BaseLayout(indicator = "වි"
     val wijesekaraSymbolsRowBottom: MutableList<KeyData> = mutableListOf<KeyData>().apply {
         add(Action.SYMBOLS.toKeyData(label = "#!", dim = true))
         if (showEmojiKey) {
-            add(Action.EMOJI.toKeyData(iconRes = R.drawable.ic_emoji, dim = true))
+            val emojiPopup = if (!showClipboardKey) Action.CLIPBOARD.toKeyInputData(iconRes = R.drawable.ic_clipboard) else null
+            add(
+                KeyData(
+                    Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji, dim = true),
+                    popupInputData = emojiPopup
+                )
+            )
+        }
+        if (showClipboardKey) {
+            val clipboardPopup = if (!showEmojiKey) Action.EMOJI.toKeyInputData(iconRes = R.drawable.ic_emoji) else null
+            add(
+                KeyData(
+                    Action.CLIPBOARD.toKeyInputData(iconRes = R.drawable.ic_clipboard, dim = true),
+                    popupInputData = clipboardPopup
+                )
+            )
         }
         add(KeyData(CharCode.SOLIDUS, CharText.SOLIDUS))
+        val spaceMultiplier = (10 - 5 - (if (showEmojiKey) 1 else 0) - (if (showClipboardKey) 1 else 0)).toFloat()
         add(
             KeyData(
                 KeyInputData(CharCode.SPACE, null, R.drawable.ic_space_bar),
-                widthMultiplier = if (showEmojiKey) 4f else 5f,
+                widthMultiplier = spaceMultiplier,
                 popupInputData = Action.IME.toKeyInputData()
             )
         )

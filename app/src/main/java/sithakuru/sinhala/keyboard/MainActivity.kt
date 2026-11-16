@@ -130,6 +130,7 @@ class MainActivity : Activity() {
         binding.switchDark.isChecked = prefs.darkTheme
         binding.switchBorder.isChecked = prefs.keyBorders
         binding.switchEmoji.isChecked = prefs.emojiKey
+        binding.switchClipboard.isChecked = prefs.clipboardKey
         binding.longPressKeysLabels.isChecked = prefs.longPressKeysLabels
         binding.longPressKeys.isChecked = prefs.longPressKeys
         binding.swipeToErase.isChecked = prefs.swipeToErase
@@ -176,6 +177,10 @@ class MainActivity : Activity() {
         }
         binding.switchEmoji.setOnCheckedChangeListener { _, isChecked ->
             prefs.emojiKey = isChecked
+            settingsChanged = true
+        }
+        binding.switchClipboard.setOnCheckedChangeListener { _, isChecked ->
+            prefs.clipboardKey = isChecked
             settingsChanged = true
         }
         binding.longPressKeysLabels.setOnCheckedChangeListener { _, isChecked ->

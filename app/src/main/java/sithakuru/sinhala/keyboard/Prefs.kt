@@ -109,6 +109,14 @@ class Prefs(context: Context) {
         get() = preferences.getBoolean(KEY_EMOJI_KEY, DEFAULT_EMOJI_KEY)
         set(value) = preferences.edit().putBoolean(KEY_EMOJI_KEY, value).apply()
 
+    var clipboardKey: Boolean
+        get() = preferences.getBoolean(KEY_CLIPBOARD_KEY, DEFAULT_CLIPBOARD_KEY)
+        set(value) = preferences.edit().putBoolean(KEY_CLIPBOARD_KEY, value).apply()
+
+    var clipboardHistory: String
+        get() = preferences.getString(KEY_CLIPBOARD_HISTORY, "") ?: ""
+        set(value) = preferences.edit().putString(KEY_CLIPBOARD_HISTORY, value).apply()
+
     var recentEmojis: List<String>
         get() {
             val raw = preferences.getString(KEY_RECENT_EMOJIS, "") ?: ""
@@ -197,6 +205,8 @@ class Prefs(context: Context) {
         private const val KEY_SWIPE_TO_MOVE_CURSOR = "SWIPE_TO_MOVE_CURSOR"
         private const val KEY_CURRENT_LAYOUT = "CURRENT_LAYOUT"
         private const val KEY_EMOJI_KEY = "EMOJI_KEY"
+        private const val KEY_CLIPBOARD_KEY = "CLIPBOARD_KEY"
+        private const val KEY_CLIPBOARD_HISTORY = "CLIPBOARD_HISTORY"
         private const val KEY_RECENT_EMOJIS = "RECENT_EMOJIS"
 
         const val DEFAULT_DARK_THEME = true
@@ -208,6 +218,7 @@ class Prefs(context: Context) {
         const val DEFAULT_SWIPE_TO_ERASE = true
         const val DEFAULT_SWIPE_TO_MOVE_CURSOR = true
         const val DEFAULT_EMOJI_KEY = true
+        const val DEFAULT_CLIPBOARD_KEY = false
         const val DEFAULT_ENGLISH_SUGGESTIONS = true
         const val MAX_RECENT_EMOJIS = 30
     }
