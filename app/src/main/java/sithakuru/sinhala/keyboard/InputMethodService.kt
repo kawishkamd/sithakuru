@@ -97,19 +97,13 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var caps = false
 
     private var positionFlag: CharSequence = ""
-    private var lastText: String = ""
-    private var lastChar: Int? = null
-    private var lastLetter: Int? = null
     private var appliedWord: String? = null
 
-    // Raw keys of the Singlish word being typed, and how many UTF-16 units
-    // have been committed for it (what deleteSurroundingText needs).
-    private var singlishKeys = ""
-    private var singlishShown = 0
-    private var singlishTyping = false
+    private val wijesekara = WijesekaraComposer()
+    private val singlish = SinglishComposer()
 
-    /* Without this, kombuva keeps going forward with each new letter in Wijesekara layout */
-    private var kombuvaNew: Boolean = false
+    // True while the Singlish path commits, so commitText does not end the word.
+    private var singlishTyping = false
 
     override fun onCreate() {
         super.onCreate()
@@ -449,9 +443,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
     private fun resetInputMarkers() {
         positionFlag = ""
-        lastText = ""
-        lastChar = null
-        lastLetter = null
+        wijesekara.reset()
         appliedWord = null
         singlishReset()
     }
@@ -890,17 +882,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         // one and re-render instead of deleting a rendered character.
         if (currentLayout == KeyboardLayoutId.SINGLISH) {
             if (hasPositionChanged()) singlishReset()
-            if (singlishKeys.isNotEmpty() &&
-                currentInputConnection.getSelectedText(0).isNullOrBlank()
-            ) {
-                singlishKeys = singlishKeys.dropLast(1)
-                if (singlishShown > 0) {
-                    currentInputConnection.deleteSurroundingText(singlishShown, 0)
+            if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
+                singlish.backspace()?.let {
+                    applySinglishEdit(it)
+                    return
                 }
-                val text = SinglishKeymap.render(singlishKeys)
-                singlishCommit(text)
-                singlishShown = text.length
-                return
             }
         }
         if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
@@ -929,12 +915,8 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private fun clearLastTypedInfo() {
         appliedWord = null
         when (currentLayout) {
-            KeyboardLayoutId.WIJESEKARA -> lastText = ""
-            KeyboardLayoutId.SINGLISH -> {
-                lastLetter = null
-                lastChar = null
-                singlishReset()
-            }
+            KeyboardLayoutId.WIJESEKARA -> wijesekara.reset()
+            KeyboardLayoutId.SINGLISH -> singlishReset()
         }
     }
 
@@ -994,138 +976,15 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun wijesekaraInput(input: Int) {
-        var erasePrevious = false
-        var lastTextOverride: String? = null
-
-        if (lastText.isBlank() or hasPositionChanged())
-            lastText = (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0) ?: ' ').toString()
-
-        val output: String = when (lastText) {
-            CharText.AYANNA -> {
-                when (input) {
-                    CharCode.AELA_PILLA -> {
-                        erasePrevious = true
-                        CharText.AAYANNA
-                    }
-
-                    CharCode.KETTI_AEDA_PILLA -> {
-                        erasePrevious = true
-                        CharText.AEYANNA
-                    }
-
-                    CharCode.DIGA_AEDA_PILLA -> {
-                        erasePrevious = true
-                        CharText.AEEYANNA
-                    }
-
-                    else -> input.text
-                }
-            }
-
-            CharText.UYANNA ->
-                if (input == CharCode.GAYANUKITTA) {
-                    erasePrevious = true
-                    CharText.UUYANNA
-                } else input.text
-
-            CharText.IRUYANNA ->
-                if (input == CharCode.GAETTA_PILLA) {
-                    erasePrevious = true
-                    CharText.IRUUYANNA
-                } else input.text
-
-            CharText.ILUYANNA ->
-                if (input == CharCode.GAYANUKITTA) {
-                    erasePrevious = true
-                    CharText.ILUUYANNA
-                } else input.text
-
-            CharText.EYANNA ->
-                if (input == CharCode.SIGN_AL_LAKUNA) {
-                    erasePrevious = true
-                    CharText.EEYANNA
-                } else input.text
-
-            CharText.OYANNA -> {
-                when (input) {
-                    CharCode.SIGN_AL_LAKUNA -> {
-                        erasePrevious = true
-                        CharText.OOYANNA
-                    }
-
-                    CharCode.GAYANUKITTA -> {
-                        erasePrevious = true
-                        CharText.AUYANNA
-                    }
-
-                    else -> input.text
-                }
-            }
-
-            CharText.KOMBUVA -> {
-                if (kombuvaNew) {
-                    erasePrevious = true
-                    when (input.type) {
-                        CharType.SWARA,
-                        CharType.WYANJANA -> {
-                            lastTextOverride = CharText.KOMBUVA
-                            if (input == CharCode.EYANNA)
-                                CharText.AIYANNA
-                            else
-                                input.text + CharText.KOMBUVA
-                        }
-
-                        else -> {
-                            when (input) {
-                                CharCode.KOMBUVA -> CharText.KOMBU_DEKA
-                                CharCode.SIGN_AL_LAKUNA -> CharText.DIGA_KOMBUVA
-                                CharCode.AELA_PILLA -> CharText.KOMBUVA_HAA_AELA_PILLA
-                                CharCode.GAYANUKITTA -> CharText.KOMBUVA_HAA_GAYANUKITTA
-                                else -> input.text
-                            }
-                        }
-                    }
-                } else if (input == CharCode.SIGN_RAKARANSHAYA) {
-                    erasePrevious = true
-                    lastTextOverride = CharText.KOMBUVA
-                    CharText.SIGN_RAKARANSHAYA + CharText.KOMBUVA
-                } else input.text
-            }
-
-            CharText.KOMBUVA_HAA_AELA_PILLA -> {
-                if (input == CharCode.SIGN_AL_LAKUNA) {
-                    erasePrevious = true
-                    CharText.KOMBUVA_HAA_DIGA_AELA_PILLA
-                } else input.text
-            }
-
-            CharText.KOMBU_DEKA -> {
-                when (input.type) {
-                    CharType.SWARA, CharType.WYANJANA -> {
-                        erasePrevious = true
-                        input.text + CharText.KOMBU_DEKA
-                    }
-
-                    else -> input.text
-                }
-            }
-
-            else -> {
-                if (input == CharCode.SIGN_REEPAYA) {
-                    erasePrevious = true
-                    CharText.SIGN_REEPAYA + lastText
-                } else input.text
-            }
-        }
-
-        kombuvaNew = output == CharText.KOMBUVA
-
-        if (erasePrevious)
-            eraseAndCommit(output)
+        val edit = wijesekara.type(
+            input,
+            charBeforeCursor = currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0),
+            positionChanged = hasPositionChanged()
+        )
+        if (edit.erasePrevious)
+            eraseAndCommit(edit.text)
         else
-            commitText(output)
-
-        lastText = lastTextOverride ?: output
+            commitText(edit.text)
     }
 
     private fun hasPositionChanged(): Boolean = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) != positionFlag
@@ -1143,26 +1002,24 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         }
 
         val ch = input.toChar()
-        if (ch !in 'a'..'z' && ch !in 'A'..'Z') {
-            // Word boundary. The buffered word is already committed and
-            // correct, so only the separator is new.
+        if (!SinglishComposer.isLetter(ch)) {
+            // A separator ends the word and is written like any other text.
             singlishReset()
             commitText(ch.toString())
             return
         }
+        applySinglishEdit(singlish.type(ch))
+    }
 
-        singlishKeys += ch
-        val text = SinglishKeymap.render(singlishKeys)
-        if (singlishShown > 0) {
-            currentInputConnection.deleteSurroundingText(singlishShown, 0)
+    private fun applySinglishEdit(edit: SinglishComposer.Edit) {
+        if (edit.deleteBefore > 0) {
+            currentInputConnection.deleteSurroundingText(edit.deleteBefore, 0)
         }
-        singlishCommit(text)
-        singlishShown = text.length
+        singlishCommit(edit.insert)
     }
 
     private fun singlishReset() {
-        singlishKeys = ""
-        singlishShown = 0
+        singlish.reset()
     }
 
     /** commitText for the Singlish path, which owns the buffer it replaces. */
