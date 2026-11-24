@@ -21,10 +21,14 @@ import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.PixelFormat
 import android.graphics.drawable.ColorDrawable
 import android.inputmethodservice.InputMethodService
+import android.inputmethodservice.InputMethodService.Insets
 import android.os.Build
 import android.text.InputType
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
@@ -296,7 +300,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             emojiView = null
             clipboardView = null
             inputViewContainer = FrameLayout(this).apply {
-                setBackgroundColor(prefs.colorBackground)
+                setBackgroundColor(Color.TRANSPARENT)
             }
             keyboardContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -446,14 +450,19 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     /**
-     * Paints the IME window itself so frames where no child has drawn yet show
-     * the keyboard color instead of the theme's window background. Kept in sync
-     * with [onStartInput], since the service can outlive a settings change.
+     * Keeps the IME window and its root container transparent. Every visible
+     * part (keys, an active suggestion strip, the emoji and clipboard panels)
+     * paints its own background, so an inactive strip slot shows the app
+     * behind it instead of a blank bar (see [onComputeInsets]). Painting the
+     * window the theme's color instead would show through as a band there.
      */
     private fun updateWindowBackground() {
-        window?.window?.setBackgroundDrawable(ColorDrawable(prefs.colorBackground))
+        window?.window?.let { w ->
+            w.setFormat(PixelFormat.TRANSLUCENT)
+            w.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }
         if (::inputViewContainer.isInitialized) {
-            inputViewContainer.setBackgroundColor(prefs.colorBackground)
+            inputViewContainer.setBackgroundColor(Color.TRANSPARENT)
         }
     }
 
@@ -717,22 +726,45 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 },
                 insetBottom = insetBottom
             )
-            inputViewContainer.addView(emojiView)
+            inputViewContainer.addView(emojiView, bottomPanelLayoutParams())
         } else {
             emojiView?.updateRecents()
         }
         // Keep the panel exactly as tall as the keyboard it replaces.
         emojiView?.let { view ->
-            view.reserveStripHeight = suggestionStrip?.visibility == View.VISIBLE
+            view.reserveStripHeight = panelCoversStrip()
             view.requestLayout()
         }
         clipboardView?.visibility = View.GONE
-        if (::keyboardContainer.isInitialized) {
-            keyboardContainer.visibility = View.GONE
-        } else {
-            keyboardView.visibility = View.GONE
-        }
+        hideKeyboardBehindPanel()
         emojiView?.visibility = View.VISIBLE
+    }
+
+    /**
+     * A panel covers the strip slot only while the strip is active. Otherwise
+     * it is as tall as the keys and the slot above it stays see-through, so
+     * opening or closing a panel never changes the window's height or the
+     * area the app sees as covered.
+     */
+    private fun panelCoversStrip(): Boolean =
+        suggestionStrip?.let { it.visibility == View.VISIBLE && it.isActive } == true
+
+    private fun bottomPanelLayoutParams() = FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams.MATCH_PARENT,
+        FrameLayout.LayoutParams.WRAP_CONTENT,
+        Gravity.BOTTOM
+    )
+
+    /**
+     * INVISIBLE rather than GONE: the keyboard keeps its size under the panel,
+     * so the container (and the IME window) keeps its height.
+     */
+    private fun hideKeyboardBehindPanel() {
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.INVISIBLE
+        } else {
+            keyboardView.visibility = View.INVISIBLE
+        }
     }
 
     private fun hideEmojiView() {
@@ -782,26 +814,22 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 },
                 insetBottom = insetBottom
             )
-            inputViewContainer.addView(clipboardView)
+            inputViewContainer.addView(clipboardView, bottomPanelLayoutParams())
         } else {
             clipboardView?.updateClips()
         }
 
-        clipboardView?.let { view ->
-            view.reserveStripHeight = suggestionStrip?.visibility == View.VISIBLE
-            view.requestLayout()
-        }
-
-        emojiView?.visibility = View.GONE
-        if (::keyboardContainer.isInitialized) {
-            keyboardContainer.visibility = View.GONE
-        } else {
-            keyboardView.visibility = View.GONE
-        }
         // The strip is a sibling of the panel in tall canvases, so resolve its slot
         // here. Hiding keeps it untouched: returning to the keyboard must not
         // re-reveal a strip that the editor (e.g. a password field) suppressed.
         updateSuggestionStripVisibility()
+        clipboardView?.let { view ->
+            view.reserveStripHeight = panelCoversStrip()
+            view.requestLayout()
+        }
+
+        emojiView?.visibility = View.GONE
+        hideKeyboardBehindPanel()
         clipboardView?.visibility = View.VISIBLE
     }
 
@@ -1231,15 +1259,51 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     /**
-     * Structural visibility: the strip only takes up space when the layout and
-     * field can actually suggest words. Sinhala layouts and excluded fields
-     * collapse it entirely so they don't lose vertical space to a blank bar.
-     *
-     * Call this before the window is shown (see [onStartInputView]) so the IME
-     * is already the final size when it starts animating in.
+     * Whether the strip's slot exists at all. This depends only on settings,
+     * which cannot change while this process runs (the settings screen
+     * restarts it), so the keyboard window keeps one height across layout
+     * switches and fields. Changing the window's height while it is shown
+     * made the app behind it relayout and flash through the gap.
+     */
+    private fun stripReserved(): Boolean = prefs.englishSuggestions && prefs.layoutEnglish
+
+    /**
+     * The slot is reserved by settings ([stripReserved]); within it the strip
+     * is only active where the layout and field can suggest words. Sinhala
+     * layouts and excluded fields get an inactive, see-through strip, and
+     * [onComputeInsets] hands that area back to the app.
      */
     private fun updateSuggestionStripVisibility(info: EditorInfo? = currentInputEditorInfo) {
-        suggestionStrip?.visibility = if (stripHasSlot(info)) View.VISIBLE else View.GONE
+        val strip = suggestionStrip ?: return
+        val reserved = stripReserved()
+        strip.visibility = if (reserved) View.VISIBLE else View.GONE
+        strip.setActive(reserved && stripHasSlot(info))
+    }
+
+    /**
+     * With an inactive strip, report only the keys as the keyboard's area: the
+     * app lays out above the keys, sees its own content through the empty slot
+     * and gets the touches there, while the IME window itself never resizes.
+     */
+    override fun onComputeInsets(outInsets: Insets) {
+        super.onComputeInsets(outInsets)
+        if (isFullscreenMode || isHardwareKeyboardAvailable()) return
+        val strip = suggestionStrip ?: return
+        if (strip.visibility != View.VISIBLE || strip.isActive) return
+        val decor = window?.window?.decorView ?: return
+        // The opaque part below the slot: an open panel, otherwise the keys.
+        val body: View = emojiView?.takeIf { it.visibility == View.VISIBLE }
+            ?: clipboardView?.takeIf { it.visibility == View.VISIBLE }
+            ?: keyboardView
+        if (!body.isLaidOut) return
+
+        val location = IntArray(2)
+        body.getLocationInWindow(location)
+        val keysTop = location[1]
+        outInsets.contentTopInsets = keysTop
+        outInsets.visibleTopInsets = keysTop
+        outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
+        outInsets.touchableRegion.set(0, keysTop, decor.width, decor.height)
     }
 
     private fun updateSuggestions() {
