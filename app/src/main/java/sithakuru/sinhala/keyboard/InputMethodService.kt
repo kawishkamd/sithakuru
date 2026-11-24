@@ -28,6 +28,7 @@ import android.inputmethodservice.InputMethodService
 import android.inputmethodservice.InputMethodService.Insets
 import android.os.Build
 import android.text.InputType
+import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -123,7 +124,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
         try {
             clipboardManager?.addPrimaryClipChangedListener(clipChangedListener)
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            // Some OEM builds restrict clipboard access; history just stays empty.
+            Log.w(TAG, "Could not watch the clipboard", e)
+        }
         initKeyboardLayouts()
         currentKeyboardLayout = keyboardLayoutWijesekara
         EnglishDictionary.load(this)
@@ -133,7 +137,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     override fun onDestroy() {
         try {
             clipboardManager?.removePrimaryClipChangedListener(clipChangedListener)
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not stop watching the clipboard", e)
+        }
         super.onDestroy()
     }
 
@@ -193,7 +199,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                     }
                 }
             }
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            // Only the exception type: a message could quote clip content.
+            Log.w(TAG, "Could not read the clipboard: ${e.javaClass.name}")
+        }
     }
 
     private fun initKeyboardLayouts() {
@@ -1373,6 +1382,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     companion object {
+        private const val TAG = "SithakuruIME"
         private const val POSITION_FLAG_LENGTH: Int = 5
         private const val DOUBLE_PRESS_TIME_RANGE: Long = 500
     }

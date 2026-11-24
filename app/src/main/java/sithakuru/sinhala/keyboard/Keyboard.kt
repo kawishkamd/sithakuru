@@ -21,10 +21,12 @@ package sithakuru.sinhala.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
@@ -297,7 +299,8 @@ class Keyboard(
                             iconDrawable.setTint(colorText)
                             iconDrawable.bounds = row.value[keyIndex].iconRect()
                             row.value[keyIndex].data.inputData.iconDrawable = iconDrawable
-                        } catch (_: Exception) {
+                        } catch (e: Resources.NotFoundException) {
+                            Log.w(TAG, "Missing key icon resource $it", e)
                         }
                     }
                 }
@@ -602,6 +605,7 @@ class Keyboard(
     }
 
     companion object {
+        private const val TAG = "SithakuruKeyboard"
         private const val NOT_FOUND_INDEX: Int = -1
         private const val LONG_PRESS_NOT_AVAILABLE: Long = -1
         private const val REPEAT_START_DELAY: Long = 300

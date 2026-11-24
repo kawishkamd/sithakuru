@@ -17,6 +17,7 @@
 
 package sithakuru.sinhala.keyboard.clipboard
 
+import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -47,7 +48,9 @@ class ClipboardHistoryManager(
                     if (text.isNotEmpty() && parsed.none { it.id == id || it.text == text }) {
                         parsed.add(ClipboardItem(id = id, text = text, timestamp = timestamp, isPinned = isPinned))
                     }
-                } catch (_: Exception) {}
+                } catch (_: IllegalArgumentException) {
+                    // A malformed escape in one line: skip that clip, keep the rest.
+                }
             }
         }
         items.clear()
@@ -60,7 +63,8 @@ class ClipboardHistoryManager(
         return items.joinToString("\n") { item ->
             val encodedText = try {
                 URLEncoder.encode(item.text, "UTF-8")
-            } catch (_: Exception) {
+            } catch (_: UnsupportedEncodingException) {
+                // UTF-8 is always supported; this branch cannot run.
                 item.text
             }
             "${item.id}\t${item.timestamp}\t${if (item.isPinned) 1 else 0}\t$encodedText"
