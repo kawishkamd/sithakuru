@@ -1131,7 +1131,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private fun hasPositionChanged(): Boolean = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) != positionFlag
 
     /**
-     * Helakuru phonetic input: keep the raw keys of the word being typed,
+     * Helakuru-compatible phonetic input: keep the raw keys of the word being typed,
      * render the whole word again after every key, and replace what was
      * committed for it. A key that is not a letter ends the word.
      */
