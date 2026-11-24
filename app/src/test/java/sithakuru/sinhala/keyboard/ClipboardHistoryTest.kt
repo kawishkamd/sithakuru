@@ -25,6 +25,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import sithakuru.sinhala.keyboard.clipboard.ClipboardHistoryManager
+import sithakuru.sinhala.keyboard.clipboard.ClipboardPolicy
+import sithakuru.sinhala.keyboard.clipboard.ClipboardSettings
 
 class ClipboardHistoryTest {
 
@@ -354,15 +356,47 @@ class ClipboardHistoryTest {
         assertEquals("", savedData)
     }
 
-    @Test
-    fun testRemoveCopiedAtOrBeforeIncludesPinned() {
-        loadAt(
-            Triple("before", 1_000L, false),
-            Triple("beforePinned", 2_000L, true),
-            Triple("after", 3_001L, false)
-        )
+    private fun settings(enabled: Boolean = true, expiry: Long = 0L, clearRequests: Int = 0) =
+        ClipboardSettings(enabled = enabled, expiryMillis = expiry, clearRequests = clearRequests)
 
-        assertEquals(2, manager.removeCopiedAtOrBefore(3_000L))
-        assertEquals(listOf("after"), manager.getItems().map { it.text })
+    @Test
+    fun testPolicyDisabledClearsEverything() {
+        loadAt(Triple("a", 1_000L, false), Triple("pinned", 2_000L, true))
+
+        val handled = ClipboardPolicy.apply(manager, settings(enabled = false, clearRequests = 3), 3, now = 5_000L)
+
+        assertTrue(manager.getItems().isEmpty())
+        assertEquals(3, handled)
+    }
+
+    @Test
+    fun testPolicyNewClearRequestClearsRegardlessOfTimestamps() {
+        // Timestamps far in the future (a clock that was ahead) must not let
+        // clips survive "clear all".
+        loadAt(Triple("future", Long.MAX_VALUE / 2, false), Triple("pinned", Long.MAX_VALUE / 2 + 1, true))
+
+        val handled = ClipboardPolicy.apply(manager, settings(clearRequests = 1), 0, now = 0L)
+
+        assertTrue(manager.getItems().isEmpty())
+        assertEquals(1, handled)
+    }
+
+    @Test
+    fun testPolicyHandledClearRequestIsNotAppliedAgain() {
+        loadAt(Triple("kept", 1_000L, false))
+
+        val handled = ClipboardPolicy.apply(manager, settings(clearRequests = 2), 2, now = 2_000L)
+
+        assertEquals(listOf("kept"), manager.getItems().map { it.text })
+        assertEquals(2, handled)
+    }
+
+    @Test
+    fun testPolicyExpiresUnpinnedClips() {
+        loadAt(Triple("old", 1_000L, false), Triple("oldPinned", 1_000L, true), Triple("new", 9_000L, false))
+
+        ClipboardPolicy.apply(manager, settings(expiry = 5_000L), 0, now = 10_000L)
+
+        assertEquals(listOf("new", "oldPinned"), manager.getItems().map { it.text }.sorted())
     }
 }

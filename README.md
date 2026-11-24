@@ -40,8 +40,8 @@ Download the APK from the [Releases](../../releases) page and allow installation
 
 ### Privacy
 - The app has **no internet permission**; nothing you type leaves your device.
-- Clipboard history is stored only on your device, as plain text in the app's private storage.
-- Clips that apps mark as sensitive (for example, passwords copied from a password manager) are never saved, and nothing is saved while you type in incognito fields.
+- Clipboard history is **on by default**. It is stored only on your device, as plain text in the app's private storage.
+- Not saved: clips that apps mark as sensitive (for example, passwords from many password managers), and anything on the clipboard while you type in a password or incognito field.
 - In settings you can turn clipboard history off (this deletes what is saved), have unpinned clips deleted after an hour or a day (the default), or clear everything, pinned clips included.
 - On Android 12 and older, most apps don't mark copied text as sensitive, so a copied password may be saved until it expires. Turn clipboard history off if this matters to you.
 

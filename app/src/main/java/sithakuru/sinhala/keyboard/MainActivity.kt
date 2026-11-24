@@ -193,10 +193,11 @@ class MainActivity : Activity() {
         binding.switchClipboardHistory.isChecked = prefs.clipboardHistoryEnabled
         updateClipboardHistoryControls(prefs.clipboardHistoryEnabled)
         binding.switchClipboardHistory.setOnCheckedChangeListener { _, isChecked ->
-            // Turning it off also wipes what is saved; the keyboard does that
-            // when it restarts after this screen closes.
+            // Turning it off also wipes what is saved. A running keyboard does
+            // that on the broadcast, a stopped one when it next starts.
             prefs.clipboardHistoryEnabled = isChecked
             updateClipboardHistoryControls(isChecked)
+            ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
             settingsChanged = true
         }
         binding.clipboardExpiry.check(
@@ -212,6 +213,7 @@ class MainActivity : Activity() {
                 R.id.clipboard_expiry_never -> Prefs.CLIPBOARD_EXPIRY_NEVER
                 else -> Prefs.CLIPBOARD_EXPIRY_DAY
             }
+            ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
             settingsChanged = true
         }
         binding.clipboardClearHistory.setOnClickListener {
@@ -220,8 +222,10 @@ class MainActivity : Activity() {
                 .setMessage(R.string.clipboard_history_clear_confirm_message)
                 .setPositiveButton(R.string.clipboard_history_clear_confirm) { _, _ ->
                     // This screen cannot write the keyboard's state file, so it
-                    // leaves a marker that the keyboard applies when it restarts.
-                    prefs.clipboardClearRequestedAt = System.currentTimeMillis()
+                    // counts the request; the keyboard clears everything on the
+                    // broadcast, or when it next starts if it is not running.
+                    prefs.clipboardClearRequests = prefs.clipboardClearRequests + 1
+                    ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
                     settingsChanged = true
                 }
                 .setNegativeButton(R.string.clipboard_history_clear_cancel, null)

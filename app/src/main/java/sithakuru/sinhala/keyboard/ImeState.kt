@@ -56,6 +56,11 @@ class ImeState(private val state: SharedPreferences) {
         get() = state.getInt(KEY_CURRENT_LAYOUT, KeyboardLayoutId.WIJESEKARA)
         set(value) = state.edit().putInt(KEY_CURRENT_LAYOUT, value).apply()
 
+    /** The settings' "clear all" request count last handled (see ClipboardPolicy). */
+    var appliedClipboardClearRequests: Int
+        get() = state.getInt(KEY_APPLIED_CLIPBOARD_CLEAR_REQUESTS, 0)
+        set(value) = state.edit().putInt(KEY_APPLIED_CLIPBOARD_CLEAR_REQUESTS, value).apply()
+
     companion object {
         const val FILE_NAME = "sithakuru_ime_state"
 
@@ -64,6 +69,7 @@ class ImeState(private val state: SharedPreferences) {
         internal const val KEY_RECENT_EMOJIS = "RECENT_EMOJIS"
         internal const val KEY_CURRENT_LAYOUT = "CURRENT_LAYOUT"
         internal const val KEY_MIGRATED = "MIGRATED_FROM_SETTINGS"
+        internal const val KEY_APPLIED_CLIPBOARD_CLEAR_REQUESTS = "APPLIED_CLIPBOARD_CLEAR_REQUESTS"
 
         internal val LEGACY_KEYS = listOf(KEY_CLIPBOARD_HISTORY, KEY_RECENT_EMOJIS, KEY_CURRENT_LAYOUT)
 

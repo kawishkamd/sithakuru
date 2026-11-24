@@ -14,6 +14,6 @@ Sithakuru is a Free and Open-Source Sinhalese keyboard.
 
 ## Privacy
 - No internet permission: nothing you type leaves your device
-- Optional clipboard history is stored on the device only, as plain text in the app's private storage
-- Clips that apps mark as sensitive (such as copied passwords) and anything copied in incognito fields are never saved
-- Clipboard history can be turned off, auto-deleted after an hour or a day, or cleared at any time
+- Clipboard history is on by default. It is stored on the device only, as plain text in the app's private storage
+- Not saved: clips an app marks as sensitive (Android 13 and newer; for example, passwords from many password managers), and anything on the clipboard while you type in a password or incognito field
+- Clipboard history can be turned off (this deletes what is saved), auto-deleted after an hour or a day (the default), or cleared at any time

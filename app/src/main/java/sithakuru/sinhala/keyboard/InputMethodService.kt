@@ -18,8 +18,11 @@
 package sithakuru.sinhala.keyboard
 
 import android.content.ClipDescription
+import android.content.BroadcastReceiver
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -39,10 +42,13 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import sithakuru.sinhala.keyboard.clipboard.ClipboardHistoryManager
+import sithakuru.sinhala.keyboard.clipboard.ClipboardPolicy
+import sithakuru.sinhala.keyboard.clipboard.ClipboardSettings
 import sithakuru.sinhala.keyboard.data.Action
 import sithakuru.sinhala.keyboard.data.KeyboardLayoutId
 import sithakuru.sinhala.keyboard.databinding.HardwareInputViewBinding
@@ -87,6 +93,19 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         capturePrimaryClip()
     }
     private var insetBottom: Int = 0
+
+    /**
+     * The clipboard settings in force. Read from the settings file at startup,
+     * then replaced by the settings screen's broadcasts: this process's copy of
+     * the file is not refreshed while it runs.
+     */
+    private lateinit var clipboardSettings: ClipboardSettings
+    private val clipboardSettingsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            clipboardSettings = ClipboardSettingsBroadcast.read(intent) ?: return
+            applyClipboardPolicy()
+        }
+    }
     private var builtLayoutOptions: Pair<Boolean, Boolean>? = null
 
     private var keyDownEventHandler: (keyCode: Int, event: KeyEvent) -> Boolean? = { _, _ -> false }
@@ -115,7 +134,14 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             }
         )
         clipboardHistoryManager.loadFromString(prefs.clipboardHistory)
+        clipboardSettings = prefs.clipboardSettings
         applyClipboardPolicy()
+        ContextCompat.registerReceiver(
+            this,
+            clipboardSettingsReceiver,
+            IntentFilter(ClipboardSettingsBroadcast.ACTION),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
         try {
             clipboardManager?.addPrimaryClipChangedListener(clipChangedListener)
@@ -130,6 +156,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     override fun onDestroy() {
+        unregisterReceiver(clipboardSettingsReceiver)
         try {
             clipboardManager?.removePrimaryClipChangedListener(clipChangedListener)
         } catch (e: Exception) {
@@ -139,65 +166,85 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     /**
-     * Applies the clipboard settings to the saved history. Settings only
-     * change while this process is stopped (the settings screen kills it), so
-     * running this once at startup is enough for the switch and "clear all";
-     * expiry is also re-checked whenever the history is used.
+     * Applies [clipboardSettings] to the saved history: at startup, and again
+     * whenever the settings screen broadcasts a change, so turning history off
+     * or clearing it takes effect even if this process is not restarted.
      */
     private fun applyClipboardPolicy() {
-        if (!prefs.clipboardHistoryEnabled) {
-            clipboardHistoryManager.clearAll()
-            return
-        }
-        val clearRequestedAt = prefs.clipboardClearRequestedAt
-        if (clearRequestedAt > 0) clipboardHistoryManager.removeCopiedAtOrBefore(clearRequestedAt)
-        expireClipboardHistory()
+        val handled = ClipboardPolicy.apply(
+            clipboardHistoryManager,
+            clipboardSettings,
+            appliedClearRequests = prefs.appliedClipboardClearRequests,
+            now = System.currentTimeMillis()
+        )
+        if (handled != prefs.appliedClipboardClearRequests) prefs.appliedClipboardClearRequests = handled
+        if (clipboardView?.visibility == View.VISIBLE) clipboardView?.updateClips()
     }
 
     private fun expireClipboardHistory() {
-        clipboardHistoryManager.expireUnpinned(System.currentTimeMillis(), prefs.clipboardExpiryMillis)
+        clipboardHistoryManager.expireUnpinned(System.currentTimeMillis(), clipboardSettings.expiryMillis)
     }
 
-    /** The editor asked for incognito typing: nothing typed or copied there is remembered. */
-    private fun isIncognitoEditor(info: EditorInfo? = currentInputEditorInfo): Boolean =
-        info != null && (info.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0
+    /**
+     * Fields where nothing copied is remembered: the editor asked for
+     * incognito typing, or it is a password field. A password copied from a
+     * manager that does not flag it as sensitive is often on the clipboard
+     * exactly when a password field opens the keyboard.
+     */
+    private fun isPrivateEditor(info: EditorInfo? = currentInputEditorInfo): Boolean {
+        info ?: return false
+        if ((info.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0) return true
+        val variation = info.inputType and InputType.TYPE_MASK_VARIATION
+        return when (info.inputType and InputType.TYPE_MASK_CLASS) {
+            InputType.TYPE_CLASS_TEXT ->
+                variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+                    variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+                    variation == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+            InputType.TYPE_CLASS_NUMBER -> variation == InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            else -> false
+        }
+    }
 
     private fun capturePrimaryClip() {
-        if (!prefs.clipboardHistoryEnabled || isIncognitoEditor()) return
-        try {
-            val clip = clipboardManager?.primaryClip
-            if (clip != null && clip.itemCount > 0) {
-                val description = clip.description
-                val extras = description?.extras
-                @Suppress("DEPRECATION")
-                val isSensitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    extras?.getBoolean(ClipDescription.EXTRA_IS_SENSITIVE, false) == true
-                } else {
-                    // EXTRA_IS_SENSITIVE only became public in API 33; the value is stable.
-                    extras?.getBoolean("android.content.extra.IS_SENSITIVE", false) == true
-                }
-                if (isSensitive) return
-
-                // Skip non-text clips (URI, Intent, image, ...). coerceToText() would
-                // otherwise turn a content:// URI into plain text and persist it.
-                val isTextClip = description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true ||
-                    description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) == true
-                if (!isTextClip) return
-
-                val item = clip.getItemAt(0)
-                val text = item.coerceToText(this)?.toString()
-                if (!text.isNullOrBlank()) {
-                    expireClipboardHistory()
-                    clipboardHistoryManager.addItem(text)
-                    if (clipboardView?.visibility == View.VISIBLE) {
-                        clipboardView?.updateClips()
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            // Only the exception type: a message could quote clip content.
-            Log.w(TAG, "Could not read the clipboard: ${e.javaClass.name}")
+        if (!clipboardSettings.enabled || isPrivateEditor()) return
+        val text = readPrimaryClipText()
+        if (text.isNullOrBlank()) return
+        expireClipboardHistory()
+        clipboardHistoryManager.addItem(text)
+        if (clipboardView?.visibility == View.VISIBLE) {
+            clipboardView?.updateClips()
         }
+    }
+
+    /**
+     * The current clip as text, or null if it is empty, not text, flagged
+     * sensitive, or cannot be read. Only the read is guarded: failures saving
+     * or showing the clip are not clipboard errors and are not swallowed.
+     */
+    private fun readPrimaryClipText(): String? = try {
+        val clip = clipboardManager?.primaryClip
+        if (clip == null || clip.itemCount == 0) {
+            null
+        } else {
+            val description = clip.description
+            val extras = description?.extras
+            @Suppress("DEPRECATION")
+            val isSensitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                extras?.getBoolean(ClipDescription.EXTRA_IS_SENSITIVE, false) == true
+            } else {
+                // EXTRA_IS_SENSITIVE only became public in API 33; the value is stable.
+                extras?.getBoolean("android.content.extra.IS_SENSITIVE", false) == true
+            }
+            // Skip non-text clips (URI, Intent, image, ...). coerceToText() would
+            // otherwise turn a content:// URI into plain text and persist it.
+            val isTextClip = description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true ||
+                description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) == true
+            if (isSensitive || !isTextClip) null else clip.getItemAt(0).coerceToText(this)?.toString()
+        }
+    } catch (e: Exception) {
+        // Only the exception type: a message could quote clip content.
+        Log.w(TAG, "Could not read the clipboard: ${e.javaClass.name}")
+        null
     }
 
     private fun initKeyboardLayouts() {

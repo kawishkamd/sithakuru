@@ -21,6 +21,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.ColorRes
 import androidx.core.content.res.ResourcesCompat
+import sithakuru.sinhala.keyboard.clipboard.ClipboardSettings
 
 class Prefs(private val context: Context) {
     private val preferences: SharedPreferences = context.getSharedPreferences("sithakuru_preferences", Context.MODE_PRIVATE)
@@ -122,13 +123,28 @@ class Prefs(private val context: Context) {
         set(value) = preferences.edit().putLong(KEY_CLIPBOARD_EXPIRY, value).apply()
 
     /**
-     * Set by the settings screen's "clear all" button. The settings screen
-     * cannot write the keyboard's state file, so the keyboard removes every
-     * clip copied at or before this time when it next starts.
+     * How many times "clear all" was confirmed in settings. The settings
+     * screen cannot write the keyboard's state file, so it counts requests and
+     * the keyboard clears everything whenever the count differs from the one
+     * it handled last (see ClipboardPolicy).
      */
-    var clipboardClearRequestedAt: Long
-        get() = preferences.getLong(KEY_CLIPBOARD_CLEAR_REQUESTED_AT, 0L)
-        set(value) = preferences.edit().putLong(KEY_CLIPBOARD_CLEAR_REQUESTED_AT, value).apply()
+    var clipboardClearRequests: Int
+        get() = preferences.getInt(KEY_CLIPBOARD_CLEAR_REQUESTS, 0)
+        set(value) = preferences.edit().putInt(KEY_CLIPBOARD_CLEAR_REQUESTS, value).apply()
+
+    val clipboardSettings: ClipboardSettings
+        get() = ClipboardSettings(
+            enabled = clipboardHistoryEnabled,
+            expiryMillis = clipboardExpiryMillis,
+            clearRequests = clipboardClearRequests
+        )
+
+    /** The [clipboardClearRequests] value the keyboard last handled. */
+    var appliedClipboardClearRequests: Int
+        get() = imeState.appliedClipboardClearRequests
+        set(value) {
+            imeState.appliedClipboardClearRequests = value
+        }
 
     /*
      * Keyboard-only state lives in its own file (see ImeState). It is opened
@@ -229,7 +245,7 @@ class Prefs(private val context: Context) {
         private const val KEY_CLIPBOARD_KEY = "CLIPBOARD_KEY"
         private const val KEY_CLIPBOARD_HISTORY_ENABLED = "CLIPBOARD_HISTORY_ENABLED"
         private const val KEY_CLIPBOARD_EXPIRY = "CLIPBOARD_EXPIRY"
-        private const val KEY_CLIPBOARD_CLEAR_REQUESTED_AT = "CLIPBOARD_CLEAR_REQUESTED_AT"
+        private const val KEY_CLIPBOARD_CLEAR_REQUESTS = "CLIPBOARD_CLEAR_REQUESTS"
 
         const val DEFAULT_DARK_THEME = true
         const val DEFAULT_KEY_BORDERS = true

@@ -153,18 +153,6 @@ class ClipboardHistoryManager(
         return cleared
     }
 
-    /** Removes every item, pinned ones included, copied at or before [time]. */
-    @Synchronized
-    fun removeCopiedAtOrBefore(time: Long): Int {
-        val initialSize = items.size
-        items.removeAll { it.timestamp <= time }
-        val removed = initialSize - items.size
-        if (removed > 0) {
-            save()
-        }
-        return removed
-    }
-
     /**
      * Removes unpinned items copied more than [maxAgeMillis] before [now].
      * A [maxAgeMillis] of zero or less keeps everything.
