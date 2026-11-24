@@ -21,9 +21,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.ColorRes
 import androidx.core.content.res.ResourcesCompat
-import sithakuru.sinhala.keyboard.data.KeyboardLayoutId
 
-class Prefs(context: Context) {
+class Prefs(private val context: Context) {
     private val preferences: SharedPreferences = context.getSharedPreferences("sithakuru_preferences", Context.MODE_PRIVATE)
 
     var layoutEnglish: Boolean
@@ -113,27 +112,32 @@ class Prefs(context: Context) {
         get() = preferences.getBoolean(KEY_CLIPBOARD_KEY, DEFAULT_CLIPBOARD_KEY)
         set(value) = preferences.edit().putBoolean(KEY_CLIPBOARD_KEY, value).apply()
 
-    var clipboardHistory: String
-        get() = preferences.getString(KEY_CLIPBOARD_HISTORY, "") ?: ""
-        set(value) = preferences.edit().putString(KEY_CLIPBOARD_HISTORY, value).apply()
-
-    var recentEmojis: List<String>
-        get() {
-            val raw = preferences.getString(KEY_RECENT_EMOJIS, "") ?: ""
-            return if (raw.isBlank()) emptyList() else raw.split("\n")
-        }
-        set(value) = preferences.edit().putString(KEY_RECENT_EMOJIS, value.joinToString("\n")).apply()
-
-    fun addRecentEmoji(emoji: String) {
-        val list = recentEmojis.toMutableList()
-        list.remove(emoji)
-        list.add(0, emoji)
-        recentEmojis = if (list.size > MAX_RECENT_EMOJIS) list.take(MAX_RECENT_EMOJIS) else list
+    /*
+     * Keyboard-only state lives in its own file (see ImeState). It is opened
+     * lazily, so the settings screen, which never touches these, never loads it.
+     */
+    private val imeState: ImeState by lazy {
+        val state = context.getSharedPreferences(ImeState.FILE_NAME, Context.MODE_PRIVATE)
+        ImeState.migrate(preferences, state)
+        ImeState(state)
     }
 
+    var clipboardHistory: String
+        get() = imeState.clipboardHistory
+        set(value) {
+            imeState.clipboardHistory = value
+        }
+
+    val recentEmojis: List<String>
+        get() = imeState.recentEmojis
+
+    fun addRecentEmoji(emoji: String) = imeState.addRecentEmoji(emoji)
+
     var currentLayout: Int
-        get() = preferences.getInt(KEY_CURRENT_LAYOUT, KeyboardLayoutId.WIJESEKARA)
-        set(value) = preferences.edit().putInt(KEY_CURRENT_LAYOUT, value).apply()
+        get() = imeState.currentLayout
+        set(value) {
+            imeState.currentLayout = value
+        }
 
     private var colorsMigrated: Boolean
         get() = preferences.getBoolean(KEY_COLORS_MIGRATED, false)
@@ -203,11 +207,8 @@ class Prefs(context: Context) {
         private const val KEY_LONG_PRESS_KEYS = "LONG_PRESS_KEYS"
         private const val KEY_SWIPE_TO_ERASE = "SWIPE_TO_ERASE"
         private const val KEY_SWIPE_TO_MOVE_CURSOR = "SWIPE_TO_MOVE_CURSOR"
-        private const val KEY_CURRENT_LAYOUT = "CURRENT_LAYOUT"
         private const val KEY_EMOJI_KEY = "EMOJI_KEY"
         private const val KEY_CLIPBOARD_KEY = "CLIPBOARD_KEY"
-        private const val KEY_CLIPBOARD_HISTORY = "CLIPBOARD_HISTORY"
-        private const val KEY_RECENT_EMOJIS = "RECENT_EMOJIS"
 
         const val DEFAULT_DARK_THEME = true
         const val DEFAULT_KEY_BORDERS = true
@@ -220,6 +221,5 @@ class Prefs(context: Context) {
         const val DEFAULT_EMOJI_KEY = true
         const val DEFAULT_CLIPBOARD_KEY = false
         const val DEFAULT_ENGLISH_SUGGESTIONS = true
-        const val MAX_RECENT_EMOJIS = 30
     }
 }
