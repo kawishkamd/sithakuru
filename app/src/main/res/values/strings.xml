@@ -36,4 +36,14 @@
     <string name="clipboard_empty">ක්ලිප්බෝඩ් එක හිස්ය</string>
     <string name="clipboard_empty_hint">පිටපත් කළ දෑ මෙහි දිස්වනු ඇත</string>
     <string name="clipboard_clear_all">සියල්ල මකන්න</string>
+    <string name="clipboard_history_save">ක්ලිප්බෝඩ් ඉතිහාසය සුරකින්න</string>
+    <string name="clipboard_history_expiry">පින් නොකළ ක්ලිප් ස්වයංක්‍රීයව මකන්න</string>
+    <string name="clipboard_history_expiry_hour">පැය 1කින්</string>
+    <string name="clipboard_history_expiry_day">දින 1කින්</string>
+    <string name="clipboard_history_expiry_never">කිසිදා නැත</string>
+    <string name="clipboard_history_clear_all">සියලු ක්ලිප් මකන්න (පින් කළ ඒවාද)</string>
+    <string name="clipboard_history_clear_confirm_title">ක්ලිප්බෝඩ් ඉතිහාසය මකන්නද?</string>
+    <string name="clipboard_history_clear_confirm_message">පින් කළ ඒවා ඇතුළුව සුරැකි සියලු ක්ලිප් මැකේ. මෙය අහෝසි කළ නොහැක.</string>
+    <string name="clipboard_history_clear_confirm">මකන්න</string>
+    <string name="clipboard_history_clear_cancel">අවලංගු කරන්න</string>
 </resources>

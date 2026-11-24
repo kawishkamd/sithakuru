@@ -11,3 +11,9 @@ Sithakuru is a Free and Open-Source Sinhalese keyboard.
 - Show Sinhala letters on keys in Wijesekara layout
 - Change keyboard height and font size
 - Erase or move cursor with swiping
+
+## Privacy
+- No internet permission: nothing you type leaves your device
+- Optional clipboard history is stored on the device only, as plain text in the app's private storage
+- Clips that apps mark as sensitive (such as copied passwords) and anything copied in incognito fields are never saved
+- Clipboard history can be turned off, auto-deleted after an hour or a day, or cleared at any time

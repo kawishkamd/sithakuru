@@ -282,6 +282,72 @@
             android:textSize="16sp" />
 
         <Switch
+            android:id="@+id/switch_clipboard_history"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="@string/clipboard_history_save"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/clipboard_expiry_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/clipboard_history_expiry"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <RadioGroup
+            android:id="@+id/clipboard_expiry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/clipboard_expiry_hour"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="@color/light_1"
+                android:minHeight="48dp"
+                android:text="@string/clipboard_history_expiry_hour"
+                android:textColor="@color/light_1" />
+
+            <RadioButton
+                android:id="@+id/clipboard_expiry_day"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="@color/light_1"
+                android:minHeight="48dp"
+                android:text="@string/clipboard_history_expiry_day"
+                android:textColor="@color/light_1" />
+
+            <RadioButton
+                android:id="@+id/clipboard_expiry_never"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="@color/light_1"
+                android:minHeight="48dp"
+                android:text="@string/clipboard_history_expiry_never"
+                android:textColor="@color/light_1" />
+
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/clipboard_clear_history"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:text="@string/clipboard_history_clear_all" />
+
+        <Switch
             android:id="@+id/long_press_keys_labels"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

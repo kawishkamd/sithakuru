@@ -112,6 +112,24 @@ class Prefs(private val context: Context) {
         get() = preferences.getBoolean(KEY_CLIPBOARD_KEY, DEFAULT_CLIPBOARD_KEY)
         set(value) = preferences.edit().putBoolean(KEY_CLIPBOARD_KEY, value).apply()
 
+    var clipboardHistoryEnabled: Boolean
+        get() = preferences.getBoolean(KEY_CLIPBOARD_HISTORY_ENABLED, DEFAULT_CLIPBOARD_HISTORY_ENABLED)
+        set(value) = preferences.edit().putBoolean(KEY_CLIPBOARD_HISTORY_ENABLED, value).apply()
+
+    /** How long unpinned clips are kept; [CLIPBOARD_EXPIRY_NEVER] keeps them until pushed out. */
+    var clipboardExpiryMillis: Long
+        get() = preferences.getLong(KEY_CLIPBOARD_EXPIRY, DEFAULT_CLIPBOARD_EXPIRY)
+        set(value) = preferences.edit().putLong(KEY_CLIPBOARD_EXPIRY, value).apply()
+
+    /**
+     * Set by the settings screen's "clear all" button. The settings screen
+     * cannot write the keyboard's state file, so the keyboard removes every
+     * clip copied at or before this time when it next starts.
+     */
+    var clipboardClearRequestedAt: Long
+        get() = preferences.getLong(KEY_CLIPBOARD_CLEAR_REQUESTED_AT, 0L)
+        set(value) = preferences.edit().putLong(KEY_CLIPBOARD_CLEAR_REQUESTED_AT, value).apply()
+
     /*
      * Keyboard-only state lives in its own file (see ImeState). It is opened
      * lazily, so the settings screen, which never touches these, never loads it.
@@ -209,6 +227,9 @@ class Prefs(private val context: Context) {
         private const val KEY_SWIPE_TO_MOVE_CURSOR = "SWIPE_TO_MOVE_CURSOR"
         private const val KEY_EMOJI_KEY = "EMOJI_KEY"
         private const val KEY_CLIPBOARD_KEY = "CLIPBOARD_KEY"
+        private const val KEY_CLIPBOARD_HISTORY_ENABLED = "CLIPBOARD_HISTORY_ENABLED"
+        private const val KEY_CLIPBOARD_EXPIRY = "CLIPBOARD_EXPIRY"
+        private const val KEY_CLIPBOARD_CLEAR_REQUESTED_AT = "CLIPBOARD_CLEAR_REQUESTED_AT"
 
         const val DEFAULT_DARK_THEME = true
         const val DEFAULT_KEY_BORDERS = true
@@ -221,5 +242,11 @@ class Prefs(private val context: Context) {
         const val DEFAULT_EMOJI_KEY = true
         const val DEFAULT_CLIPBOARD_KEY = false
         const val DEFAULT_ENGLISH_SUGGESTIONS = true
+        const val DEFAULT_CLIPBOARD_HISTORY_ENABLED = true
+
+        const val CLIPBOARD_EXPIRY_NEVER = 0L
+        const val CLIPBOARD_EXPIRY_HOUR = 60L * 60 * 1000
+        const val CLIPBOARD_EXPIRY_DAY = 24 * CLIPBOARD_EXPIRY_HOUR
+        const val DEFAULT_CLIPBOARD_EXPIRY = CLIPBOARD_EXPIRY_DAY
     }
 }

@@ -115,6 +115,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             }
         )
         clipboardHistoryManager.loadFromString(prefs.clipboardHistory)
+        applyClipboardPolicy()
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
         try {
             clipboardManager?.addPrimaryClipChangedListener(clipChangedListener)
@@ -132,7 +133,32 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         super.onDestroy()
     }
 
+    /**
+     * Applies the clipboard settings to the saved history. Settings only
+     * change while this process is stopped (the settings screen kills it), so
+     * running this once at startup is enough for the switch and "clear all";
+     * expiry is also re-checked whenever the history is used.
+     */
+    private fun applyClipboardPolicy() {
+        if (!prefs.clipboardHistoryEnabled) {
+            clipboardHistoryManager.clearAll()
+            return
+        }
+        val clearRequestedAt = prefs.clipboardClearRequestedAt
+        if (clearRequestedAt > 0) clipboardHistoryManager.removeCopiedAtOrBefore(clearRequestedAt)
+        expireClipboardHistory()
+    }
+
+    private fun expireClipboardHistory() {
+        clipboardHistoryManager.expireUnpinned(System.currentTimeMillis(), prefs.clipboardExpiryMillis)
+    }
+
+    /** The editor asked for incognito typing: nothing typed or copied there is remembered. */
+    private fun isIncognitoEditor(info: EditorInfo? = currentInputEditorInfo): Boolean =
+        info != null && (info.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0
+
     private fun capturePrimaryClip() {
+        if (!prefs.clipboardHistoryEnabled || isIncognitoEditor()) return
         try {
             val clip = clipboardManager?.primaryClip
             if (clip != null && clip.itemCount > 0) {
@@ -156,6 +182,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 val item = clip.getItemAt(0)
                 val text = item.coerceToText(this)?.toString()
                 if (!text.isNullOrBlank()) {
+                    expireClipboardHistory()
                     clipboardHistoryManager.addItem(text)
                     if (clipboardView?.visibility == View.VISIBLE) {
                         clipboardView?.updateClips()
@@ -723,6 +750,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         if (isHardwareKeyboardAvailable()) return
         if (!::inputViewContainer.isInitialized || !::keyboardView.isInitialized) return
 
+        expireClipboardHistory()
         capturePrimaryClip()
 
         if (clipboardView == null) {

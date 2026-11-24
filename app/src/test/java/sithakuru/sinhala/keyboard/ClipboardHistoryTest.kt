@@ -308,4 +308,61 @@ class ClipboardHistoryTest {
         manager.loadFromString("")
         assertEquals(0, manager.getItems().size)
     }
+
+    /** Loads items with fixed timestamps: (text, timestamp, pinned). */
+    private fun loadAt(vararg clips: Triple<String, Long, Boolean>) {
+        manager.loadFromString(
+            clips.mapIndexed { i, (text, ts, pinned) -> "id$i\t$ts\t${if (pinned) 1 else 0}\t$text" }
+                .joinToString("\n")
+        )
+    }
+
+    @Test
+    fun testExpireUnpinnedRemovesOnlyOldUnpinnedClips() {
+        loadAt(
+            Triple("old", 1_000L, false),
+            Triple("oldPinned", 1_500L, true),
+            Triple("recent", 9_000L, false)
+        )
+
+        val removed = manager.expireUnpinned(now = 10_000L, maxAgeMillis = 5_000L)
+
+        assertEquals(1, removed)
+        assertEquals(listOf("oldPinned", "recent"), manager.getItems().map { it.text }.sorted())
+        assertTrue(savedData.isNotEmpty())
+    }
+
+    @Test
+    fun testExpireUnpinnedWithNeverKeepsEverything() {
+        loadAt(Triple("ancient", 1L, false))
+        savedData = ""
+
+        assertEquals(0, manager.expireUnpinned(now = Long.MAX_VALUE, maxAgeMillis = 0L))
+        assertEquals(1, manager.getItems().size)
+        // Nothing changed, so nothing is written.
+        assertEquals("", savedData)
+    }
+
+    @Test
+    fun testClearAllRemovesPinnedToo() {
+        manager.addItem("a")
+        manager.addItem("b")
+        manager.togglePin(manager.getItems().first().id)
+
+        assertEquals(2, manager.clearAll())
+        assertTrue(manager.getItems().isEmpty())
+        assertEquals("", savedData)
+    }
+
+    @Test
+    fun testRemoveCopiedAtOrBeforeIncludesPinned() {
+        loadAt(
+            Triple("before", 1_000L, false),
+            Triple("beforePinned", 2_000L, true),
+            Triple("after", 3_001L, false)
+        )
+
+        assertEquals(2, manager.removeCopiedAtOrBefore(3_000L))
+        assertEquals(listOf("after"), manager.getItems().map { it.text })
+    }
 }

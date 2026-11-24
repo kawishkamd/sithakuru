@@ -138,6 +138,46 @@ class ClipboardHistoryManager(
         return cleared
     }
 
+    /** Removes every item, pinned ones included. */
+    @Synchronized
+    fun clearAll(): Int {
+        val cleared = items.size
+        if (cleared > 0) {
+            items.clear()
+            save()
+        }
+        return cleared
+    }
+
+    /** Removes every item, pinned ones included, copied at or before [time]. */
+    @Synchronized
+    fun removeCopiedAtOrBefore(time: Long): Int {
+        val initialSize = items.size
+        items.removeAll { it.timestamp <= time }
+        val removed = initialSize - items.size
+        if (removed > 0) {
+            save()
+        }
+        return removed
+    }
+
+    /**
+     * Removes unpinned items copied more than [maxAgeMillis] before [now].
+     * A [maxAgeMillis] of zero or less keeps everything.
+     */
+    @Synchronized
+    fun expireUnpinned(now: Long, maxAgeMillis: Long): Int {
+        if (maxAgeMillis <= 0) return 0
+        val cutoff = now - maxAgeMillis
+        val initialSize = items.size
+        items.removeAll { !it.isPinned && it.timestamp < cutoff }
+        val removed = initialSize - items.size
+        if (removed > 0) {
+            save()
+        }
+        return removed
+    }
+
     /**
      * Strictly increasing timestamps: rapid copies within the same millisecond would
      * otherwise tie, making ordering (and the pinned/unpinned split) non-deterministic.
