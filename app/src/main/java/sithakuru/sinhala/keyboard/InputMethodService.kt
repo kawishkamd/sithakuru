@@ -87,6 +87,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         capturePrimaryClip()
     }
     private var insetBottom: Int = 0
+    private var builtLayoutOptions: Pair<Boolean, Boolean>? = null
 
     private var keyDownEventHandler: (keyCode: Int, event: KeyEvent) -> Boolean? = { _, _ -> false }
     private var keyCodeToCharCodeConverter: (keyCode: Int, isShiftPressed: Boolean) -> Int? = { _, _ -> null }
@@ -208,6 +209,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private fun initKeyboardLayouts() {
         val showEmoji = prefs.emojiKey
         val showClipboard = prefs.clipboardKey
+        // The layouts depend only on these two settings, so rebuild them only
+        // when one changed, not on every new text field.
+        val options = showEmoji to showClipboard
+        if (options == builtLayoutOptions) return
+        builtLayoutOptions = options
         keyboardLayoutEnglish = English(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
         keyboardLayoutSinglish = Singlish(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
         keyboardLayoutWijesekara = Wijesekara(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
@@ -339,8 +345,15 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             updateSuggestions()
 
             ViewCompat.setOnApplyWindowInsetsListener(inputViewContainer) { _, windowInsets ->
-                insetBottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-                setInputView(onCreateInputView())
+                // The views take the inset at construction, so a new value means
+                // a rebuild. Only rebuild when it changed: insets are dispatched
+                // again on every rotation, bar toggle and to the rebuilt view
+                // itself, and rebuilding each time threw away the whole view tree.
+                val bottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+                if (bottom != insetBottom) {
+                    insetBottom = bottom
+                    setInputView(onCreateInputView())
+                }
                 WindowInsetsCompat.CONSUMED
             }
 
