@@ -18,13 +18,21 @@
 package sithakuru.sinhala.keyboard
 
 import android.content.ClipDescription
+import android.content.BroadcastReceiver
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.PixelFormat
 import android.graphics.drawable.ColorDrawable
 import android.inputmethodservice.InputMethodService
+import android.inputmethodservice.InputMethodService.Insets
 import android.os.Build
 import android.text.InputType
+import android.util.Log
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
@@ -34,10 +42,13 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import sithakuru.sinhala.keyboard.clipboard.ClipboardHistoryManager
+import sithakuru.sinhala.keyboard.clipboard.ClipboardPolicy
+import sithakuru.sinhala.keyboard.clipboard.ClipboardSettings
 import sithakuru.sinhala.keyboard.data.Action
 import sithakuru.sinhala.keyboard.data.KeyboardLayoutId
 import sithakuru.sinhala.keyboard.databinding.HardwareInputViewBinding
@@ -83,6 +94,20 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
     private var insetBottom: Int = 0
 
+    /**
+     * The clipboard settings in force. Read from the settings file at startup,
+     * then replaced by the settings screen's broadcasts: this process's copy of
+     * the file is not refreshed while it runs.
+     */
+    private lateinit var clipboardSettings: ClipboardSettings
+    private val clipboardSettingsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            clipboardSettings = ClipboardSettingsBroadcast.read(intent) ?: return
+            applyClipboardPolicy()
+        }
+    }
+    private var builtLayoutOptions: Pair<Boolean, Boolean>? = null
+
     private var keyDownEventHandler: (keyCode: Int, event: KeyEvent) -> Boolean? = { _, _ -> false }
     private var keyCodeToCharCodeConverter: (keyCode: Int, isShiftPressed: Boolean) -> Int? = { _, _ -> null }
 
@@ -91,19 +116,13 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var caps = false
 
     private var positionFlag: CharSequence = ""
-    private var lastText: String = ""
-    private var lastChar: Int? = null
-    private var lastLetter: Int? = null
     private var appliedWord: String? = null
 
-    // Raw keys of the Singlish word being typed, and how many UTF-16 units
-    // have been committed for it (what deleteSurroundingText needs).
-    private var singlishKeys = ""
-    private var singlishShown = 0
-    private var singlishTyping = false
+    private val wijesekara = WijesekaraComposer()
+    private val singlish = SinglishComposer()
 
-    /* Without this, kombuva keeps going forward with each new letter in Wijesekara layout */
-    private var kombuvaNew: Boolean = false
+    // True while the Singlish path commits, so commitText does not end the word.
+    private var singlishTyping = false
 
     override fun onCreate() {
         super.onCreate()
@@ -115,10 +134,21 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             }
         )
         clipboardHistoryManager.loadFromString(prefs.clipboardHistory)
+        clipboardSettings = prefs.clipboardSettings
+        applyClipboardPolicy()
+        ContextCompat.registerReceiver(
+            this,
+            clipboardSettingsReceiver,
+            IntentFilter(ClipboardSettingsBroadcast.ACTION),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
         try {
             clipboardManager?.addPrimaryClipChangedListener(clipChangedListener)
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            // Some OEM builds restrict clipboard access; history just stays empty.
+            Log.w(TAG, "Could not watch the clipboard", e)
+        }
         initKeyboardLayouts()
         currentKeyboardLayout = keyboardLayoutWijesekara
         EnglishDictionary.load(this)
@@ -126,48 +156,105 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     override fun onDestroy() {
+        unregisterReceiver(clipboardSettingsReceiver)
         try {
             clipboardManager?.removePrimaryClipChangedListener(clipChangedListener)
-        } catch (_: Exception) {}
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not stop watching the clipboard", e)
+        }
         super.onDestroy()
     }
 
+    /**
+     * Applies [clipboardSettings] to the saved history: at startup, and again
+     * whenever the settings screen broadcasts a change, so turning history off
+     * or clearing it takes effect even if this process is not restarted.
+     */
+    private fun applyClipboardPolicy() {
+        val handled = ClipboardPolicy.apply(
+            clipboardHistoryManager,
+            clipboardSettings,
+            appliedClearRequests = prefs.appliedClipboardClearRequests,
+            now = System.currentTimeMillis()
+        )
+        if (handled != prefs.appliedClipboardClearRequests) prefs.appliedClipboardClearRequests = handled
+        if (clipboardView?.visibility == View.VISIBLE) clipboardView?.updateClips()
+    }
+
+    private fun expireClipboardHistory() {
+        clipboardHistoryManager.expireUnpinned(System.currentTimeMillis(), clipboardSettings.expiryMillis)
+    }
+
+    /**
+     * Fields where nothing copied is remembered: the editor asked for
+     * incognito typing, or it is a password field. A password copied from a
+     * manager that does not flag it as sensitive is often on the clipboard
+     * exactly when a password field opens the keyboard.
+     */
+    private fun isPrivateEditor(info: EditorInfo? = currentInputEditorInfo): Boolean {
+        info ?: return false
+        if ((info.imeOptions and EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0) return true
+        val variation = info.inputType and InputType.TYPE_MASK_VARIATION
+        return when (info.inputType and InputType.TYPE_MASK_CLASS) {
+            InputType.TYPE_CLASS_TEXT ->
+                variation == InputType.TYPE_TEXT_VARIATION_PASSWORD ||
+                    variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
+                    variation == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+            InputType.TYPE_CLASS_NUMBER -> variation == InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            else -> false
+        }
+    }
+
     private fun capturePrimaryClip() {
-        try {
-            val clip = clipboardManager?.primaryClip
-            if (clip != null && clip.itemCount > 0) {
-                val description = clip.description
-                val extras = description?.extras
-                @Suppress("DEPRECATION")
-                val isSensitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    extras?.getBoolean(ClipDescription.EXTRA_IS_SENSITIVE, false) == true
-                } else {
-                    // EXTRA_IS_SENSITIVE only became public in API 33; the value is stable.
-                    extras?.getBoolean("android.content.extra.IS_SENSITIVE", false) == true
-                }
-                if (isSensitive) return
+        if (!clipboardSettings.enabled || isPrivateEditor()) return
+        val text = readPrimaryClipText()
+        if (text.isNullOrBlank()) return
+        expireClipboardHistory()
+        clipboardHistoryManager.addItem(text)
+        if (clipboardView?.visibility == View.VISIBLE) {
+            clipboardView?.updateClips()
+        }
+    }
 
-                // Skip non-text clips (URI, Intent, image, ...). coerceToText() would
-                // otherwise turn a content:// URI into plain text and persist it.
-                val isTextClip = description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true ||
-                    description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) == true
-                if (!isTextClip) return
-
-                val item = clip.getItemAt(0)
-                val text = item.coerceToText(this)?.toString()
-                if (!text.isNullOrBlank()) {
-                    clipboardHistoryManager.addItem(text)
-                    if (clipboardView?.visibility == View.VISIBLE) {
-                        clipboardView?.updateClips()
-                    }
-                }
+    /**
+     * The current clip as text, or null if it is empty, not text, flagged
+     * sensitive, or cannot be read. Only the read is guarded: failures saving
+     * or showing the clip are not clipboard errors and are not swallowed.
+     */
+    private fun readPrimaryClipText(): String? = try {
+        val clip = clipboardManager?.primaryClip
+        if (clip == null || clip.itemCount == 0) {
+            null
+        } else {
+            val description = clip.description
+            val extras = description?.extras
+            @Suppress("DEPRECATION")
+            val isSensitive = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                extras?.getBoolean(ClipDescription.EXTRA_IS_SENSITIVE, false) == true
+            } else {
+                // EXTRA_IS_SENSITIVE only became public in API 33; the value is stable.
+                extras?.getBoolean("android.content.extra.IS_SENSITIVE", false) == true
             }
-        } catch (_: Exception) {}
+            // Skip non-text clips (URI, Intent, image, ...). coerceToText() would
+            // otherwise turn a content:// URI into plain text and persist it.
+            val isTextClip = description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true ||
+                description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) == true
+            if (isSensitive || !isTextClip) null else clip.getItemAt(0).coerceToText(this)?.toString()
+        }
+    } catch (e: Exception) {
+        // Only the exception type: a message could quote clip content.
+        Log.w(TAG, "Could not read the clipboard: ${e.javaClass.name}")
+        null
     }
 
     private fun initKeyboardLayouts() {
         val showEmoji = prefs.emojiKey
         val showClipboard = prefs.clipboardKey
+        // The layouts depend only on these two settings, so rebuild them only
+        // when one changed, not on every new text field.
+        val options = showEmoji to showClipboard
+        if (options == builtLayoutOptions) return
+        builtLayoutOptions = options
         keyboardLayoutEnglish = English(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
         keyboardLayoutSinglish = Singlish(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
         keyboardLayoutWijesekara = Wijesekara(showEmojiKey = showEmoji, showClipboardKey = showClipboard)
@@ -269,7 +356,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             emojiView = null
             clipboardView = null
             inputViewContainer = FrameLayout(this).apply {
-                setBackgroundColor(prefs.colorBackground)
+                setBackgroundColor(Color.TRANSPARENT)
             }
             keyboardContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
@@ -299,8 +386,15 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             updateSuggestions()
 
             ViewCompat.setOnApplyWindowInsetsListener(inputViewContainer) { _, windowInsets ->
-                insetBottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-                setInputView(onCreateInputView())
+                // The views take the inset at construction, so a new value means
+                // a rebuild. Only rebuild when it changed: insets are dispatched
+                // again on every rotation, bar toggle and to the rebuilt view
+                // itself, and rebuilding each time threw away the whole view tree.
+                val bottom = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
+                if (bottom != insetBottom) {
+                    insetBottom = bottom
+                    setInputView(onCreateInputView())
+                }
                 WindowInsetsCompat.CONSUMED
             }
 
@@ -396,9 +490,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
     private fun resetInputMarkers() {
         positionFlag = ""
-        lastText = ""
-        lastChar = null
-        lastLetter = null
+        wijesekara.reset()
         appliedWord = null
         singlishReset()
     }
@@ -419,14 +511,19 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     /**
-     * Paints the IME window itself so frames where no child has drawn yet show
-     * the keyboard color instead of the theme's window background. Kept in sync
-     * with [onStartInput], since the service can outlive a settings change.
+     * Keeps the IME window and its root container transparent. Every visible
+     * part (keys, an active suggestion strip, the emoji and clipboard panels)
+     * paints its own background, so an inactive strip slot shows the app
+     * behind it instead of a blank bar (see [onComputeInsets]). Painting the
+     * window the theme's color instead would show through as a band there.
      */
     private fun updateWindowBackground() {
-        window?.window?.setBackgroundDrawable(ColorDrawable(prefs.colorBackground))
+        window?.window?.let { w ->
+            w.setFormat(PixelFormat.TRANSLUCENT)
+            w.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }
         if (::inputViewContainer.isInitialized) {
-            inputViewContainer.setBackgroundColor(prefs.colorBackground)
+            inputViewContainer.setBackgroundColor(Color.TRANSPARENT)
         }
     }
 
@@ -690,22 +787,45 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 },
                 insetBottom = insetBottom
             )
-            inputViewContainer.addView(emojiView)
+            inputViewContainer.addView(emojiView, bottomPanelLayoutParams())
         } else {
             emojiView?.updateRecents()
         }
         // Keep the panel exactly as tall as the keyboard it replaces.
         emojiView?.let { view ->
-            view.reserveStripHeight = suggestionStrip?.visibility == View.VISIBLE
+            view.reserveStripHeight = panelCoversStrip()
             view.requestLayout()
         }
         clipboardView?.visibility = View.GONE
-        if (::keyboardContainer.isInitialized) {
-            keyboardContainer.visibility = View.GONE
-        } else {
-            keyboardView.visibility = View.GONE
-        }
+        hideKeyboardBehindPanel()
         emojiView?.visibility = View.VISIBLE
+    }
+
+    /**
+     * A panel covers the strip slot only while the strip is active. Otherwise
+     * it is as tall as the keys and the slot above it stays see-through, so
+     * opening or closing a panel never changes the window's height or the
+     * area the app sees as covered.
+     */
+    private fun panelCoversStrip(): Boolean =
+        suggestionStrip?.let { it.visibility == View.VISIBLE && it.isActive } == true
+
+    private fun bottomPanelLayoutParams() = FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams.MATCH_PARENT,
+        FrameLayout.LayoutParams.WRAP_CONTENT,
+        Gravity.BOTTOM
+    )
+
+    /**
+     * INVISIBLE rather than GONE: the keyboard keeps its size under the panel,
+     * so the container (and the IME window) keeps its height.
+     */
+    private fun hideKeyboardBehindPanel() {
+        if (::keyboardContainer.isInitialized) {
+            keyboardContainer.visibility = View.INVISIBLE
+        } else {
+            keyboardView.visibility = View.INVISIBLE
+        }
     }
 
     private fun hideEmojiView() {
@@ -723,6 +843,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         if (isHardwareKeyboardAvailable()) return
         if (!::inputViewContainer.isInitialized || !::keyboardView.isInitialized) return
 
+        expireClipboardHistory()
         capturePrimaryClip()
 
         if (clipboardView == null) {
@@ -754,26 +875,22 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 },
                 insetBottom = insetBottom
             )
-            inputViewContainer.addView(clipboardView)
+            inputViewContainer.addView(clipboardView, bottomPanelLayoutParams())
         } else {
             clipboardView?.updateClips()
         }
 
-        clipboardView?.let { view ->
-            view.reserveStripHeight = suggestionStrip?.visibility == View.VISIBLE
-            view.requestLayout()
-        }
-
-        emojiView?.visibility = View.GONE
-        if (::keyboardContainer.isInitialized) {
-            keyboardContainer.visibility = View.GONE
-        } else {
-            keyboardView.visibility = View.GONE
-        }
         // The strip is a sibling of the panel in tall canvases, so resolve its slot
         // here. Hiding keeps it untouched: returning to the keyboard must not
         // re-reveal a strip that the editor (e.g. a password field) suppressed.
         updateSuggestionStripVisibility()
+        clipboardView?.let { view ->
+            view.reserveStripHeight = panelCoversStrip()
+            view.requestLayout()
+        }
+
+        emojiView?.visibility = View.GONE
+        hideKeyboardBehindPanel()
         clipboardView?.visibility = View.VISIBLE
     }
 
@@ -812,17 +929,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         // one and re-render instead of deleting a rendered character.
         if (currentLayout == KeyboardLayoutId.SINGLISH) {
             if (hasPositionChanged()) singlishReset()
-            if (singlishKeys.isNotEmpty() &&
-                currentInputConnection.getSelectedText(0).isNullOrBlank()
-            ) {
-                singlishKeys = singlishKeys.dropLast(1)
-                if (singlishShown > 0) {
-                    currentInputConnection.deleteSurroundingText(singlishShown, 0)
+            if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
+                singlish.backspace()?.let {
+                    applySinglishEdit(it)
+                    return
                 }
-                val text = SinglishKeymap.render(singlishKeys)
-                singlishCommit(text)
-                singlishShown = text.length
-                return
             }
         }
         if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
@@ -851,12 +962,8 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private fun clearLastTypedInfo() {
         appliedWord = null
         when (currentLayout) {
-            KeyboardLayoutId.WIJESEKARA -> lastText = ""
-            KeyboardLayoutId.SINGLISH -> {
-                lastLetter = null
-                lastChar = null
-                singlishReset()
-            }
+            KeyboardLayoutId.WIJESEKARA -> wijesekara.reset()
+            KeyboardLayoutId.SINGLISH -> singlishReset()
         }
     }
 
@@ -916,144 +1023,21 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun wijesekaraInput(input: Int) {
-        var erasePrevious = false
-        var lastTextOverride: String? = null
-
-        if (lastText.isBlank() or hasPositionChanged())
-            lastText = (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0) ?: ' ').toString()
-
-        val output: String = when (lastText) {
-            CharText.AYANNA -> {
-                when (input) {
-                    CharCode.AELA_PILLA -> {
-                        erasePrevious = true
-                        CharText.AAYANNA
-                    }
-
-                    CharCode.KETTI_AEDA_PILLA -> {
-                        erasePrevious = true
-                        CharText.AEYANNA
-                    }
-
-                    CharCode.DIGA_AEDA_PILLA -> {
-                        erasePrevious = true
-                        CharText.AEEYANNA
-                    }
-
-                    else -> input.text
-                }
-            }
-
-            CharText.UYANNA ->
-                if (input == CharCode.GAYANUKITTA) {
-                    erasePrevious = true
-                    CharText.UUYANNA
-                } else input.text
-
-            CharText.IRUYANNA ->
-                if (input == CharCode.GAETTA_PILLA) {
-                    erasePrevious = true
-                    CharText.IRUUYANNA
-                } else input.text
-
-            CharText.ILUYANNA ->
-                if (input == CharCode.GAYANUKITTA) {
-                    erasePrevious = true
-                    CharText.ILUUYANNA
-                } else input.text
-
-            CharText.EYANNA ->
-                if (input == CharCode.SIGN_AL_LAKUNA) {
-                    erasePrevious = true
-                    CharText.EEYANNA
-                } else input.text
-
-            CharText.OYANNA -> {
-                when (input) {
-                    CharCode.SIGN_AL_LAKUNA -> {
-                        erasePrevious = true
-                        CharText.OOYANNA
-                    }
-
-                    CharCode.GAYANUKITTA -> {
-                        erasePrevious = true
-                        CharText.AUYANNA
-                    }
-
-                    else -> input.text
-                }
-            }
-
-            CharText.KOMBUVA -> {
-                if (kombuvaNew) {
-                    erasePrevious = true
-                    when (input.type) {
-                        CharType.SWARA,
-                        CharType.WYANJANA -> {
-                            lastTextOverride = CharText.KOMBUVA
-                            if (input == CharCode.EYANNA)
-                                CharText.AIYANNA
-                            else
-                                input.text + CharText.KOMBUVA
-                        }
-
-                        else -> {
-                            when (input) {
-                                CharCode.KOMBUVA -> CharText.KOMBU_DEKA
-                                CharCode.SIGN_AL_LAKUNA -> CharText.DIGA_KOMBUVA
-                                CharCode.AELA_PILLA -> CharText.KOMBUVA_HAA_AELA_PILLA
-                                CharCode.GAYANUKITTA -> CharText.KOMBUVA_HAA_GAYANUKITTA
-                                else -> input.text
-                            }
-                        }
-                    }
-                } else if (input == CharCode.SIGN_RAKARANSHAYA) {
-                    erasePrevious = true
-                    lastTextOverride = CharText.KOMBUVA
-                    CharText.SIGN_RAKARANSHAYA + CharText.KOMBUVA
-                } else input.text
-            }
-
-            CharText.KOMBUVA_HAA_AELA_PILLA -> {
-                if (input == CharCode.SIGN_AL_LAKUNA) {
-                    erasePrevious = true
-                    CharText.KOMBUVA_HAA_DIGA_AELA_PILLA
-                } else input.text
-            }
-
-            CharText.KOMBU_DEKA -> {
-                when (input.type) {
-                    CharType.SWARA, CharType.WYANJANA -> {
-                        erasePrevious = true
-                        input.text + CharText.KOMBU_DEKA
-                    }
-
-                    else -> input.text
-                }
-            }
-
-            else -> {
-                if (input == CharCode.SIGN_REEPAYA) {
-                    erasePrevious = true
-                    CharText.SIGN_REEPAYA + lastText
-                } else input.text
-            }
-        }
-
-        kombuvaNew = output == CharText.KOMBUVA
-
-        if (erasePrevious)
-            eraseAndCommit(output)
+        val edit = wijesekara.type(
+            input,
+            charBeforeCursor = currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0),
+            positionChanged = hasPositionChanged()
+        )
+        if (edit.erasePrevious)
+            eraseAndCommit(edit.text)
         else
-            commitText(output)
-
-        lastText = lastTextOverride ?: output
+            commitText(edit.text)
     }
 
     private fun hasPositionChanged(): Boolean = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) != positionFlag
 
     /**
-     * Helakuru phonetic input: keep the raw keys of the word being typed,
+     * Helakuru-compatible phonetic input: keep the raw keys of the word being typed,
      * render the whole word again after every key, and replace what was
      * committed for it. A key that is not a letter ends the word.
      */
@@ -1065,26 +1049,24 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         }
 
         val ch = input.toChar()
-        if (ch !in 'a'..'z' && ch !in 'A'..'Z') {
-            // Word boundary. The buffered word is already committed and
-            // correct, so only the separator is new.
+        if (!SinglishComposer.isLetter(ch)) {
+            // A separator ends the word and is written like any other text.
             singlishReset()
             commitText(ch.toString())
             return
         }
+        applySinglishEdit(singlish.type(ch))
+    }
 
-        singlishKeys += ch
-        val text = SinglishKeymap.render(singlishKeys)
-        if (singlishShown > 0) {
-            currentInputConnection.deleteSurroundingText(singlishShown, 0)
+    private fun applySinglishEdit(edit: SinglishComposer.Edit) {
+        if (edit.deleteBefore > 0) {
+            currentInputConnection.deleteSurroundingText(edit.deleteBefore, 0)
         }
-        singlishCommit(text)
-        singlishShown = text.length
+        singlishCommit(edit.insert)
     }
 
     private fun singlishReset() {
-        singlishKeys = ""
-        singlishShown = 0
+        singlish.reset()
     }
 
     /** commitText for the Singlish path, which owns the buffer it replaces. */
@@ -1203,15 +1185,51 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     /**
-     * Structural visibility: the strip only takes up space when the layout and
-     * field can actually suggest words. Sinhala layouts and excluded fields
-     * collapse it entirely so they don't lose vertical space to a blank bar.
-     *
-     * Call this before the window is shown (see [onStartInputView]) so the IME
-     * is already the final size when it starts animating in.
+     * Whether the strip's slot exists at all. This depends only on settings,
+     * which cannot change while this process runs (the settings screen
+     * restarts it), so the keyboard window keeps one height across layout
+     * switches and fields. Changing the window's height while it is shown
+     * made the app behind it relayout and flash through the gap.
+     */
+    private fun stripReserved(): Boolean = prefs.englishSuggestions && prefs.layoutEnglish
+
+    /**
+     * The slot is reserved by settings ([stripReserved]); within it the strip
+     * is only active where the layout and field can suggest words. Sinhala
+     * layouts and excluded fields get an inactive, see-through strip, and
+     * [onComputeInsets] hands that area back to the app.
      */
     private fun updateSuggestionStripVisibility(info: EditorInfo? = currentInputEditorInfo) {
-        suggestionStrip?.visibility = if (stripHasSlot(info)) View.VISIBLE else View.GONE
+        val strip = suggestionStrip ?: return
+        val reserved = stripReserved()
+        strip.visibility = if (reserved) View.VISIBLE else View.GONE
+        strip.setActive(reserved && stripHasSlot(info))
+    }
+
+    /**
+     * With an inactive strip, report only the keys as the keyboard's area: the
+     * app lays out above the keys, sees its own content through the empty slot
+     * and gets the touches there, while the IME window itself never resizes.
+     */
+    override fun onComputeInsets(outInsets: Insets) {
+        super.onComputeInsets(outInsets)
+        if (isFullscreenMode || isHardwareKeyboardAvailable()) return
+        val strip = suggestionStrip ?: return
+        if (strip.visibility != View.VISIBLE || strip.isActive) return
+        val decor = window?.window?.decorView ?: return
+        // The opaque part below the slot: an open panel, otherwise the keys.
+        val body: View = emojiView?.takeIf { it.visibility == View.VISIBLE }
+            ?: clipboardView?.takeIf { it.visibility == View.VISIBLE }
+            ?: keyboardView
+        if (!body.isLaidOut) return
+
+        val location = IntArray(2)
+        body.getLocationInWindow(location)
+        val keysTop = location[1]
+        outInsets.contentTopInsets = keysTop
+        outInsets.visibleTopInsets = keysTop
+        outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
+        outInsets.touchableRegion.set(0, keysTop, decor.width, decor.height)
     }
 
     private fun updateSuggestions() {
@@ -1281,6 +1299,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     companion object {
+        private const val TAG = "SithakuruIME"
         private const val POSITION_FLAG_LENGTH: Int = 5
         private const val DOUBLE_PRESS_TIME_RANGE: Long = 500
     }

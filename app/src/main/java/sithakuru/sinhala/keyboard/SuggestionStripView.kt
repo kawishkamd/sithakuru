@@ -19,6 +19,7 @@ package sithakuru.sinhala.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.text.TextUtils
 import android.util.TypedValue
@@ -34,6 +35,16 @@ class SuggestionStripView(
 ) : LinearLayout(context) {
 
     var onSuggestionClick: ((String) -> Unit)? = null
+
+    /**
+     * Whether the strip can show suggestions in the current layout and field.
+     * An inactive strip keeps its slot, so the keyboard window never changes
+     * height, but draws nothing and takes no touches: the input method
+     * reports only the keys as its area (see InputMethodService.onComputeInsets),
+     * so the app behind shows through and receives touches there.
+     */
+    var isActive: Boolean = true
+        private set
 
     private val leftView: TextView
     private val centerView: TextView
@@ -105,7 +116,23 @@ class SuggestionStripView(
         }
     }
 
+    fun setActive(active: Boolean) {
+        if (active == isActive) return
+        isActive = active
+        if (!active) clearSuggestions()
+        val childVisibility = if (active) View.VISIBLE else View.INVISIBLE
+        leftView.visibility = childVisibility
+        centerView.visibility = childVisibility
+        rightView.visibility = childVisibility
+        applyBackground()
+    }
+
+    private fun applyBackground() {
+        setBackgroundColor(if (isActive) prefs.colorBackground else Color.TRANSPARENT)
+    }
+
     fun setSuggestions(result: SuggestionResult?) {
+        if (!isActive) return
         if (result == null) {
             clearSuggestions()
             return
@@ -142,7 +169,7 @@ class SuggestionStripView(
     }
 
     private fun updateDividerVisibility(left: String, center: String, right: String) {
-        val showDividers = prefs.keyBorders
+        val showDividers = prefs.keyBorders && isActive
         divider1.visibility = if (showDividers && left.isNotEmpty() && center.isNotEmpty()) View.VISIBLE else View.INVISIBLE
         divider2.visibility = if (showDividers && center.isNotEmpty() && right.isNotEmpty()) View.VISIBLE else View.INVISIBLE
     }
@@ -156,7 +183,7 @@ class SuggestionStripView(
     }
 
     fun updateTheme() {
-        setBackgroundColor(prefs.colorBackground)
+        applyBackground()
         centerView.setTextColor(prefs.colorText)
         leftView.setTextColor(prefs.colorText)
         rightView.setTextColor(prefs.colorText)

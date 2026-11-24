@@ -18,7 +18,7 @@
 package sithakuru.sinhala.keyboard
 
 /**
- * Helakuru phonetic keymap.
+ * Helakuru-compatible phonetic keymap.
  *
  * Transcribed from helakuru-ime's `helakuru_ime/keymap.py`, which is the 2018
  * Helakuru phonetic map with the shipped file's value/comment mismatches

@@ -20,6 +20,7 @@ package sithakuru.sinhala.keyboard
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
@@ -182,6 +183,53 @@ class MainActivity : Activity() {
         binding.switchClipboard.setOnCheckedChangeListener { _, isChecked ->
             prefs.clipboardKey = isChecked
             settingsChanged = true
+        }
+
+        fun updateClipboardHistoryControls(enabled: Boolean) {
+            binding.clipboardExpiryLabel.isEnabled = enabled
+            for (i in 0 until binding.clipboardExpiry.childCount)
+                binding.clipboardExpiry.getChildAt(i).isEnabled = enabled
+        }
+        binding.switchClipboardHistory.isChecked = prefs.clipboardHistoryEnabled
+        updateClipboardHistoryControls(prefs.clipboardHistoryEnabled)
+        binding.switchClipboardHistory.setOnCheckedChangeListener { _, isChecked ->
+            // Turning it off also wipes what is saved. A running keyboard does
+            // that on the broadcast, a stopped one when it next starts.
+            prefs.clipboardHistoryEnabled = isChecked
+            updateClipboardHistoryControls(isChecked)
+            ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
+            settingsChanged = true
+        }
+        binding.clipboardExpiry.check(
+            when (prefs.clipboardExpiryMillis) {
+                Prefs.CLIPBOARD_EXPIRY_HOUR -> R.id.clipboard_expiry_hour
+                Prefs.CLIPBOARD_EXPIRY_NEVER -> R.id.clipboard_expiry_never
+                else -> R.id.clipboard_expiry_day
+            }
+        )
+        binding.clipboardExpiry.setOnCheckedChangeListener { _, checkedId ->
+            prefs.clipboardExpiryMillis = when (checkedId) {
+                R.id.clipboard_expiry_hour -> Prefs.CLIPBOARD_EXPIRY_HOUR
+                R.id.clipboard_expiry_never -> Prefs.CLIPBOARD_EXPIRY_NEVER
+                else -> Prefs.CLIPBOARD_EXPIRY_DAY
+            }
+            ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
+            settingsChanged = true
+        }
+        binding.clipboardClearHistory.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.clipboard_history_clear_confirm_title)
+                .setMessage(R.string.clipboard_history_clear_confirm_message)
+                .setPositiveButton(R.string.clipboard_history_clear_confirm) { _, _ ->
+                    // This screen cannot write the keyboard's state file, so it
+                    // counts the request; the keyboard clears everything on the
+                    // broadcast, or when it next starts if it is not running.
+                    prefs.clipboardClearRequests = prefs.clipboardClearRequests + 1
+                    ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
+                    settingsChanged = true
+                }
+                .setNegativeButton(R.string.clipboard_history_clear_cancel, null)
+                .show()
         }
         binding.longPressKeysLabels.setOnCheckedChangeListener { _, isChecked ->
             prefs.longPressKeysLabels = isChecked
