@@ -1,3 +1,93 @@
 <resources>
     <string name="app_name">සිතකුරු</string>
+
+    <string name="enable_help_title">සිතකුරු සක්‍රිය කර නැත.</string>
+    <string name="enable_help_subtitle">සක්‍රිය කිරීමට උපදෙස්</string>
+    <string name="enable_help_step_1">1. ඔබගේ දුරකතනයේ යතුරු පුවරු සැකසුම් වෙත පිවිසීම සඳහා පහත බොත්තම මත ඔබන්න.</string>
+    <string name="enable_help_step_2">2. එහි \'%s\' නමින් ඇති යතුරු පුවරුව සක්‍රිය කරන්න.</string>
+    <string name="enable_help_warning">එහිදී අනතුරු ඇඟවීම් ලැබේ නම් ඒවා කියවන්න. \'සිතකුරු\' සක්‍රිය කිරීමට අවශ්‍ය නම්, ඒවායේ \'OK\' හෝ \'හරි\' ලෙස දැක්වෙන බොත්තම් ඔබන්න.</string>
+    <string name="enable_help_step_3">3. එම සැකසුම් පිටුවෙන් ඉවත් වීම සඳහා දුරකතනයේ පෙර/ආපසු බොත්තම ඔබන්න.</string>
+    <string name="enable_button">යතුරු පුවරු සැකසුම් වෙත යන්න</string>
+
+    <string name="select_help_enabled">සිතකුරු සක්‍රිය කර ඇත.</string>
+    <string name="select_help_not_selected">නමුත් සිතකුරු තෝරා නැත.</string>
+    <string name="select_help_subtitle">සිතකුරු තෝරා ගැනීම සඳහා උපදෙස්</string>
+    <string name="select_help_step_1">1. යතුරු පුවරු ලැයිස්තුව විවෘත කිරීම සඳහා පහත බොත්තම මත ඔබන්න.</string>
+    <string name="select_help_step_2">2. එම ලැයිස්තුවේ ඇති \'Sithakuru\' යන වචනය මත ඔබන්න.</string>
+    <string name="select_button">යතුරු පුවරු ලැයිස්තුව විවෘත කරන්න</string>
+
+    <string name="section_layouts">යතුරු පුවරු මාදිළි</string>
+    <string name="layout_english">English</string>
+    <string name="wijesekara">විජේසේකර</string>
+    <string name="singlish">සිංග්‍රීසි</string>
+
+    <string name="section_appearance">යතුරු පුවරුවේ පෙනුම</string>
+    <string name="key_borders">යතුරු මායිම්</string>
+    <string name="emoji_key">ඉමෝජි යතුර</string>
+    <string name="clipboard_key">ක්ලිප්බෝඩ් යතුර</string>
+    <string name="long_press_keys_labels">ඔබාගෙන සිටීමෙන් ලිවිය හැකි අකුරු</string>
+    <string name="keyboard_height">උස</string>
+    <string name="text_size">අකුරුවල ප්‍රමාණය</string>
+
+    <string name="section_colors">යතුරු පුවරුවේ වර්ණ</string>
+    <string name="theme_night">අඳුර</string>
+    <string name="theme_light">එළිය</string>
+    <string name="theme_custom">සිතැඟි</string>
+    <string name="color_background">පුවරුවේ පසුබිම</string>
+    <string name="color_pressed_key_background">යතුරු එබීමේදී පසුබිම</string>
+    <string name="color_long_pressed_key_background">යතුරු ඔබාගෙන සිටීමේදී පසුබිම</string>
+    <string name="color_key_border">යතුරුවල මායිම</string>
+    <string name="color_text">අකුරු, ඉලක්කම්, සංකේත</string>
+    <string name="color_text_dim">අප්‍රධාන අකුරු/සංකේත</string>
+    <string name="color_text_long_press">ඔබාගෙන සිටීමෙන් ලියන අකුරු</string>
+    <string name="dark_system_bars">පද්ධතියේ තීරු සඳහා අඳුරු වර්ණ</string>
+
+    <string name="color_red">රතු</string>
+    <string name="color_green">කොළ</string>
+    <string name="color_blue">නිල්</string>
+    <string name="dialog_ok">හරි</string>
+
+    <string name="section_behavior">යතුරු පුවරුවේ හැසිරීම</string>
+    <string name="long_press_keys">ඔබාගෙන සිටීමෙන් අකුරු ලිවීම</string>
+    <string name="swipe_to_erase">ඇදගෙන යාමෙන් මැකීම</string>
+    <string name="swipe_to_move_cursor">ඇදගෙන යාමෙන් ලියන තැන වෙනස් කිරීම</string>
+    <string name="english_suggestions">ඉංග්‍රීසි වචන යෝජනා (English Suggestions)</string>
+
+    <string name="hardware_switch_hint">මාරු කිරීමට</string>
+
+    <string name="info">විස්තර</string>
+    <string name="about_title">යෙදුම පිළිබඳ තොරතුරු</string>
+    <string name="description_text">නිදහස් සිංහල යතුරු පුවරුව</string>
+    <string name="foss_text">මෙය නිදහස් සහ විවෘත මෘදුකාංගයකි.</string>
+    <string name="source_label">මූලාශ්‍රය (මෙම සංස්කරණය):</string>
+    <string name="upstream_label">මුල් ව්‍යාපෘතිය:</string>
+    <string name="license_label">බලපත්‍රය:</string>
+    <string name="dialog_exit">වසන්න</string>
+
+    <string name="keyboard_help">යතුරු පුවරු සහය</string>
+
+    <string name="emoji_category_recent">මෑත භාවිත</string>
+    <string name="emoji_category_smileys">මුහුණු සහ හැඟීම්</string>
+    <string name="emoji_category_people">පුද්ගලයන්</string>
+    <string name="emoji_category_animals_nature">සත්වයන් සහ ස්වභාවය</string>
+    <string name="emoji_category_food_drink">ආහාර සහ පාන</string>
+    <string name="emoji_category_activities">ක්‍රියාකාරකම්</string>
+    <string name="emoji_category_travel">සංචාර</string>
+    <string name="emoji_category_objects_symbols">වස්තු සහ සංකේත</string>
+    <string name="emoji_category_flags">ධජ</string>
+
+    <string name="clipboard">ක්ලිප්බෝඩ් එක</string>
+    <string name="clipboard_empty">ක්ලිප්බෝඩ් එක හිස්ය</string>
+    <string name="clipboard_empty_hint">පිටපත් කළ දෑ මෙහි දිස්වනු ඇත</string>
+    <string name="clipboard_clear_all">සියල්ල මකන්න</string>
+    <string name="clipboard_history_save">ක්ලිප්බෝඩ් ඉතිහාසය සුරකින්න</string>
+    <string name="clipboard_history_expiry">පින් නොකළ ක්ලිප් ස්වයංක්‍රීයව මකන්න</string>
+    <string name="clipboard_history_expiry_hour">පැය 1කින්</string>
+    <string name="clipboard_history_expiry_day">දින 1කින්</string>
+    <string name="clipboard_history_expiry_never">කිසිදා නැත</string>
+    <string name="clipboard_history_clear_all">සියලු ක්ලිප් මකන්න (පින් කළ ඒවාද)</string>
+    <string name="clipboard_history_clear_confirm_title">ක්ලිප්බෝඩ් ඉතිහාසය මකන්නද?</string>
+    <string name="clipboard_history_clear_confirm_message">පින් කළ ඒවා ඇතුළුව සුරැකි සියලු ක්ලිප් මැකේ. මෙය අහෝසි කළ නොහැක.</string>
+    <string name="clipboard_history_clear_confirm">මකන්න</string>
+    <string name="clipboard_history_clear_cancel">අවලංගු කරන්න</string>
 </resources>

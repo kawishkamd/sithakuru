@@ -22,8 +22,7 @@
     android:layout_height="match_parent"
     android:background="@color/night_1"
     android:orientation="vertical"
-    tools:context=".MainActivity"
-    tools:ignore="HardcodedText">
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -50,7 +49,7 @@
                 android:background="@color/light_1"
                 android:gravity="center_horizontal"
                 android:padding="8dp"
-                android:text="සිතකුරු සක්‍රිය කර නැත."
+                android:text="@string/enable_help_title"
                 android:textColor="@color/night_1"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -61,7 +60,7 @@
                 android:layout_marginBottom="8dp"
                 android:gravity="center_horizontal"
                 android:padding="8dp"
-                android:text="සක්‍රිය කිරීමට උපදෙස්"
+                android:text="@string/enable_help_subtitle"
                 android:textColor="@color/light_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -71,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:padding="4dp"
-                android:text="1. ඔබගේ දුරකතනයේ යතුරු පුවරු සැකසුම් වෙත පිවිසීම සඳහා පහත බොත්තම මත ඔබන්න."
+                android:text="@string/enable_help_step_1"
                 android:textColor="@color/light_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -91,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:padding="4dp"
-                android:text="එහිදී අනතුරු ඇඟවීමි ලැබේ නම් ඒවා කියවන්න. 'සිතකුරු' සක්‍රිය කිරීමට අවශ්‍ය නම්, ඒවායේ 'OK' හෝ 'හරි' ලෙස දැක්වෙන බොත්තම් ඔබන්න."
+                android:text="@string/enable_help_warning"
                 android:textColor="@color/light_1"
                 android:textSize="14sp"
                 android:textStyle="italic" />
@@ -101,7 +100,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:padding="4dp"
-                android:text="3. එම සැකසුම් පිටුවෙන් ඉවත් වීම සඳහා දුරකතනයේ පෙර/ආපසු බොත්තම ඔබන්න."
+                android:text="@string/enable_help_step_3"
                 android:textColor="@color/light_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -111,7 +110,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/blue"
-                android:text="යතුරු පුවරු සැකසුම් වෙත යන්න"
+                android:text="@string/enable_button"
                 android:textColor="@color/light_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -136,7 +135,7 @@
                 android:layout_marginBottom="8dp"
                 android:gravity="center_horizontal"
                 android:padding="8dp"
-                android:text="සිතකුරු සක්‍රිය කර ඇත."
+                android:text="@string/select_help_enabled"
                 android:textColor="@color/yellow"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -148,7 +147,7 @@
                 android:background="@color/light_1"
                 android:gravity="center_horizontal"
                 android:padding="8dp"
-                android:text="නමුත් සිතකුරු තෝරා නැත."
+                android:text="@string/select_help_not_selected"
                 android:textColor="@color/night_1"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -159,7 +158,7 @@
                 android:layout_marginBottom="8dp"
                 android:gravity="center_horizontal"
                 android:padding="8dp"
-                android:text="සිතකුරු තෝරා ගැනීම සඳහා උපදෙස්"
+                android:text="@string/select_help_subtitle"
                 android:textColor="@color/light_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -169,7 +168,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:padding="8dp"
-                android:text="1. යතුරු පුවරු ලැයිස්තුව විවෘත කිරීම සඳහා පහත බොත්තම මත ඔබන්න."
+                android:text="@string/select_help_step_1"
                 android:textColor="@color/light_1"
                 android:textSize="14sp" />
 
@@ -178,7 +177,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:padding="8dp"
-                android:text="2. එම ලැයිස්තුවේ ඇති 'Sithakuru' යන වචනය මත ඔබන්න."
+                android:text="@string/select_help_step_2"
                 android:textColor="@color/light_1"
                 android:textSize="14sp" />
 
@@ -187,7 +186,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/yellow"
-                android:text="යතුරු පුවරු ලැයිස්තුව විවෘත කරන්න"
+                android:text="@string/select_button"
                 android:textColor="@color/night_1"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -200,7 +199,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:gravity="center_horizontal"
-            android:text="යතුරු පුවරු මාදිළි"
+            android:text="@string/section_layouts"
             android:textColor="@color/light_1"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -212,7 +211,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="English"
+            android:text="@string/layout_english"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -243,7 +242,7 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="8dp"
             android:gravity="center_horizontal"
-            android:text="යතුරු පුවරුවේ පෙනුම"
+            android:text="@string/section_appearance"
             android:textColor="@color/light_1"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -255,7 +254,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="යතුරු මායිම්"
+            android:text="@string/key_borders"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -266,7 +265,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="ඉමෝජි යතුර"
+            android:text="@string/emoji_key"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -354,7 +353,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="ඔබාගෙන සිටීමෙන් ලිවිය හැකි අකුරු"
+            android:text="@string/long_press_keys_labels"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -368,7 +367,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="උස"
+                android:text="@string/keyboard_height"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -399,7 +398,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="අකුරුවල ප්‍රමාණය"
+                android:text="@string/text_size"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -425,7 +424,7 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="8dp"
             android:gravity="center_horizontal"
-            android:text="යතුරු පුවරුවේ වර්ණ"
+            android:text="@string/section_colors"
             android:textColor="@color/light_1"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -444,7 +443,7 @@
                 android:background="@color/night_2"
                 android:buttonTint="@color/light_1"
                 android:minHeight="48dp"
-                android:text="අඳුර"
+                android:text="@string/theme_night"
                 android:textColor="@color/light_1" />
 
             <RadioButton
@@ -455,7 +454,7 @@
                 android:background="@color/light_1"
                 android:buttonTint="@color/night_1"
                 android:minHeight="48dp"
-                android:text="එළිය"
+                android:text="@string/theme_light"
                 android:textColor="@color/night_1"
                 android:textStyle="bold" />
 
@@ -467,7 +466,7 @@
                 android:background="@color/yellow"
                 android:buttonTint="@color/blue"
                 android:minHeight="48dp"
-                android:text="සිතැඟි"
+                android:text="@string/theme_custom"
                 android:textColor="@color/blue"
                 android:textStyle="bold" />
 
@@ -484,7 +483,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:labelFor="@id/color_background"
-                android:text="පුවරුවේ පසුබිම"
+                android:text="@string/color_background"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -517,7 +516,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:labelFor="@id/color_pressed_key_background"
-                android:text="යතුරු එබීමේදී පසුබිම"
+                android:text="@string/color_pressed_key_background"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -550,7 +549,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:labelFor="@id/color_long_pressed_key_background"
-                android:text="යතුරු ඔබාගෙන සිටීමේදී පසුබිම"
+                android:text="@string/color_long_pressed_key_background"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -583,7 +582,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:labelFor="@id/color_key_border"
-                android:text="යතුරුවල මායිම"
+                android:text="@string/color_key_border"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -616,7 +615,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:labelFor="@id/color_text"
-                android:text="අකුරු, ඉලක්කම්, සංකේත"
+                android:text="@string/color_text"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -649,7 +648,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:labelFor="@id/color_text_dim"
-                android:text="අප්‍රධාන අකුරු/සංකේත"
+                android:text="@string/color_text_dim"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -682,7 +681,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:labelFor="@id/color_text_long_press"
-                android:text="ඔබාගෙන සිටීමෙන් ලියන අකුරු"
+                android:text="@string/color_text_long_press"
                 android:textColor="@color/light_1"
                 android:textSize="16sp" />
 
@@ -711,7 +710,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="පද්ධතියේ තීරු සඳහා අඳුරු වර්ණ"
+            android:text="@string/dark_system_bars"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -720,7 +719,7 @@
             android:layout_height="wrap_content"
             android:layout_marginVertical="8dp"
             android:gravity="center_horizontal"
-            android:text="යතුරු පුවරුවේ හැසිරීම"
+            android:text="@string/section_behavior"
             android:textColor="@color/light_1"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -732,7 +731,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="ඔබාගෙන සිටීමෙන් අකුරු ලිවීම"
+            android:text="@string/long_press_keys"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -743,7 +742,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="ඇදගෙන යාමෙන් මැකීම"
+            android:text="@string/swipe_to_erase"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -754,7 +753,7 @@
             android:layout_marginVertical="4dp"
             android:minHeight="48dp"
             android:paddingVertical="8dp"
-            android:text="ඇදගෙන යාමෙන් ලියන තැන වෙනස් කිරීම"
+            android:text="@string/swipe_to_move_cursor"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
