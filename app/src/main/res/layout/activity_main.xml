@@ -769,6 +769,50 @@
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
+        <Switch
+            android:id="@+id/switch_haptic_feedback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="@string/haptic_feedback"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_key_popup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="@string/key_popup"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_auto_capitalize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="@string/auto_capitalize"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/switch_double_space_period"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="4dp"
+            android:minHeight="48dp"
+            android:paddingVertical="8dp"
+            android:text="@string/double_space_period"
+            android:textColor="@color/light_1"
+            android:textSize="16sp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

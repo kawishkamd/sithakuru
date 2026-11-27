@@ -104,6 +104,18 @@ class Prefs(private val context: Context) {
     var swipeToMoveCursor: Boolean
         get() = preferences.getBoolean(KEY_SWIPE_TO_MOVE_CURSOR, DEFAULT_SWIPE_TO_MOVE_CURSOR)
         set(value) = preferences.edit().putBoolean(KEY_SWIPE_TO_MOVE_CURSOR, value).apply()
+    var hapticFeedback: Boolean
+        get() = preferences.getBoolean(KEY_HAPTIC_FEEDBACK, DEFAULT_HAPTIC_FEEDBACK)
+        set(value) = preferences.edit().putBoolean(KEY_HAPTIC_FEEDBACK, value).apply()
+    var keyPopup: Boolean
+        get() = preferences.getBoolean(KEY_KEY_POPUP, DEFAULT_KEY_POPUP)
+        set(value) = preferences.edit().putBoolean(KEY_KEY_POPUP, value).apply()
+    var autoCapitalize: Boolean
+        get() = preferences.getBoolean(KEY_AUTO_CAPITALIZE, DEFAULT_AUTO_CAPITALIZE)
+        set(value) = preferences.edit().putBoolean(KEY_AUTO_CAPITALIZE, value).apply()
+    var doubleSpacePeriod: Boolean
+        get() = preferences.getBoolean(KEY_DOUBLE_SPACE_PERIOD, DEFAULT_DOUBLE_SPACE_PERIOD)
+        set(value) = preferences.edit().putBoolean(KEY_DOUBLE_SPACE_PERIOD, value).apply()
 
     var emojiKey: Boolean
         get() = preferences.getBoolean(KEY_EMOJI_KEY, DEFAULT_EMOJI_KEY)
@@ -241,6 +253,10 @@ class Prefs(private val context: Context) {
         private const val KEY_LONG_PRESS_KEYS = "LONG_PRESS_KEYS"
         private const val KEY_SWIPE_TO_ERASE = "SWIPE_TO_ERASE"
         private const val KEY_SWIPE_TO_MOVE_CURSOR = "SWIPE_TO_MOVE_CURSOR"
+        private const val KEY_HAPTIC_FEEDBACK = "HAPTIC_FEEDBACK"
+        private const val KEY_KEY_POPUP = "KEY_KEY_POPUP"
+        private const val KEY_AUTO_CAPITALIZE = "AUTO_CAPITALIZE"
+        private const val KEY_DOUBLE_SPACE_PERIOD = "DOUBLE_SPACE_PERIOD"
         private const val KEY_EMOJI_KEY = "EMOJI_KEY"
         private const val KEY_CLIPBOARD_KEY = "CLIPBOARD_KEY"
         private const val KEY_CLIPBOARD_HISTORY_ENABLED = "CLIPBOARD_HISTORY_ENABLED"
@@ -255,6 +271,10 @@ class Prefs(private val context: Context) {
         const val DEFAULT_LONG_PRESS_KEYS = false
         const val DEFAULT_SWIPE_TO_ERASE = true
         const val DEFAULT_SWIPE_TO_MOVE_CURSOR = true
+        const val DEFAULT_HAPTIC_FEEDBACK = false
+        const val DEFAULT_KEY_POPUP = true
+        const val DEFAULT_AUTO_CAPITALIZE = true
+        const val DEFAULT_DOUBLE_SPACE_PERIOD = true
         const val DEFAULT_EMOJI_KEY = true
         const val DEFAULT_CLIPBOARD_KEY = false
         const val DEFAULT_ENGLISH_SUGGESTIONS = true
