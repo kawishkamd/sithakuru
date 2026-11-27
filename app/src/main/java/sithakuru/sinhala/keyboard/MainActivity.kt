@@ -468,12 +468,13 @@ class MainActivity : Activity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         if (hasFocus) {
+            val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
             var keyboardEnabled = false
-            val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            for (i in inputMethodManager.enabledInputMethodList)
+            for (i in inputMethodManager?.enabledInputMethodList.orEmpty())
                 if (i.packageName == packageName) keyboardEnabled = true
 
-            val keyboardSelected = Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD).contains(packageName)
+            val keyboardSelected = Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+                ?.contains(packageName) == true
 
             if (keyboardEnabled)
                 binding.enableHelp.visibility = View.GONE
@@ -486,7 +487,7 @@ class MainActivity : Activity() {
             if (!keyboardEnabled)
                 binding.enableButton.setOnClickListener { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) }
             else if (!keyboardSelected)
-                binding.selectButton.setOnClickListener { inputMethodManager.showInputMethodPicker() }
+                binding.selectButton.setOnClickListener { inputMethodManager?.showInputMethodPicker() }
         }
 
         super.onWindowFocusChanged(hasFocus)
