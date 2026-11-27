@@ -20,9 +20,11 @@ package sithakuru.sinhala.keyboard
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
@@ -253,7 +255,7 @@ class EmojiView(
         categoryViews.clear()
         allCategories.clear()
 
-        val recentEmojis = prefs.recentEmojis
+        val recentEmojis = prefs.recentEmojis.filter(::isEmojiSupported)
         if (recentEmojis.isNotEmpty()) {
             allCategories.add(
                 EmojiCategory(
@@ -263,7 +265,7 @@ class EmojiView(
                 )
             )
         }
-        allCategories.addAll(EmojiData.categories)
+        allCategories.addAll(supportedCategories())
 
         if (previousSelectedCategory != null) {
             val newIndex = allCategories.indexOfFirst { it.id == previousSelectedCategory }
@@ -297,7 +299,7 @@ class EmojiView(
 
     fun updateRecents() {
         val hadRecent = allCategories.firstOrNull()?.isRecent == true
-        val hasRecent = prefs.recentEmojis.isNotEmpty()
+        val hasRecent = prefs.recentEmojis.any(::isEmojiSupported)
         if (hadRecent != hasRecent) {
             buildCategoryTabs()
         }
@@ -349,7 +351,7 @@ class EmojiView(
         private fun getCurrentList(): List<String> {
             if (allCategories.isEmpty()) return emptyList()
             val category = allCategories.getOrNull(selectedCategoryIndex) ?: allCategories[0]
-            return if (category.isRecent) prefs.recentEmojis else category.emojis
+            return if (category.isRecent) prefs.recentEmojis.filter(::isEmojiSupported) else category.emojis
         }
 
         override fun getCount(): Int = getCurrentList().size
@@ -367,6 +369,27 @@ class EmojiView(
             }
             textView.text = getItem(position)
             return textView
+        }
+    }
+
+    companion object {
+        private val glyphPaint by lazy { Paint() }
+        private var cachedCategories: List<EmojiCategory>? = null
+
+        private fun isEmojiSupported(emoji: String): Boolean {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+            return glyphPaint.hasGlyph(emoji)
+        }
+
+        private fun supportedCategories(): List<EmojiCategory> {
+            cachedCategories?.let { return it }
+            val filtered = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                EmojiData.filterCategories(::isEmojiSupported)
+            } else {
+                EmojiData.categories
+            }
+            cachedCategories = filtered
+            return filtered
         }
     }
 }
