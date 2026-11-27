@@ -290,60 +290,6 @@ val Int.type: Int
         else -> CharType.UNKNOWN
     }
 
-fun Int.toSinglish(): Int = when (this) {
-    CharCode.SMALL_LETTER_A -> CharCode.AYANNA
-    CharCode.CAPITAL_LETTER_A -> CharCode.AEYANNA
-    CharCode.SMALL_LETTER_B -> CharCode.ALPAPRAANA_BAYANNA
-    CharCode.CAPITAL_LETTER_B -> CharCode.MAHAAPRAANA_BAYANNA
-    CharCode.SMALL_LETTER_C -> CharCode.ALPAPRAANA_CAYANNA
-    CharCode.CAPITAL_LETTER_C -> CharCode.MAHAAPRAANA_CAYANNA
-    CharCode.SMALL_LETTER_D -> CharCode.ALPAPRAANA_DDAYANNA
-    CharCode.CAPITAL_LETTER_D -> CharCode.MAHAAPRAANA_DDAYANNA
-    CharCode.SMALL_LETTER_E -> CharCode.EYANNA
-    CharCode.CAPITAL_LETTER_E -> CharCode.EEYANNA
-    CharCode.SMALL_LETTER_F -> CharCode.FAYANNA
-    CharCode.CAPITAL_LETTER_F -> CharCode.FAYANNA
-    CharCode.SMALL_LETTER_G -> CharCode.ALPAPRAANA_GAYANNA
-    CharCode.CAPITAL_LETTER_G -> CharCode.MAHAAPRAANA_GAYANNA
-    CharCode.SMALL_LETTER_H -> CharCode.HAYANNA
-    CharCode.CAPITAL_LETTER_H -> CharCode.HAYANNA
-    CharCode.SMALL_LETTER_I -> CharCode.IYANNA
-    CharCode.CAPITAL_LETTER_I -> CharCode.IIYANNA
-    CharCode.SMALL_LETTER_J -> CharCode.ALPAPRAANA_JAYANNA
-    CharCode.CAPITAL_LETTER_J -> CharCode.MAHAAPRAANA_JAYANNA
-    CharCode.SMALL_LETTER_K -> CharCode.ALPAPRAANA_KAYANNA
-    CharCode.CAPITAL_LETTER_K -> CharCode.MAHAAPRAANA_KAYANNA
-    CharCode.SMALL_LETTER_L -> CharCode.DANTAJA_LAYANNA
-    CharCode.CAPITAL_LETTER_L -> CharCode.MUURDHAJA_LAYANNA
-    CharCode.SMALL_LETTER_M -> CharCode.MAYANNA
-    CharCode.CAPITAL_LETTER_M -> CharCode.MAYANNA
-    CharCode.SMALL_LETTER_N -> CharCode.DANTAJA_NAYANNA
-    CharCode.CAPITAL_LETTER_N -> CharCode.MUURDHAJA_NAYANNA
-    CharCode.SMALL_LETTER_O -> CharCode.OYANNA
-    CharCode.CAPITAL_LETTER_O -> CharCode.OOYANNA
-    CharCode.SMALL_LETTER_P -> CharCode.ALPAPRAANA_PAYANNA
-    CharCode.CAPITAL_LETTER_P -> CharCode.MAHAAPRAANA_PAYANNA
-    CharCode.SMALL_LETTER_Q -> CharCode.ALPAPRAANA_DAYANNA
-    CharCode.CAPITAL_LETTER_Q -> CharCode.MAHAAPRAANA_DAYANNA
-    CharCode.SMALL_LETTER_R -> CharCode.RAYANNA
-    CharCode.CAPITAL_LETTER_R -> CharCode.IRUYANNA
-    CharCode.SMALL_LETTER_S -> CharCode.DANTAJA_SAYANNA
-    CharCode.CAPITAL_LETTER_S -> CharCode.MUURDHAJA_SAYANNA
-    CharCode.SMALL_LETTER_T -> CharCode.ALPAPRAANA_TTAYANNA
-    CharCode.CAPITAL_LETTER_T -> CharCode.MAHAAPRAANA_TTAYANNA
-    CharCode.SMALL_LETTER_U -> CharCode.UYANNA
-    CharCode.CAPITAL_LETTER_U -> CharCode.UUYANNA
-    CharCode.SMALL_LETTER_V -> CharCode.VAYANNA
-    CharCode.CAPITAL_LETTER_V -> CharCode.VAYANNA
-    CharCode.SMALL_LETTER_W -> CharCode.VAYANNA
-    CharCode.CAPITAL_LETTER_W -> CharCode.VAYANNA
-    CharCode.SMALL_LETTER_X -> CharCode.SIGN_ANUSVARAYA
-    CharCode.CAPITAL_LETTER_X -> CharCode.SIGN_VISARGAYA
-    CharCode.SMALL_LETTER_Y -> CharCode.YAYANNA
-    CharCode.CAPITAL_LETTER_Y -> CharCode.YAYANNA
-    else -> this
-}
-
 @Retention(AnnotationRetention.SOURCE)
 annotation class CharCode {
     companion object {
