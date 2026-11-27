@@ -24,12 +24,9 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
-<<<<<<< HEAD
+import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
-=======
-import android.graphics.drawable.GradientDrawable
->>>>>>> feat/typing-ergonomics
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
