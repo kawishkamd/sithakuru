@@ -20,6 +20,7 @@ package sithakuru.sinhala.keyboard
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SinglishComposerTest {
@@ -103,5 +104,21 @@ class SinglishComposerTest {
             applyEdit(composer.backspace()!!)
             assertEquals(word, SinglishKeymap.render(word.dropLast(1)), field.toString())
         }
+    }
+
+    @Test
+    fun helpEntriesMatchHelakuruKeymapWithoutDuplicatesOrGaps() {
+        val seenOutputs = mutableSetOf<String>()
+        for ((expected, shortcuts) in SinglishKeymap.helpEntries) {
+            if (expected.isEmpty() && shortcuts.isEmpty()) continue
+            assertTrue("Expected output must not be blank for '$shortcuts'", expected.isNotEmpty())
+            assertTrue("Shortcuts must not be blank for '$expected'", shortcuts.isNotBlank())
+            assertTrue("Duplicate help entry for '$expected'", seenOutputs.add(expected))
+            for (seq in shortcuts.split(" / ")) {
+                assertEquals("Shortcut '$seq' in help", expected, SinglishKeymap.render(seq))
+            }
+        }
+        val missing = SinglishKeymap.mappedOutputs() - seenOutputs
+        assertEquals("Every mapped Singlish character should appear in help", emptySet<String>(), missing)
     }
 }

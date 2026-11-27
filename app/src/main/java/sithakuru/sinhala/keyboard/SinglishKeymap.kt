@@ -147,6 +147,101 @@ object SinglishKeymap {
 
     private val MAX_KEY = TABLE.keys.maxOf { it.length }
 
+    /**
+     * Curated reference rows for the Singlish help dialog (`Sinhala -> keys`).
+     * Kept alongside [TABLE] and verified by unit tests so every listed shortcut
+     * matches what [render] actually produces.
+     */
+    val helpEntries: List<Pair<String, String>> = listOf(
+        "අ" to "a",
+        "ආ" to "aa",
+        "ඇ" to "A",
+        "ඈ" to "Aa / AA",
+        "ඉ" to "i / I",
+        "ඊ" to "ii",
+        "උ" to "u / U",
+        "ඌ" to "uu",
+        "ඍ" to "sRu",
+        "ඎ" to "sRuu",
+        "එ" to "e",
+        "ඒ" to "ee",
+        "ඓ" to "ai / E",
+        "ඔ" to "o / O",
+        "ඕ" to "oo",
+        "ඖ" to "au / ou",
+        "ං" to "x / ng / zn",
+        "ඃ" to "H",
+        "ක්" to "k",
+        "ඛ්" to "kh / K",
+        "ග්" to "g",
+        "ඝ්" to "gh / G",
+        "ඞ්" to "zD / X",
+        "ඟ්" to "zg",
+        "ච්" to "c / C / ch",
+        "ඡ්" to "Ch",
+        "ජ්" to "j",
+        "ඣ්" to "J",
+        "ඤ්" to "zk",
+        "ඥ්" to "zh",
+        "ඦ්" to "zj",
+        "ට්" to "t",
+        "ඨ්" to "T",
+        "ඩ්" to "d",
+        "ඪ්" to "D",
+        "ණ්" to "N",
+        "ඬ්" to "zd",
+        "ත්" to "th",
+        "ථ්" to "Th",
+        "ද්" to "dh / q",
+        "ධ්" to "Dh / Q",
+        "න්" to "n",
+        "ඳ්" to "zdh / zq",
+        "ප්" to "p",
+        "ඵ්" to "ph / P",
+        "බ්" to "b",
+        "භ්" to "bh / Bh",
+        "ම්" to "m / M",
+        "ඹ්" to "B",
+        "ය්" to "y",
+        "ර්" to "r / R",
+        "ල්" to "l",
+        "ව්" to "v / w",
+        "ශ්" to "sh",
+        "ෂ්" to "S",
+        "ස්" to "s",
+        "හ්" to "h",
+        "ළ්" to "L",
+        "ෆ්" to "f / F",
+        "ක්‍ෂ්" to "ksh / NG",
+        "" to "",
+        "ක" to "ka",
+        "කා" to "kaa",
+        "කැ" to "kA",
+        "කෑ" to "kAa / kAA",
+        "කි" to "ki / kI",
+        "කී" to "kii",
+        "කු" to "ku / kU",
+        "කූ" to "kuu",
+        "කෘ" to "ksRu",
+        "කෲ" to "ksRuu",
+        "කෙ" to "ke",
+        "කේ" to "kee",
+        "කෛ" to "kai / kE",
+        "කො" to "ko / kO",
+        "කෝ" to "koo",
+        "කෞ" to "kau / kou",
+        "කං" to "kax / kang",
+        "කඃ" to "kaH",
+        "" to "",
+        "ක්‍ය්" to "ky",
+        "ක්‍ර්" to "kr",
+        "ර්\u200Dක" to "rka"
+    )
+
+    internal fun mappedOutputs(): Set<String> = TABLE.values
+        .filter { it.kind == C || it.kind == V || it.kind == M }
+        .mapTo(mutableSetOf()) { tok -> if (tok.kind == C) tok.a + HAL else tok.a }
+
     /** Transliterate one raw word. Deterministic and side-effect free. */
     fun render(keys: String): String {
         val out = StringBuilder()
