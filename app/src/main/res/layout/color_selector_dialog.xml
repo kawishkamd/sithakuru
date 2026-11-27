@@ -22,8 +22,7 @@
     android:layout_height="wrap_content"
     android:background="@drawable/dialog_inset"
     android:orientation="vertical"
-    android:padding="48dp"
-    tools:ignore="HardcodedText">
+    android:padding="48dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -60,7 +59,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="රතු"
+            android:text="@string/color_red"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -94,7 +93,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="කොළ"
+            android:text="@string/color_green"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -128,7 +127,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="නිල්"
+            android:text="@string/color_blue"
             android:textColor="@color/light_1"
             android:textSize="16sp" />
 
@@ -175,7 +174,7 @@
             android:layout_weight="1"
             android:backgroundTint="@color/yellow"
             android:minHeight="48dp"
-            android:text="හරි"
+            android:text="@string/dialog_ok"
             android:textColor="@color/night_1"
             android:textStyle="bold" />
 

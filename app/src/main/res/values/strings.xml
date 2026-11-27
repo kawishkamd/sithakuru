@@ -1,54 +1,110 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">Sithakuru</string>
     <string name="app_name_si">සිතකුරු</string>
-    <string name="enable_help_step_2">2. එහි \'%s\' නමින් ඇති යතුරු පුවරුව සක්‍රිය කරන්න.</string>
-    <string name="info">විස්තර</string>
-    <string name="about_title">යෙදුම පිළිබඳ තොරතුරු</string>
-    <string name="description_text">නිදහස් සිංහල යතුරු පුවරුව</string>
-    <string name="foss_text">මෙය නිදහස් සහ විවෘත මෘදුකාංගයකි.</string>
-    <string name="source_label">මූලාශ්‍රය:</string>
-    <string name="license_label">බලපත්‍රය:</string>
-    <string name="wijesekara">විජේසේකර</string>
-    <string name="singlish">සිංග්‍රීසි</string>
-    <string name="keyboard_help">යතුරු පුවරු සහය</string>
-    <string name="source_link_text">codeberg.org/sinhala/sithakuru</string>
-    <string name="license_link_text">GNU General Public License v3.0 only</string>
-    <string name="source_link_url">https://codeberg.org/sinhala/sithakuru</string>
-    <string name="license_link_url">https://www.gnu.org/licenses/gpl-3.0.txt</string>
-    <string name="license_notice">This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;. </string>
-    <string name="dialog_exit">වසන්න</string>
 
+    <string name="enable_help_title">Sithakuru is not enabled.</string>
+    <string name="enable_help_subtitle">How to enable</string>
+    <string name="enable_help_step_1">1. Tap the button below to open your phone\'s keyboard settings.</string>
+    <string name="enable_help_step_2">2. Enable the keyboard named \'%s\'.</string>
+    <string name="enable_help_warning">If Android shows a warning, read it and tap \'OK\' if you want to enable Sithakuru.</string>
+    <string name="enable_help_step_3">3. Press Back to return here.</string>
+    <string name="enable_button">Open keyboard settings</string>
+
+    <string name="select_help_enabled">Sithakuru is enabled.</string>
+    <string name="select_help_not_selected">Sithakuru is not selected yet.</string>
+    <string name="select_help_subtitle">How to select</string>
+    <string name="select_help_step_1">1. Tap the button below to open the keyboard picker.</string>
+    <string name="select_help_step_2">2. Choose \'Sithakuru\' from the list.</string>
+    <string name="select_button">Choose keyboard</string>
+
+    <string name="test_keyboard_hint">Type here to test the keyboard…</string>
+
+    <string name="section_layouts">Keyboard layouts</string>
+    <string name="layout_english">English</string>
+    <string name="wijesekara">Wijesekara</string>
+    <string name="singlish">Singlish</string>
+
+    <string name="section_appearance">Appearance</string>
+    <string name="key_borders">Key borders</string>
+    <string name="emoji_key">Emoji key</string>
+    <string name="clipboard_key">Clipboard key</string>
+    <string name="long_press_keys_labels">Long-press key hints</string>
+    <string name="keyboard_height">Height</string>
+    <string name="text_size">Font size</string>
+
+    <string name="section_colors">Colors</string>
+    <string name="theme_night">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_custom">Custom</string>
+    <string name="color_background">Keyboard background</string>
+    <string name="color_pressed_key_background">Pressed key background</string>
+    <string name="color_long_pressed_key_background">Long-pressed key background</string>
+    <string name="color_key_border">Key border</string>
+    <string name="color_text">Letters, numbers and symbols</string>
+    <string name="color_text_dim">Secondary keys</string>
+    <string name="color_text_long_press">Long-press hints</string>
+    <string name="dark_system_bars">Dark system navigation bar</string>
+
+    <string name="color_red">Red</string>
+    <string name="color_green">Green</string>
+    <string name="color_blue">Blue</string>
+    <string name="dialog_ok">OK</string>
+
+    <string name="section_behavior">Behavior</string>
+    <string name="long_press_keys">Long-press alternate characters</string>
+    <string name="swipe_to_erase">Swipe to erase</string>
+    <string name="swipe_to_move_cursor">Swipe to move cursor</string>
+    <string name="english_suggestions">English word suggestions</string>
+    <string name="haptic_feedback">Haptic feedback on keypress</string>
+    <string name="key_popup">Keypress popup preview</string>
+    <string name="auto_capitalize">Auto-capitalize (English)</string>
+    <string name="double_space_period">Double-space for period (. )</string>
+
+    <string name="hardware_switch_hint">Switch layout</string>
+    <string name="hardware_switch_shortcut">Alt + i</string>
+
+    <string name="info">About</string>
+    <string name="about_title">About this app</string>
+    <string name="description_text">Free, lightweight Sinhala keyboard (Fork)</string>
+    <string name="foss_text">This is free and open-source software.</string>
+    <string name="source_label">Source (this fork):</string>
+    <string name="source_link_text">github.com/kawishkamd/sithakuru</string>
+    <string name="source_link_url">https://github.com/kawishkamd/sithakuru</string>
+    <string name="upstream_label">Original project:</string>
+    <string name="upstream_link_text">codeberg.org/sinhala/sithakuru</string>
+    <string name="upstream_link_url">https://codeberg.org/sinhala/sithakuru</string>
+    <string name="license_label">License:</string>
+    <string name="license_link_text">GNU General Public License v3.0 only</string>
+    <string name="license_link_url">https://www.gnu.org/licenses/gpl-3.0.txt</string>
+    <string name="license_notice">This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, version 3.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;.</string>
+    <string name="dialog_exit">Close</string>
+
+    <string name="keyboard_help">Keyboard help</string>
     <string name="fdroid_link_text">f-droid.org/packages/sithakuru.sinhala.keyboard/</string>
     <string name="fdroid_link_url">https://f-droid.org/packages/sithakuru.sinhala.keyboard/</string>
 
-    <string name="emoji_category_recent">මෑත භාවිත</string>
-    <string name="emoji_category_smileys">මුහුණු සහ හැඟීම්</string>
-    <string name="emoji_category_people">පුද්ගලයන්</string>
-    <string name="emoji_category_animals_nature">සත්වයන් සහ ස්වභාවය</string>
-    <string name="emoji_category_food_drink">ආහාර සහ පාන</string>
-    <string name="emoji_category_activities">ක්‍රියාකාරකම්</string>
-    <string name="emoji_category_travel">සංචාර</string>
-    <string name="emoji_category_objects_symbols">වස්තු සහ සංකේත</string>
-    <string name="emoji_category_flags">ධජ</string>
-    <string name="english_suggestions">ඉංග්‍රීසි වචන යෝජනා (English Suggestions)</string>
-    <string name="haptic_feedback">යතුරු එබීමේදී කම්පනය (Haptic Feedback)</string>
-    <string name="key_popup">යතුරු එබීමේදී පෙරදසුන (Key Popup)</string>
-    <string name="auto_capitalize">ඉංග්‍රීසි ස්වයංක්‍රීය කැපිටල් අකුරු (Auto-capitalize)</string>
-    <string name="double_space_period">දෙවරක් Space එබීමෙන් තිත (. )</string>
-    <string name="clipboard">ක්ලිප්බෝඩ් එක</string>
-    <string name="clipboard_key">ක්ලිප්බෝඩ් යතුර</string>
-    <string name="clipboard_empty">ක්ලිප්බෝඩ් එක හිස්ය</string>
-    <string name="clipboard_empty_hint">පිටපත් කළ දෑ මෙහි දිස්වනු ඇත</string>
-    <string name="clipboard_clear_all">සියල්ල මකන්න</string>
-    <string name="clipboard_history_save">ක්ලිප්බෝඩ් ඉතිහාසය සුරකින්න</string>
-    <string name="clipboard_history_expiry">පින් නොකළ ක්ලිප් ස්වයංක්‍රීයව මකන්න</string>
-    <string name="clipboard_history_expiry_hour">පැය 1කින්</string>
-    <string name="clipboard_history_expiry_day">දින 1කින්</string>
-    <string name="clipboard_history_expiry_never">කිසිදා නැත</string>
-    <string name="clipboard_history_clear_all">සියලු ක්ලිප් මකන්න (පින් කළ ඒවාද)</string>
-    <string name="clipboard_history_clear_confirm_title">ක්ලිප්බෝඩ් ඉතිහාසය මකන්නද?</string>
-    <string name="clipboard_history_clear_confirm_message">පින් කළ ඒවා ඇතුළුව සුරැකි සියලු ක්ලිප් මැකේ. මෙය අහෝසි කළ නොහැක.</string>
-    <string name="clipboard_history_clear_confirm">මකන්න</string>
-    <string name="clipboard_history_clear_cancel">අවලංගු කරන්න</string>
-    <string name="test_keyboard_hint">මෙහි ලියා යතුරු පුවරුව පරීක්ෂා කරන්න...</string>
+    <string name="emoji_category_recent">Recently used</string>
+    <string name="emoji_category_smileys">Smileys &amp; emotion</string>
+    <string name="emoji_category_people">People</string>
+    <string name="emoji_category_animals_nature">Animals &amp; nature</string>
+    <string name="emoji_category_food_drink">Food &amp; drink</string>
+    <string name="emoji_category_activities">Activities</string>
+    <string name="emoji_category_travel">Travel</string>
+    <string name="emoji_category_objects_symbols">Objects &amp; symbols</string>
+    <string name="emoji_category_flags">Flags</string>
+
+    <string name="clipboard">Clipboard</string>
+    <string name="clipboard_empty">Clipboard is empty</string>
+    <string name="clipboard_empty_hint">Copied text will appear here</string>
+    <string name="clipboard_clear_all">Clear all</string>
+    <string name="clipboard_history_save">Save clipboard history</string>
+    <string name="clipboard_history_expiry">Auto-delete unpinned clips</string>
+    <string name="clipboard_history_expiry_hour">After 1 hour</string>
+    <string name="clipboard_history_expiry_day">After 1 day</string>
+    <string name="clipboard_history_expiry_never">Never</string>
+    <string name="clipboard_history_clear_all">Clear all clips (including pinned)</string>
+    <string name="clipboard_history_clear_confirm_title">Clear clipboard history?</string>
+    <string name="clipboard_history_clear_confirm_message">All saved clips, including pinned ones, will be deleted. This cannot be undone.</string>
+    <string name="clipboard_history_clear_confirm">Clear</string>
+    <string name="clipboard_history_clear_cancel">Cancel</string>
 </resources>

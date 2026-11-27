@@ -22,8 +22,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="6dp"
-    tools:background="?background"
-    tools:ignore="HardcodedText">
+    tools:background="?background">
 
     <FrameLayout
         android:id="@+id/layout_indicator_container"
@@ -56,7 +55,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="start|bottom"
-            android:text="මාරු කිරීමට"
+            android:text="@string/hardware_switch_hint"
             android:textSize="12sp"
             tools:textColor="?foreground_2" />
 
@@ -65,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="start|top"
-            android:text="Alt + i"
+            android:text="@string/hardware_switch_shortcut"
             android:textSize="14sp"
             tools:textColor="?foreground" />
 

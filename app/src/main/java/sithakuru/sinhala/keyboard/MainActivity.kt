@@ -83,6 +83,13 @@ class MainActivity : Activity() {
                     )
                     startActivity(intent)
                 }
+                dialog.findViewById<TextView>(R.id.upstream_link).setOnClickListener {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(getString(R.string.upstream_link_url))
+                    )
+                    startActivity(intent)
+                }
                 dialog.findViewById<TextView>(R.id.license_link).setOnClickListener {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
@@ -117,7 +124,7 @@ class MainActivity : Activity() {
             WindowInsetsCompat.CONSUMED
         }
 
-        actionBar?.title = resources.getString(R.string.app_name_si)
+        actionBar?.title = resources.getString(R.string.app_name)
 
         val prefs = Prefs(this)
         fun notifySettingsChanged() {
