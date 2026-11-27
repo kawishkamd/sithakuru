@@ -232,6 +232,11 @@ class EmojiView(
         updateCategoryHighlight()
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        repeatHandler.removeCallbacksAndMessages(null)
+    }
+
     /**
      * When true the emoji panel must leave room for the keyboard's suggestion
      * strip slot so switching to emoji does not resize the IME window.
