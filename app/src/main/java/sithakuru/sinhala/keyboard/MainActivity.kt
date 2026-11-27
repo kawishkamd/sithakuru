@@ -136,6 +136,10 @@ class MainActivity : Activity() {
         binding.swipeToErase.isChecked = prefs.swipeToErase
         binding.swipeToMoveCursor.isChecked = prefs.swipeToMoveCursor
         binding.switchEnglishSuggestions.isChecked = prefs.englishSuggestions
+        binding.switchHapticFeedback.isChecked = prefs.hapticFeedback
+        binding.switchKeyPopup.isChecked = prefs.keyPopup
+        binding.switchAutoCapitalize.isChecked = prefs.autoCapitalize
+        binding.switchDoubleSpacePeriod.isChecked = prefs.doubleSpacePeriod
 
         binding.switchEnglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -422,6 +426,22 @@ class MainActivity : Activity() {
         }
         binding.switchEnglishSuggestions.setOnCheckedChangeListener { _, isChecked ->
             prefs.englishSuggestions = isChecked
+            notifySettingsChanged()
+        }
+        binding.switchHapticFeedback.setOnCheckedChangeListener { _, isChecked ->
+            prefs.hapticFeedback = isChecked
+            notifySettingsChanged()
+        }
+        binding.switchKeyPopup.setOnCheckedChangeListener { _, isChecked ->
+            prefs.keyPopup = isChecked
+            notifySettingsChanged()
+        }
+        binding.switchAutoCapitalize.setOnCheckedChangeListener { _, isChecked ->
+            prefs.autoCapitalize = isChecked
+            notifySettingsChanged()
+        }
+        binding.switchDoubleSpacePeriod.setOnCheckedChangeListener { _, isChecked ->
+            prefs.doubleSpacePeriod = isChecked
             notifySettingsChanged()
         }
 

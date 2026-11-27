@@ -31,6 +31,10 @@
     <string name="emoji_category_objects_symbols">වස්තු සහ සංකේත</string>
     <string name="emoji_category_flags">ධජ</string>
     <string name="english_suggestions">ඉංග්‍රීසි වචන යෝජනා (English Suggestions)</string>
+    <string name="haptic_feedback">යතුරු එබීමේදී කම්පනය (Haptic Feedback)</string>
+    <string name="key_popup">යතුරු එබීමේදී පෙරදසුන (Key Popup)</string>
+    <string name="auto_capitalize">ඉංග්‍රීසි ස්වයංක්‍රීය කැපිටල් අකුරු (Auto-capitalize)</string>
+    <string name="double_space_period">දෙවරක් Space එබීමෙන් තිත (. )</string>
     <string name="clipboard">ක්ලිප්බෝඩ් එක</string>
     <string name="clipboard_key">ක්ලිප්බෝඩ් යතුර</string>
     <string name="clipboard_empty">ක්ලිප්බෝඩ් එක හිස්ය</string>

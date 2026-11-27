@@ -50,6 +50,10 @@ data class SettingsSnapshot(
     val longPressKeys: Boolean,
     val swipeToErase: Boolean,
     val swipeToMoveCursor: Boolean,
+    val hapticFeedback: Boolean,
+    val keyPopup: Boolean,
+    val autoCapitalize: Boolean,
+    val doubleSpacePeriod: Boolean,
     val emojiKey: Boolean,
     val clipboardKey: Boolean,
     val clipboardHistoryEnabled: Boolean,
@@ -79,6 +83,10 @@ object SettingsBroadcast {
     private const val EXTRA_LONG_PRESS_KEYS = "long_press_keys"
     private const val EXTRA_SWIPE_TO_ERASE = "swipe_to_erase"
     private const val EXTRA_SWIPE_TO_MOVE_CURSOR = "swipe_to_move_cursor"
+    private const val EXTRA_HAPTIC_FEEDBACK = "haptic_feedback"
+    private const val EXTRA_KEY_POPUP = "key_popup"
+    private const val EXTRA_AUTO_CAPITALIZE = "auto_capitalize"
+    private const val EXTRA_DOUBLE_SPACE_PERIOD = "double_space_period"
     private const val EXTRA_EMOJI_KEY = "emoji_key"
     private const val EXTRA_CLIPBOARD_KEY = "clipboard_key"
     private const val EXTRA_CLIPBOARD_HISTORY_ENABLED = "clipboard_history_enabled"
@@ -108,6 +116,10 @@ object SettingsBroadcast {
                 .putExtra(EXTRA_LONG_PRESS_KEYS, snapshot.longPressKeys)
                 .putExtra(EXTRA_SWIPE_TO_ERASE, snapshot.swipeToErase)
                 .putExtra(EXTRA_SWIPE_TO_MOVE_CURSOR, snapshot.swipeToMoveCursor)
+                .putExtra(EXTRA_HAPTIC_FEEDBACK, snapshot.hapticFeedback)
+                .putExtra(EXTRA_KEY_POPUP, snapshot.keyPopup)
+                .putExtra(EXTRA_AUTO_CAPITALIZE, snapshot.autoCapitalize)
+                .putExtra(EXTRA_DOUBLE_SPACE_PERIOD, snapshot.doubleSpacePeriod)
                 .putExtra(EXTRA_EMOJI_KEY, snapshot.emojiKey)
                 .putExtra(EXTRA_CLIPBOARD_KEY, snapshot.clipboardKey)
                 .putExtra(EXTRA_CLIPBOARD_HISTORY_ENABLED, snapshot.clipboardHistoryEnabled)
@@ -139,6 +151,10 @@ object SettingsBroadcast {
             longPressKeys = intent.getBooleanExtra(EXTRA_LONG_PRESS_KEYS, Prefs.DEFAULT_LONG_PRESS_KEYS),
             swipeToErase = intent.getBooleanExtra(EXTRA_SWIPE_TO_ERASE, Prefs.DEFAULT_SWIPE_TO_ERASE),
             swipeToMoveCursor = intent.getBooleanExtra(EXTRA_SWIPE_TO_MOVE_CURSOR, Prefs.DEFAULT_SWIPE_TO_MOVE_CURSOR),
+            hapticFeedback = intent.getBooleanExtra(EXTRA_HAPTIC_FEEDBACK, Prefs.DEFAULT_HAPTIC_FEEDBACK),
+            keyPopup = intent.getBooleanExtra(EXTRA_KEY_POPUP, Prefs.DEFAULT_KEY_POPUP),
+            autoCapitalize = intent.getBooleanExtra(EXTRA_AUTO_CAPITALIZE, Prefs.DEFAULT_AUTO_CAPITALIZE),
+            doubleSpacePeriod = intent.getBooleanExtra(EXTRA_DOUBLE_SPACE_PERIOD, Prefs.DEFAULT_DOUBLE_SPACE_PERIOD),
             emojiKey = intent.getBooleanExtra(EXTRA_EMOJI_KEY, Prefs.DEFAULT_EMOJI_KEY),
             clipboardKey = intent.getBooleanExtra(EXTRA_CLIPBOARD_KEY, Prefs.DEFAULT_CLIPBOARD_KEY),
             clipboardHistoryEnabled = intent.getBooleanExtra(EXTRA_CLIPBOARD_HISTORY_ENABLED, Prefs.DEFAULT_CLIPBOARD_HISTORY_ENABLED),

@@ -24,13 +24,22 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
+<<<<<<< HEAD
 import android.os.Handler
 import android.os.Looper
+=======
+import android.graphics.drawable.GradientDrawable
+>>>>>>> feat/typing-ergonomics
 import android.util.Log
 import android.util.TypedValue
+import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.IntDef
 import sithakuru.sinhala.keyboard.data.Action
@@ -89,6 +98,30 @@ class Keyboard(
 
     private val longPressKeys: Boolean = prefs.longPressKeys
     private val longPressKeysLabels: Boolean = prefs.longPressKeysLabels
+    private val hapticFeedbackEnabled: Boolean = prefs.hapticFeedback
+    private val keyPopupEnabled: Boolean = prefs.keyPopup
+
+    private val popupTextView: TextView? = if (keyPopupEnabled) {
+        TextView(context).apply {
+            gravity = Gravity.CENTER
+            setTextColor(colorText)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeFloat * 1.4f)
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setColor(prefs.colorPressedKeyBackground)
+                setStroke(1f.dpToPx().toInt().coerceAtLeast(1), prefs.colorKeyBorder)
+                cornerRadius = 6f.dpToPx()
+            }
+        }
+    } else null
+
+    private val keyPopupWindow: PopupWindow? = popupTextView?.let { tv ->
+        PopupWindow(tv, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, false).apply {
+            isTouchable = false
+            isClippingEnabled = false
+        }
+    }
+    private val windowLocation = IntArray(2)
 
     private val drawableTheme = resources.newTheme()
 
@@ -181,6 +214,7 @@ class Keyboard(
         super.onDetachedFromWindow()
         mainHandler.removeCallbacksAndMessages(null)
         longPressRunnables.clear()
+        dismissKeyPopup()
     }
 
     init {
@@ -418,9 +452,54 @@ class Keyboard(
         else
             longPressedKeys[rowIndex]?.remove(keyIndex)
 
+        if (pressed && keyPopupEnabled) {
+            showKeyPopup(rowIndex, keyIndex)
+        }
         invalidate()
     }
 
+    private fun showKeyPopup(rowIndex: Int, keyIndex: Int) {
+        val popup = keyPopupWindow ?: return
+        val tv = popupTextView ?: return
+        if (!isAttachedToWindow || windowToken == null || swipeActionMode) return
+        val key = board[rowIndex]?.getOrNull(keyIndex) ?: run {
+            dismissKeyPopup()
+            return
+        }
+        val label = if (isKeyLongPressed(rowIndex, keyIndex)) {
+            key.data.popupInputData?.label ?: key.data.inputData.label
+        } else {
+            key.data.inputData.label
+        }
+        if (label.isNullOrEmpty() || key.data.inputData.value < 0) {
+            dismissKeyPopup()
+            return
+        }
+
+        val popupWidth = (key.rect.width() * 1.25f).coerceAtLeast(44f.dpToPx()).toInt()
+        val popupHeight = (rowHeight * 1.25f).toInt()
+        tv.text = label
+        getLocationInWindow(windowLocation)
+        val rawX = windowLocation[0] + (key.rect.centerX() - popupWidth / 2f).toInt()
+        val x = rawX.coerceIn(0, (width - popupWidth).coerceAtLeast(0))
+        val y = (windowLocation[1] + key.rect.top - popupHeight - 4f.dpToPx()).toInt().coerceAtLeast(0)
+
+        try {
+            if (popup.isShowing) {
+                popup.update(x, y, popupWidth, popupHeight)
+            } else {
+                popup.width = popupWidth
+                popup.height = popupHeight
+                popup.showAtLocation(this, Gravity.NO_GRAVITY, x, y)
+            }
+        } catch (_: WindowManager.BadTokenException) {
+            // Window may be tearing down; skip showing the preview.
+        }
+    }
+
+    private fun dismissKeyPopup() {
+        keyPopupWindow?.let { if (it.isShowing) it.dismiss() }
+    }
     /**
      * Sets information about pointers.
      * @return `true`, if a pointer is set/updated. `false`, if nothing changed
@@ -452,7 +531,10 @@ class Keyboard(
                 pointerChanged = false
             }
         }
-        if (pointerChanged && keyIndex != NOT_FOUND_INDEX) setPressedKey(rowIndex, keyIndex, true)
+        if (pointerChanged && keyIndex != NOT_FOUND_INDEX) {
+            setPressedKey(rowIndex, keyIndex, true)
+            showKeyPopup(rowIndex, keyIndex)
+        }
         return pointerChanged
     }
 
@@ -464,6 +546,7 @@ class Keyboard(
         }
         val removed = pointers.remove(pointerId) != null
         if (!isBackspacePressed()) cancelBackspaceRepeat()
+        if (pointers.isEmpty()) dismissKeyPopup()
         return removed
     }
 
@@ -490,6 +573,7 @@ class Keyboard(
         if (!swipeActionMode) {
             swipeActionMode = true
             removePointerInfo(getPointerId())
+            dismissKeyPopup()
         }
     }
 
@@ -508,6 +592,9 @@ class Keyboard(
 
     private fun MotionEvent.onDown() {
         rowKeyAndValues { rowIndex, keyIndex, value, popupValue ->
+            if (keyIndex != NOT_FOUND_INDEX && hapticFeedbackEnabled) {
+                performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            }
             setPointerInfo(getPointerId(), rowIndex, keyIndex, popupValue != null)
             if (value == Action.BACKSPACE) {
                 backspaceDownTime = getTime()

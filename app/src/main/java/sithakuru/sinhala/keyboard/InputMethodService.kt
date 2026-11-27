@@ -121,8 +121,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     private var keyCodeToCharCodeConverter: (keyCode: Int, isShiftPressed: Boolean) -> Int? = { _, _ -> null }
 
     private var shift = false
+    private var autoShifted = false
     private var shiftLastPressed = 0L
     private var caps = false
+    private var lastSpaceTime = 0L
 
     private var positionFlag: CharSequence = ""
     private var appliedWord: String? = null
@@ -310,8 +312,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         darkTheme = prefs.darkTheme
 
         shift = false
+        autoShifted = false
         caps = false
         symbols = false
+        lastSpaceTime = 0L
         resetInputMarkers()
         initKeyboardLayouts()
         attribute?.let { editorInfo ->
@@ -452,6 +456,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
         super.onStartInputView(info, restarting)
 
+        updateAutoCapitalize(info)
         updateSuggestions()
     }
 
@@ -476,6 +481,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             }
             updateKeyDownEventHandlers(currentLayout)
             updateSuggestionStripVisibility()
+            updateAutoCapitalize()
             updateSuggestions()
         }
     }
@@ -939,12 +945,15 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
     private fun switchSymbols(newSymbolsState: Boolean) {
         shift = false
+        autoShifted = false
         symbols = newSymbolsState
         updateSuggestionStripVisibility()
+        if (!newSymbolsState) updateAutoCapitalize()
         updateSuggestions()
     }
 
     private fun shiftClick() {
+        autoShifted = false
         if (shift && !symbols && Date().time - shiftLastPressed < DOUBLE_PRESS_TIME_RANGE) {
             caps = true
         } else {
@@ -953,6 +962,31 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 caps = false
             }
             shift = !shift
+            updateKeySet()
+        }
+    }
+
+    private fun updateAutoCapitalize(info: EditorInfo? = currentInputEditorInfo) {
+        if (isHardwareKeyboardAvailable() || symbols || caps || !::keyboardView.isInitialized) return
+        if (currentLayout != KeyboardLayoutId.ENGLISH || !prefs.autoCapitalize) {
+            if (autoShifted && shift) {
+                shift = false
+                autoShifted = false
+                updateKeySet()
+            }
+            return
+        }
+        val editorInfo = info ?: return
+        val ic = currentInputConnection ?: return
+        val before = ic.getTextBeforeCursor(8, 0) ?: ""
+        val shouldCap = TypingErgonomics.shouldAutoCapitalize(before, editorInfo.inputType)
+        if (shouldCap && !shift) {
+            shift = true
+            autoShifted = true
+            updateKeySet()
+        } else if (!shouldCap && shift && autoShifted) {
+            shift = false
+            autoShifted = false
             updateKeySet()
         }
     }
@@ -990,6 +1024,8 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         } else commitText("")
 
         clearLastTypedInfo()
+        lastSpaceTime = 0L
+        updateAutoCapitalize()
         updateSuggestions()
     }
 
@@ -1008,7 +1044,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
             ActionKeyAction.NEWLINE -> {
                 clearLastTypedInfo()
+                lastSpaceTime = 0L
                 commitText("\n")
+                updateAutoCapitalize()
             }
 
             ActionKeyAction.ORIGINAL -> currentInputEditorInfo?.let {
@@ -1027,6 +1065,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         positionFlag = ic.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) ?: ""
         if (!caps && shift && !symbols) {
             shift = false
+            autoShifted = false
             updateKeySet()
         }
     }
@@ -1141,11 +1180,32 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
             else -> when (currentLayout) {
                 KeyboardLayoutId.ENGLISH -> {
-                    commitText(value.text)
+                    if (value == CharCode.SPACE && prefs.doubleSpacePeriod) {
+                        val now = System.currentTimeMillis()
+                        val before = currentInputConnection?.getTextBeforeCursor(4, 0) ?: ""
+                        if (TypingErgonomics.shouldConvertDoubleSpaceToPeriod(before, now - lastSpaceTime)) {
+                            currentInputConnection?.deleteSurroundingText(1, 0)
+                            commitText(". ")
+                            lastSpaceTime = 0L
+                        } else {
+                            lastSpaceTime = now
+                            commitText(value.text)
+                        }
+                    } else {
+                        lastSpaceTime = 0L
+                        commitText(value.text)
+                    }
+                    updateAutoCapitalize()
                     updateSuggestions()
                 }
-                KeyboardLayoutId.WIJESEKARA -> wijesekaraInput(value)
-                KeyboardLayoutId.SINGLISH -> singlishInput(value)
+                KeyboardLayoutId.WIJESEKARA -> {
+                    lastSpaceTime = 0L
+                    wijesekaraInput(value)
+                }
+                KeyboardLayoutId.SINGLISH -> {
+                    lastSpaceTime = 0L
+                    singlishInput(value)
+                }
             }
         }
     }
