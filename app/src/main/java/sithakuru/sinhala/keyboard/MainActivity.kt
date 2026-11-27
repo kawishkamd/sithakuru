@@ -19,7 +19,6 @@ package sithakuru.sinhala.keyboard
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.ActivityManager
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
@@ -28,7 +27,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.os.Process
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
@@ -58,8 +56,6 @@ import sithakuru.sinhala.keyboard.databinding.KeyboardHelpDialogBinding
 
 class MainActivity : Activity() {
     private lateinit var binding: ActivityMainBinding
-
-    private var settingsChanged: Boolean = false
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main, menu)
@@ -124,6 +120,9 @@ class MainActivity : Activity() {
         actionBar?.title = resources.getString(R.string.app_name_si)
 
         val prefs = Prefs(this)
+        fun notifySettingsChanged() {
+            SettingsBroadcast.send(this, prefs.toSettingsSnapshot())
+        }
 
         binding.switchEnglish.isChecked = prefs.layoutEnglish
         binding.switchWijesekara.isChecked = prefs.layoutWijesekara
@@ -146,7 +145,7 @@ class MainActivity : Activity() {
             else
                 buttonView.isChecked = true
 
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.switchWijesekara.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -156,7 +155,7 @@ class MainActivity : Activity() {
             else
                 buttonView.isChecked = true
 
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.switchSinglish.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked)
@@ -166,23 +165,23 @@ class MainActivity : Activity() {
             else
                 buttonView.isChecked = true
 
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.switchDark.setOnCheckedChangeListener { _, isChecked ->
             prefs.darkTheme = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.switchBorder.setOnCheckedChangeListener { _, isChecked ->
             prefs.keyBorders = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.switchEmoji.setOnCheckedChangeListener { _, isChecked ->
             prefs.emojiKey = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.switchClipboard.setOnCheckedChangeListener { _, isChecked ->
             prefs.clipboardKey = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
 
         fun updateClipboardHistoryControls(enabled: Boolean) {
@@ -198,7 +197,7 @@ class MainActivity : Activity() {
             prefs.clipboardHistoryEnabled = isChecked
             updateClipboardHistoryControls(isChecked)
             ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.clipboardExpiry.check(
             when (prefs.clipboardExpiryMillis) {
@@ -214,7 +213,7 @@ class MainActivity : Activity() {
                 else -> Prefs.CLIPBOARD_EXPIRY_DAY
             }
             ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.clipboardClearHistory.setOnClickListener {
             AlertDialog.Builder(this)
@@ -226,14 +225,14 @@ class MainActivity : Activity() {
                     // broadcast, or when it next starts if it is not running.
                     prefs.clipboardClearRequests = prefs.clipboardClearRequests + 1
                     ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
-                    settingsChanged = true
+                    notifySettingsChanged()
                 }
                 .setNegativeButton(R.string.clipboard_history_clear_cancel, null)
                 .show()
         }
         binding.longPressKeysLabels.setOnCheckedChangeListener { _, isChecked ->
             prefs.longPressKeysLabels = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
 
         binding.height.max = 12
@@ -241,12 +240,13 @@ class MainActivity : Activity() {
         binding.heightPercentage.text = "${prefs.heightPercentage}%"
         binding.height.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                notifySettingsChanged()
+            }
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 val value = progress * KEYBOARD_HEIGHT_STEP_MULTIPLIER + KEYBOARD_HEIGHT_VALUE_OFFSET
                 binding.heightPercentage.text = "$value%"
                 prefs.heightPercentage = value
-                settingsChanged = true
             }
         })
 
@@ -255,12 +255,13 @@ class MainActivity : Activity() {
         binding.textSizeValue.text = "${prefs.textSize}"
         binding.textSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                notifySettingsChanged()
+            }
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 val value = progress + TEXT_SIZE_VALUE_OFFSET
                 binding.textSizeValue.text = "$value"
                 prefs.textSize = value
-                settingsChanged = true
             }
         })
 
@@ -301,7 +302,7 @@ class MainActivity : Activity() {
                 binding.switchDark.isChecked = true
 
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
 
@@ -321,7 +322,7 @@ class MainActivity : Activity() {
                 binding.switchDark.isChecked = false
 
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
 
@@ -339,7 +340,7 @@ class MainActivity : Activity() {
                 prefs.colorTextLongPress = prefs.colorCustomTextLongPress
 
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
 
@@ -349,7 +350,7 @@ class MainActivity : Activity() {
                 prefs.colorCustomBackground = color
                 updateThemeButtons()
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
         binding.colorPressedKeyBackground.setOnClickListener {
@@ -358,7 +359,7 @@ class MainActivity : Activity() {
                 prefs.colorCustomPressedKeyBackground = color
                 updateThemeButtons()
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
         binding.colorLongPressedKeyBackground.setOnClickListener {
@@ -367,7 +368,7 @@ class MainActivity : Activity() {
                 prefs.colorCustomLongPressedKeyBackground = color
                 updateThemeButtons()
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
         binding.colorKeyBorder.setOnClickListener {
@@ -376,7 +377,7 @@ class MainActivity : Activity() {
                 prefs.colorCustomKeyBorder = color
                 updateThemeButtons()
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
         binding.colorText.setOnClickListener {
@@ -385,7 +386,7 @@ class MainActivity : Activity() {
                 prefs.colorCustomText = color
                 updateThemeButtons()
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
         binding.colorTextDim.setOnClickListener {
@@ -394,7 +395,7 @@ class MainActivity : Activity() {
                 prefs.colorCustomTextDim = color
                 updateThemeButtons()
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
         binding.colorTextLongPress.setOnClickListener {
@@ -403,25 +404,25 @@ class MainActivity : Activity() {
                 prefs.colorCustomTextLongPress = color
                 updateThemeButtons()
                 updateColorButtonsColors()
-                settingsChanged = true
+                notifySettingsChanged()
             }
         }
 
         binding.longPressKeys.setOnCheckedChangeListener { _, isChecked ->
             prefs.longPressKeys = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.swipeToErase.setOnCheckedChangeListener { _, isChecked ->
             prefs.swipeToErase = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.swipeToMoveCursor.setOnCheckedChangeListener { _, isChecked ->
             prefs.swipeToMoveCursor = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
         binding.switchEnglishSuggestions.setOnCheckedChangeListener { _, isChecked ->
             prefs.englishSuggestions = isChecked
-            settingsChanged = true
+            notifySettingsChanged()
         }
 
         binding.wijesekaraHelp.setOnClickListener { showHelpDialog(getString(R.string.wijesekara), helpMapWijesekara) }
@@ -453,18 +454,6 @@ class MainActivity : Activity() {
     }
 
     private fun Context.getColorInt(@ColorRes id: Int) = ResourcesCompat.getColor(resources, id, null)
-
-    override fun onPause() {
-        super.onPause()
-        if (settingsChanged) (getSystemService(ACTIVITY_SERVICE) as ActivityManager?).let { activityManager ->
-            activityManager?.runningAppProcesses?.let { processes ->
-                for (info in processes)
-                    if (info.processName.contains("sithakuru.sinhala.keyboard.input.method.service"))
-                        Process.killProcess(info.pid)
-            }
-            settingsChanged = false
-        }
-    }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         if (hasFocus) {

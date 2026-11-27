@@ -46,4 +46,5 @@
     <string name="clipboard_history_clear_confirm_message">පින් කළ ඒවා ඇතුළුව සුරැකි සියලු ක්ලිප් මැකේ. මෙය අහෝසි කළ නොහැක.</string>
     <string name="clipboard_history_clear_confirm">මකන්න</string>
     <string name="clipboard_history_clear_cancel">අවලංගු කරන්න</string>
+    <string name="test_keyboard_hint">මෙහි ලියා යතුරු පුවරුව පරීක්ෂා කරන්න...</string>
 </resources>

@@ -194,6 +194,20 @@
 
         </LinearLayout>
 
+        <EditText
+            android:id="@+id/test_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/key_background_not_pressed"
+            android:hint="@string/test_keyboard_hint"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine|textCapSentences"
+            android:minHeight="48dp"
+            android:padding="10dp"
+            android:textColor="@color/light_1"
+            android:textColorHint="@color/light_2"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="match_parent"
