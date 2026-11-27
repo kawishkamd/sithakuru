@@ -177,4 +177,14 @@ object EmojiData {
             )
         )
     )
+
+    /**
+     * Returns categories with only the emojis accepted by [isSupported],
+     * omitting any category that ends up empty.
+     */
+    fun filterCategories(isSupported: (String) -> Boolean): List<EmojiCategory> =
+        categories.mapNotNull { category ->
+            val supported = category.emojis.filter(isSupported)
+            if (supported.isEmpty()) null else category.copy(emojis = supported)
+        }
 }
