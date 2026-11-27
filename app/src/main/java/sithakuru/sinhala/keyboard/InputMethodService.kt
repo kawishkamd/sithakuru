@@ -109,8 +109,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 }
                 SettingsBroadcast.ACTION -> {
                     val snapshot = SettingsBroadcast.read(intent) ?: return
+                    val previous = prefs.toSettingsSnapshot()
                     prefs.applyRemoteSnapshot(snapshot)
-                    reloadSettings()
+                    reloadSettings(previous, snapshot)
                 }
             }
         }
@@ -181,22 +182,56 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
     /**
      * Applies live setting updates broadcast by [MainActivity] without killing
-     * the IME process.
+     * the IME process. Rebuilds the view tree only when visual or layout
+     * preferences actually changed.
      */
-    private fun reloadSettings() {
+    private fun reloadSettings(previous: SettingsSnapshot, current: SettingsSnapshot) {
         clipboardSettings = prefs.clipboardSettings
         applyClipboardPolicy()
         darkTheme = prefs.darkTheme
-        // Force layout rebuild in case longPressKeys/labels/emoji/clipboard changed.
-        builtLayoutOptions = null
-        initKeyboardLayouts()
-        if (!isLayoutEnabled(currentLayout)) {
-            switchToNextAvailableLayout()
+
+        val layoutChanged = previous.layoutEnglish != current.layoutEnglish ||
+            previous.layoutWijesekara != current.layoutWijesekara ||
+            previous.layoutSinglish != current.layoutSinglish ||
+            previous.emojiKey != current.emojiKey ||
+            previous.clipboardKey != current.clipboardKey ||
+            previous.longPressKeys != current.longPressKeys
+
+        val viewChanged = layoutChanged ||
+            previous.englishSuggestions != current.englishSuggestions ||
+            previous.darkTheme != current.darkTheme ||
+            previous.keyBorders != current.keyBorders ||
+            previous.longPressKeysLabels != current.longPressKeysLabels ||
+            previous.heightPercentage != current.heightPercentage ||
+            previous.textSize != current.textSize ||
+            previous.colorBackground != current.colorBackground ||
+            previous.colorPressedKeyBackground != current.colorPressedKeyBackground ||
+            previous.colorLongPressedKeyBackground != current.colorLongPressedKeyBackground ||
+            previous.colorKeyBorder != current.colorKeyBorder ||
+            previous.colorText != current.colorText ||
+            previous.colorTextDim != current.colorTextDim ||
+            previous.colorTextLongPress != current.colorTextLongPress ||
+            previous.swipeToErase != current.swipeToErase ||
+            previous.swipeToMoveCursor != current.swipeToMoveCursor ||
+            previous.hapticFeedback != current.hapticFeedback ||
+            previous.keyPopup != current.keyPopup
+
+        if (layoutChanged) {
+            builtLayoutOptions = null
+            initKeyboardLayouts()
+            if (!isLayoutEnabled(currentLayout)) {
+                switchToNextAvailableLayout()
+            }
         }
-        updateNavigationBarTheme()
-        updateWindowBackground()
-        if (::inputViewContainer.isInitialized || hardwareInputViewBinding != null) {
-            setInputView(onCreateInputView())
+        if (viewChanged) {
+            updateNavigationBarTheme()
+            updateWindowBackground()
+            if (::inputViewContainer.isInitialized || hardwareInputViewBinding != null) {
+                setInputView(onCreateInputView())
+            }
+        }
+        if (previous.autoCapitalize != current.autoCapitalize) {
+            updateAutoCapitalize()
         }
     }
 
@@ -1180,7 +1215,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
             else -> when (currentLayout) {
                 KeyboardLayoutId.ENGLISH -> {
-                    if (value == CharCode.SPACE && prefs.doubleSpacePeriod) {
+                    val allowDoubleSpace = prefs.doubleSpacePeriod &&
+                        !isPrivateEditor() &&
+                        currentInputEditorInfo?.let { TypingErgonomics.allowsDoubleSpacePeriod(it.inputType) } == true
+                    if (value == CharCode.SPACE && allowDoubleSpace) {
                         val now = System.currentTimeMillis()
                         val before = currentInputConnection?.getTextBeforeCursor(4, 0) ?: ""
                         if (TypingErgonomics.shouldConvertDoubleSpaceToPeriod(before, now - lastSpaceTime)) {
@@ -1246,6 +1284,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         candidatesEnd: Int
     ) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        updateAutoCapitalize()
         updateSuggestions()
     }
 

@@ -13,7 +13,7 @@
     <string name="select_help_not_selected">නමුත් සිතකුරු තෝරා නැත.</string>
     <string name="select_help_subtitle">සිතකුරු තෝරා ගැනීම සඳහා උපදෙස්</string>
     <string name="select_help_step_1">1. යතුරු පුවරු ලැයිස්තුව විවෘත කිරීම සඳහා පහත බොත්තම මත ඔබන්න.</string>
-    <string name="select_help_step_2">2. එම ලැයිස්තුවේ ඇති \'Sithakuru\' යන වචනය මත ඔබන්න.</string>
+    <string name="select_help_step_2">2. එම ලැයිස්තුවේ ඇති \'%s\' යන වචනය මත ඔබන්න.</string>
     <string name="select_button">යතුරු පුවරු ලැයිස්තුව විවෘත කරන්න</string>
 
     <string name="test_keyboard_hint">මෙහි ලියා යතුරු පුවරුව පරීක්ෂා කරන්න...</string>

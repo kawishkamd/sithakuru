@@ -34,6 +34,7 @@ class TypingErgonomicsTest {
         assertTrue(TypingErgonomics.shouldAutoCapitalize("Really? ", capSentences))
         assertTrue(TypingErgonomics.shouldAutoCapitalize("Wow! ", capSentences))
         assertTrue(TypingErgonomics.shouldAutoCapitalize("Line 1\n", capSentences))
+        assertTrue(TypingErgonomics.shouldAutoCapitalize("Line 1\n ", capSentences))
         assertTrue(TypingErgonomics.shouldAutoCapitalize("She said \"Hi.\" ", capSentences))
     }
 
@@ -74,5 +75,16 @@ class TypingErgonomicsTest {
         assertFalse(TypingErgonomics.shouldConvertDoubleSpaceToPeriod("  ", 100L))
         assertFalse(TypingErgonomics.shouldConvertDoubleSpaceToPeriod("hello. ", 100L))
         assertFalse(TypingErgonomics.shouldConvertDoubleSpaceToPeriod("hello", 100L))
+    }
+
+    @Test
+    fun allowsDoubleSpacePeriodOnlyInNormalTextFields() {
+        assertTrue(TypingErgonomics.allowsDoubleSpacePeriod(TypingErgonomics.TYPE_CLASS_TEXT))
+        assertTrue(TypingErgonomics.allowsDoubleSpacePeriod(capSentences))
+        assertFalse(TypingErgonomics.allowsDoubleSpacePeriod(0))
+        assertFalse(TypingErgonomics.allowsDoubleSpacePeriod(TypingErgonomics.TYPE_CLASS_TEXT or TypingErgonomics.TYPE_TEXT_VARIATION_PASSWORD))
+        assertFalse(TypingErgonomics.allowsDoubleSpacePeriod(TypingErgonomics.TYPE_CLASS_TEXT or TypingErgonomics.TYPE_TEXT_VARIATION_URI))
+        assertFalse(TypingErgonomics.allowsDoubleSpacePeriod(TypingErgonomics.TYPE_CLASS_TEXT or TypingErgonomics.TYPE_TEXT_VARIATION_EMAIL_ADDRESS))
+        assertFalse(TypingErgonomics.allowsDoubleSpacePeriod(TypingErgonomics.TYPE_CLASS_TEXT or TypingErgonomics.TYPE_TEXT_VARIATION_FILTER))
     }
 }

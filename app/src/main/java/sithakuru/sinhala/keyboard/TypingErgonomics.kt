@@ -39,23 +39,33 @@ object TypingErgonomics {
     const val TYPE_TEXT_FLAG_CAP_WORDS = 0x00002000
     const val TYPE_TEXT_FLAG_CAP_SENTENCES = 0x00004000
 
-    /**
-     * Returns true when English shift should engage automatically based on
-     * [textBeforeCursor] and the editor's [inputType] flags.
-     */
-    fun shouldAutoCapitalize(textBeforeCursor: CharSequence, inputType: Int): Boolean {
-        if ((inputType and TYPE_MASK_CLASS) != TYPE_CLASS_TEXT) return false
+    private fun isExcludedTextVariation(inputType: Int): Boolean {
         val variation = inputType and TYPE_MASK_VARIATION
-        if (variation == TYPE_TEXT_VARIATION_PASSWORD ||
+        return variation == TYPE_TEXT_VARIATION_PASSWORD ||
             variation == TYPE_TEXT_VARIATION_VISIBLE_PASSWORD ||
             variation == TYPE_TEXT_VARIATION_WEB_PASSWORD ||
             variation == TYPE_TEXT_VARIATION_URI ||
             variation == TYPE_TEXT_VARIATION_EMAIL_ADDRESS ||
             variation == TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS ||
             variation == TYPE_TEXT_VARIATION_FILTER
-        ) {
-            return false
-        }
+    }
+
+    /**
+     * Returns true when double-space-to-period is appropriate for [inputType]
+     * (normal text fields, excluding passwords, URLs, emails, filters, and non-text).
+     */
+    fun allowsDoubleSpacePeriod(inputType: Int): Boolean {
+        if ((inputType and TYPE_MASK_CLASS) != TYPE_CLASS_TEXT) return false
+        return !isExcludedTextVariation(inputType)
+    }
+
+    /**
+     * Returns true when English shift should engage automatically based on
+     * [textBeforeCursor] and the editor's [inputType] flags.
+     */
+    fun shouldAutoCapitalize(textBeforeCursor: CharSequence, inputType: Int): Boolean {
+        if ((inputType and TYPE_MASK_CLASS) != TYPE_CLASS_TEXT) return false
+        if (isExcludedTextVariation(inputType)) return false
 
         if ((inputType and TYPE_TEXT_FLAG_CAP_CHARACTERS) != 0) return true
 
@@ -77,7 +87,7 @@ object TypingErgonomics {
             while (idx >= 0 && textBeforeCursor[idx] in "\"')]\u201D\u2019") {
                 idx--
             }
-            return idx >= 0 && textBeforeCursor[idx] in ".!?"
+            return idx >= 0 && textBeforeCursor[idx] in ".!?\n"
         }
 
         return false

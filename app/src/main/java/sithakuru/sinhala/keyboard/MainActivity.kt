@@ -127,8 +127,11 @@ class MainActivity : Activity() {
         actionBar?.title = resources.getString(R.string.app_name)
 
         val prefs = Prefs(this)
+        var suppressNotifications = false
         fun notifySettingsChanged() {
-            SettingsBroadcast.send(this, prefs.toSettingsSnapshot())
+            if (!suppressNotifications) {
+                SettingsBroadcast.send(this, prefs.toSettingsSnapshot())
+            }
         }
 
         binding.switchEnglish.isChecked = prefs.layoutEnglish
@@ -208,7 +211,6 @@ class MainActivity : Activity() {
             prefs.clipboardHistoryEnabled = isChecked
             updateClipboardHistoryControls(isChecked)
             ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
-            notifySettingsChanged()
         }
         binding.clipboardExpiry.check(
             when (prefs.clipboardExpiryMillis) {
@@ -224,7 +226,6 @@ class MainActivity : Activity() {
                 else -> Prefs.CLIPBOARD_EXPIRY_DAY
             }
             ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
-            notifySettingsChanged()
         }
         binding.clipboardClearHistory.setOnClickListener {
             AlertDialog.Builder(this)
@@ -236,7 +237,6 @@ class MainActivity : Activity() {
                     // broadcast, or when it next starts if it is not running.
                     prefs.clipboardClearRequests = prefs.clipboardClearRequests + 1
                     ClipboardSettingsBroadcast.send(this, prefs.clipboardSettings)
-                    notifySettingsChanged()
                 }
                 .setNegativeButton(R.string.clipboard_history_clear_cancel, null)
                 .show()
@@ -250,14 +250,19 @@ class MainActivity : Activity() {
         binding.height.progress = (prefs.heightPercentage - KEYBOARD_HEIGHT_VALUE_OFFSET) / KEYBOARD_HEIGHT_STEP_MULTIPLIER
         binding.heightPercentage.text = "${prefs.heightPercentage}%"
         binding.height.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            private var trackingTouch = false
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                trackingTouch = true
+            }
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                trackingTouch = false
                 notifySettingsChanged()
             }
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 val value = progress * KEYBOARD_HEIGHT_STEP_MULTIPLIER + KEYBOARD_HEIGHT_VALUE_OFFSET
                 binding.heightPercentage.text = "$value%"
                 prefs.heightPercentage = value
+                if (fromUser && !trackingTouch) notifySettingsChanged()
             }
         })
 
@@ -265,14 +270,19 @@ class MainActivity : Activity() {
         binding.textSize.progress = prefs.textSize - TEXT_SIZE_VALUE_OFFSET
         binding.textSizeValue.text = "${prefs.textSize}"
         binding.textSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            private var trackingTouch = false
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                trackingTouch = true
+            }
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                trackingTouch = false
                 notifySettingsChanged()
             }
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 val value = progress + TEXT_SIZE_VALUE_OFFSET
                 binding.textSizeValue.text = "$value"
                 prefs.textSize = value
+                if (fromUser && !trackingTouch) notifySettingsChanged()
             }
         })
 
@@ -310,7 +320,13 @@ class MainActivity : Activity() {
                 prefs.colorTextDim = getColorInt(R.color.night_2)
                 prefs.colorTextLongPress = getColorInt(R.color.light_1)
 
-                binding.switchDark.isChecked = true
+                prefs.darkTheme = true
+                suppressNotifications = true
+                try {
+                    binding.switchDark.isChecked = true
+                } finally {
+                    suppressNotifications = false
+                }
 
                 updateColorButtonsColors()
                 notifySettingsChanged()
@@ -330,7 +346,13 @@ class MainActivity : Activity() {
                 prefs.colorTextDim = getColorInt(R.color.light_2)
                 prefs.colorTextLongPress = getColorInt(R.color.night_1)
 
-                binding.switchDark.isChecked = false
+                prefs.darkTheme = false
+                suppressNotifications = true
+                try {
+                    binding.switchDark.isChecked = false
+                } finally {
+                    suppressNotifications = false
+                }
 
                 updateColorButtonsColors()
                 notifySettingsChanged()
@@ -498,7 +520,12 @@ class MainActivity : Activity() {
                 binding.enableHelp.visibility = View.VISIBLE
                 binding.enableHelpStep2.text = getString(R.string.enable_help_step_2, getString(R.string.app_name))
             }
-            binding.selectHelp.visibility = if (keyboardEnabled && !keyboardSelected) View.VISIBLE else View.GONE
+            binding.selectHelp.visibility = if (keyboardEnabled && !keyboardSelected) {
+                binding.selectHelpStep2.text = getString(R.string.select_help_step_2, getString(R.string.app_name))
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
 
             if (!keyboardEnabled)
                 binding.enableButton.setOnClickListener { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) }
