@@ -583,7 +583,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
 
         if (event?.isCtrlPressed == false) {
             if (event.isAltPressed && keyCode == KeyEvent.KEYCODE_I) {
-                currentInputConnection.clearMetaKeyStates(KeyEvent.META_ALT_ON)
+                currentInputConnection?.clearMetaKeyStates(KeyEvent.META_ALT_ON)
                 switchToNextAvailableLayout()
                 updateKeySet()
                 return true
@@ -925,19 +925,20 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun backspaceClick() {
+        val ic = currentInputConnection ?: return
         // Inside a Singlish word the raw keys are the source of truth: drop
         // one and re-render instead of deleting a rendered character.
         if (currentLayout == KeyboardLayoutId.SINGLISH) {
             if (hasPositionChanged()) singlishReset()
-            if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
+            if (ic.getSelectedText(0).isNullOrBlank()) {
                 singlish.backspace()?.let {
                     applySinglishEdit(it)
                     return
                 }
             }
         }
-        if (currentInputConnection.getSelectedText(0).isNullOrBlank()) {
-            when (currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0)) {
+        if (ic.getSelectedText(0).isNullOrBlank()) {
+            when (ic.getTextBeforeCursor(1, 0)?.getOrNull(0)) {
                 'ෲ' -> eraseAndCommit("ෘ")
                 'ෛ' -> eraseAndCommit("ෙ")
                 'ො' -> eraseAndCommit("ෙ")
@@ -968,15 +969,18 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun actionClick() {
+        val ic = currentInputConnection ?: return
         when (currentActionKeyAction) {
-            ActionKeyAction.ENTER -> currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
+            ActionKeyAction.ENTER -> ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER))
 
             ActionKeyAction.NEWLINE -> {
                 clearLastTypedInfo()
                 commitText("\n")
             }
 
-            ActionKeyAction.ORIGINAL -> currentInputConnection.performEditorAction(currentInputEditorInfo.imeOptions and EditorInfo.IME_MASK_ACTION)
+            ActionKeyAction.ORIGINAL -> currentInputEditorInfo?.let {
+                ic.performEditorAction(it.imeOptions and EditorInfo.IME_MASK_ACTION)
+            }
         }
     }
 
@@ -985,8 +989,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         // a swipe, the emoji space bar) ends the word: the buffered keys no
         // longer describe what is on screen, so the next key must not erase it.
         if (!singlishTyping) singlishReset()
-        currentInputConnection.commitText(text, 1)
-        positionFlag = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) ?: ""
+        val ic = currentInputConnection ?: return
+        ic.commitText(text, 1)
+        positionFlag = ic.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) ?: ""
         if (!caps && shift && !symbols) {
             shift = false
             updateKeySet()
@@ -994,23 +999,24 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun charBeforeCursorSurrogate(): Boolean {
-        currentInputConnection.getTextBeforeCursor(1, 0)?.let {
+        currentInputConnection?.getTextBeforeCursor(1, 0)?.let {
             if (it.isNotEmpty() && it[0].isSurrogate()) return true
         }
         return false
     }
 
     private fun erasePrevious(count: Int = 1, returnDeletedText: Boolean = false): String {
+        val ic = currentInputConnection ?: return ""
         var erasedText = ""
         if (count == 1 && charBeforeCursorSurrogate()) {
-            if (returnDeletedText) erasedText = currentInputConnection.getTextBeforeCursor(2, 0).toString()
-            currentInputConnection.deleteSurroundingText(2, 0)
+            if (returnDeletedText) erasedText = ic.getTextBeforeCursor(2, 0)?.toString() ?: ""
+            ic.deleteSurroundingText(2, 0)
         } else {
-            if (returnDeletedText) erasedText = currentInputConnection.getTextBeforeCursor(count, 0).toString()
-            currentInputConnection.deleteSurroundingText(count, 0)
+            if (returnDeletedText) erasedText = ic.getTextBeforeCursor(count, 0)?.toString() ?: ""
+            ic.deleteSurroundingText(count, 0)
         }
 
-        if (currentInputConnection.getTextBeforeCursor(1, 0) == CharText.ZERO_WIDTH_JOINER) {
+        if (ic.getTextBeforeCursor(1, 0) == CharText.ZERO_WIDTH_JOINER) {
             val erasedTextNested = erasePrevious(1, returnDeletedText)
             if (returnDeletedText) erasedText = erasedTextNested + erasedText
         }
@@ -1023,9 +1029,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun wijesekaraInput(input: Int) {
+        val ic = currentInputConnection ?: return
         val edit = wijesekara.type(
             input,
-            charBeforeCursor = currentInputConnection.getTextBeforeCursor(1, 0)?.getOrNull(0),
+            charBeforeCursor = ic.getTextBeforeCursor(1, 0)?.getOrNull(0),
             positionChanged = hasPositionChanged()
         )
         if (edit.erasePrevious)
@@ -1034,7 +1041,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
             commitText(edit.text)
     }
 
-    private fun hasPositionChanged(): Boolean = currentInputConnection.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) != positionFlag
+    private fun hasPositionChanged(): Boolean = currentInputConnection?.getTextBeforeCursor(POSITION_FLAG_LENGTH, 0) != positionFlag
 
     /**
      * Helakuru-compatible phonetic input: keep the raw keys of the word being typed,
@@ -1042,9 +1049,10 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
      * committed for it. A key that is not a letter ends the word.
      */
     private fun singlishInput(input: Int) {
+        val ic = currentInputConnection ?: return
         // A moved caret or a live selection means the buffered keys no longer
         // describe the text in front of the cursor, so the word starts over.
-        if (hasPositionChanged() || !currentInputConnection.getSelectedText(0).isNullOrBlank()) {
+        if (hasPositionChanged() || !ic.getSelectedText(0).isNullOrBlank()) {
             singlishReset()
         }
 
@@ -1059,8 +1067,9 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     private fun applySinglishEdit(edit: SinglishComposer.Edit) {
+        val ic = currentInputConnection ?: return
         if (edit.deleteBefore > 0) {
-            currentInputConnection.deleteSurroundingText(edit.deleteBefore, 0)
+            ic.deleteSurroundingText(edit.deleteBefore, 0)
         }
         singlishCommit(edit.insert)
     }
@@ -1086,7 +1095,7 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
                 Action.BACKSPACE -> backspaceClick()
                 Action.EMOJI -> showEmojiView()
                 Action.CLIPBOARD -> showClipboardView()
-                Action.IME -> (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
+                Action.IME -> (getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager)?.showInputMethodPicker()
                 Action.LANG -> {
                     switchToNextAvailableLayout()
                     updateKeySet()
@@ -1132,13 +1141,15 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     override fun swipeMoveLeft() {
-        if (!currentInputConnection.getTextBeforeCursor(1, 0).isNullOrEmpty())
-            currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
+        val ic = currentInputConnection ?: return
+        if (!ic.getTextBeforeCursor(1, 0).isNullOrEmpty())
+            ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
     }
 
     override fun swipeMoveRight() {
-        if (!currentInputConnection.getTextAfterCursor(1, 0).isNullOrEmpty())
-            currentInputConnection.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
+        val ic = currentInputConnection ?: return
+        if (!ic.getTextAfterCursor(1, 0).isNullOrEmpty())
+            ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT))
     }
 
     override fun onUpdateSelection(
