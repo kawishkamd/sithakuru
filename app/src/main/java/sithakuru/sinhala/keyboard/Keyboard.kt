@@ -370,10 +370,9 @@ class Keyboard(
                     keyData.inputData.iconRes = currentActionButtonIcon
 
                 val isActionPopup = keyData.popupInputData?.value?.let { it < 0 } == true
-                if (longPressKeys || isActionPopup) {
-                    if (!longPressKeysLabels)
-                        keyData.popupInputData?.label = null
-                } else keyData.popupInputData = null
+                if (!longPressKeys && !isActionPopup) {
+                    keyData.popupInputData = null
+                }
 
                 newRow.add(
                     Key(
@@ -422,8 +421,10 @@ class Keyboard(
                             if (key.data.inputData.dim) paintKeyTextDim else paintKeyText
                         )
                     }
-                    key.data.popupInputData?.label?.let {
-                        drawText(it, key.textSuperScriptCenterX(), key.textSuperScriptCenterY(), paintKeyTextSuperScript)
+                    if (longPressKeysLabels) {
+                        key.data.popupInputData?.label?.let {
+                            drawText(it, key.textSuperScriptCenterX(), key.textSuperScriptCenterY(), paintKeyTextSuperScript)
+                        }
                     }
                     key.data.inputData.iconDrawable?.draw(canvas)
                 }
@@ -479,7 +480,8 @@ class Keyboard(
         getLocationInWindow(windowLocation)
         val rawX = windowLocation[0] + (key.rect.centerX() - popupWidth / 2f).toInt()
         val x = rawX.coerceIn(0, (width - popupWidth).coerceAtLeast(0))
-        val y = (windowLocation[1] + key.rect.top - popupHeight - 4f.dpToPx()).toInt().coerceAtLeast(0)
+        // Allow negative y so isClippingEnabled=false lets Row 1 popups float above the IME window.
+        val y = (windowLocation[1] + key.rect.top - popupHeight - 4f.dpToPx()).toInt()
 
         try {
             if (popup.isShowing) {

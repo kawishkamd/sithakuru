@@ -27,6 +27,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         android:orientation="vertical"
         android:padding="12dp">
 
@@ -173,13 +175,14 @@
                 android:textSize="14sp" />
 
             <TextView
+                android:id="@+id/select_help_step_2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:padding="8dp"
-                android:text="@string/select_help_step_2"
                 android:textColor="@color/light_1"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                tools:text="@string/select_help_step_2" />
 
             <Button
                 android:id="@+id/select_button"

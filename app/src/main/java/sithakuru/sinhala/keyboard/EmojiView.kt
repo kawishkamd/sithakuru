@@ -73,6 +73,7 @@ class EmojiView(
     private val paddingTop = 2f.dpToPx()
 
     private var selectedCategoryIndex = 0
+    private var cachedRecentEmojis: List<String> = emptyList()
     private val categoryViews = mutableListOf<ImageView>()
     private val allCategories: MutableList<EmojiCategory> = mutableListOf()
     private val categoryContainer: LinearLayout
@@ -260,13 +261,13 @@ class EmojiView(
         categoryViews.clear()
         allCategories.clear()
 
-        val recentEmojis = prefs.recentEmojis.filter(::isEmojiSupported)
-        if (recentEmojis.isNotEmpty()) {
+        cachedRecentEmojis = prefs.recentEmojis.filter(::isEmojiSupported)
+        if (cachedRecentEmojis.isNotEmpty()) {
             allCategories.add(
                 EmojiCategory(
                     id = EmojiCategoryId.RECENT,
                     iconRes = R.drawable.ic_category_recent,
-                    emojis = recentEmojis
+                    emojis = cachedRecentEmojis
                 )
             )
         }
@@ -304,7 +305,8 @@ class EmojiView(
 
     fun updateRecents() {
         val hadRecent = allCategories.firstOrNull()?.isRecent == true
-        val hasRecent = prefs.recentEmojis.any(::isEmojiSupported)
+        cachedRecentEmojis = prefs.recentEmojis.filter(::isEmojiSupported)
+        val hasRecent = cachedRecentEmojis.isNotEmpty()
         if (hadRecent != hasRecent) {
             buildCategoryTabs()
         }
@@ -356,7 +358,7 @@ class EmojiView(
         private fun getCurrentList(): List<String> {
             if (allCategories.isEmpty()) return emptyList()
             val category = allCategories.getOrNull(selectedCategoryIndex) ?: allCategories[0]
-            return if (category.isRecent) prefs.recentEmojis.filter(::isEmojiSupported) else category.emojis
+            return if (category.isRecent) cachedRecentEmojis else category.emojis
         }
 
         override fun getCount(): Int = getCurrentList().size
