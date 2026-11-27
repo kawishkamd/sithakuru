@@ -993,27 +993,19 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         }
     }
 
-    private fun charBeforeCursorSurrogate(): Boolean {
-        currentInputConnection.getTextBeforeCursor(1, 0)?.let {
-            if (it.isNotEmpty() && it[0].isSurrogate()) return true
-        }
-        return false
-    }
-
     private fun erasePrevious(count: Int = 1, returnDeletedText: Boolean = false): String {
-        var erasedText = ""
-        if (count == 1 && charBeforeCursorSurrogate()) {
-            if (returnDeletedText) erasedText = currentInputConnection.getTextBeforeCursor(2, 0).toString()
-            currentInputConnection.deleteSurroundingText(2, 0)
+        val deleteCount = if (count == 1) {
+            val before = currentInputConnection.getTextBeforeCursor(GraphemeDeleter.LOOKBACK_CHARS, 0) ?: ""
+            GraphemeDeleter.deleteLength(before).coerceAtLeast(1)
         } else {
-            if (returnDeletedText) erasedText = currentInputConnection.getTextBeforeCursor(count, 0).toString()
-            currentInputConnection.deleteSurroundingText(count, 0)
+            count
         }
-
-        if (currentInputConnection.getTextBeforeCursor(1, 0) == CharText.ZERO_WIDTH_JOINER) {
-            val erasedTextNested = erasePrevious(1, returnDeletedText)
-            if (returnDeletedText) erasedText = erasedTextNested + erasedText
+        val erasedText = if (returnDeletedText) {
+            currentInputConnection.getTextBeforeCursor(deleteCount, 0)?.toString() ?: ""
+        } else {
+            ""
         }
+        currentInputConnection.deleteSurroundingText(deleteCount, 0)
         return erasedText
     }
 
