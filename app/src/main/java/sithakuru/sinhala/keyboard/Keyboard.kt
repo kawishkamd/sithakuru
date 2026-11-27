@@ -15,8 +15,6 @@
  *
  */
 
-@file:Suppress("ConvertLongToDuration")
-
 package sithakuru.sinhala.keyboard
 
 import android.annotation.SuppressLint
@@ -26,6 +24,8 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
@@ -33,12 +33,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
 import androidx.annotation.IntDef
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.launchIn
 import sithakuru.sinhala.keyboard.data.Action
 import sithakuru.sinhala.keyboard.datatype.KeyData
 
@@ -133,42 +127,60 @@ class Keyboard(
     @SwipeAction
     private var currentSwipeAction: Int = SwipeAction.NONE
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     private var backspaceRowIndex: Int = NOT_FOUND_INDEX
     private var backspaceKeyIndex: Int = NOT_FOUND_INDEX
     private var backspaceDownTime = 0L
-    private val backspaceRepeater = flow<Unit> {
-        while (true) {
+    private var backspaceRepeated = false
+    private val backspaceRepeatRunnable = object : Runnable {
+        override fun run() {
+            if (!isBackspacePressed()) return
+            backspaceRepeated = true
+            performClick(Action.BACKSPACE)
             val timeSinceLastDown = System.currentTimeMillis() - backspaceDownTime
-            delay(
-                when {
-                    timeSinceLastDown > REPEAT_START_DELAY * 10 -> 8
-                    timeSinceLastDown > REPEAT_START_DELAY * 8 -> 16
-                    timeSinceLastDown > REPEAT_START_DELAY * 6 -> 32
-                    timeSinceLastDown > REPEAT_START_DELAY * 4 -> 64
-                    timeSinceLastDown > REPEAT_START_DELAY * 2 -> 128
-                    else -> REPEAT_START_DELAY
-                }
-            )
-            if (isBackspacePressed())
-                performClick(Action.BACKSPACE)
-            else
-                break
+            val nextDelay = when {
+                timeSinceLastDown > REPEAT_START_DELAY * 10 -> 8L
+                timeSinceLastDown > REPEAT_START_DELAY * 8 -> 16L
+                timeSinceLastDown > REPEAT_START_DELAY * 6 -> 32L
+                timeSinceLastDown > REPEAT_START_DELAY * 4 -> 64L
+                timeSinceLastDown > REPEAT_START_DELAY * 2 -> 128L
+                else -> REPEAT_START_DELAY
+            }
+            mainHandler.postDelayed(this, nextDelay)
         }
     }
-    private val backspaceRepeaterStarter = flow<Unit> {
-        delay(REPEAT_START_DELAY)
-        backspaceRepeaterJob = backspaceRepeater.launchIn(CoroutineScope(Dispatchers.IO))
-    }
-    private var backspaceRepeaterJob: Job? = null
-    private var backspaceRepeaterStarterJob: Job? = null
 
-    private val longPressRedrawJobs: MutableList<Job> = mutableListOf()
-    private fun getLongPressRedrawJob(pointerId: Int, rowIndex: Int, keyIndex: Int) = flow<Unit> {
-        delay(POPUP_DELAY)
-        if (pointers[pointerId]?.keyDownTime?.let { it != LONG_PRESS_NOT_AVAILABLE && getTime() - it > POPUP_DELAY } == true) {
-            setLongPressedKey(rowIndex, keyIndex, true)
-            invalidate()
+    private val longPressRunnables: MutableMap<Int, Runnable> = mutableMapOf()
+
+    private fun scheduleLongPress(pointerId: Int, rowIndex: Int, keyIndex: Int) {
+        cancelLongPress(pointerId)
+        val runnable = Runnable {
+            longPressRunnables.remove(pointerId)
+            val pointer = pointers[pointerId] ?: return@Runnable
+            if (pointer.rowIndex == rowIndex &&
+                pointer.keyIndex == keyIndex &&
+                pointer.keyDownTime != LONG_PRESS_NOT_AVAILABLE
+            ) {
+                setLongPressedKey(rowIndex, keyIndex, true)
+            }
         }
+        longPressRunnables[pointerId] = runnable
+        mainHandler.postDelayed(runnable, POPUP_DELAY)
+    }
+
+    private fun cancelLongPress(pointerId: Int) {
+        longPressRunnables.remove(pointerId)?.let { mainHandler.removeCallbacks(it) }
+    }
+
+    private fun cancelBackspaceRepeat() {
+        mainHandler.removeCallbacks(backspaceRepeatRunnable)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        mainHandler.removeCallbacksAndMessages(null)
+        longPressRunnables.clear()
     }
 
     init {
@@ -409,10 +421,6 @@ class Keyboard(
         invalidate()
     }
 
-    private fun addLongPressRedrawJob(pointerId: Int, rowIndex: Int, keyIndex: Int) {
-        longPressRedrawJobs.add(getLongPressRedrawJob(pointerId, rowIndex, keyIndex).launchIn(CoroutineScope(Dispatchers.IO)))
-    }
-
     /**
      * Sets information about pointers.
      * @return `true`, if a pointer is set/updated. `false`, if nothing changed
@@ -427,31 +435,36 @@ class Keyboard(
                 pointers[pointerId] = PointerInfo(rowIndex, keyIndex, if (canLongPress == true) getTime() else LONG_PRESS_NOT_AVAILABLE)
 
                 if (canLongPress == true)
-                    addLongPressRedrawJob(pointerId, rowIndex, keyIndex)
+                    scheduleLongPress(pointerId, rowIndex, keyIndex)
 
                 pointerChanged = true
             } else if (pointer.rowIndex != rowIndex || pointer.keyIndex != keyIndex) {
+                cancelLongPress(pointerId)
                 setPressedKey(pointer.rowIndex, pointer.keyIndex, false)
                 setLongPressedKey(pointer.rowIndex, pointer.keyIndex, false)
                 pointers[pointerId]?.rowIndex = rowIndex
                 pointers[pointerId]?.keyIndex = keyIndex
                 pointers[pointerId]?.keyDownTime = LONG_PRESS_NOT_AVAILABLE
+                if (!isBackspacePressed()) cancelBackspaceRepeat()
 
                 pointerChanged = true
             } else {
                 pointerChanged = false
             }
         }
-        if (pointerChanged) setPressedKey(rowIndex, keyIndex, true)
+        if (pointerChanged && keyIndex != NOT_FOUND_INDEX) setPressedKey(rowIndex, keyIndex, true)
         return pointerChanged
     }
 
     private fun removePointerInfo(pointerId: Int, pointer: PointerInfo? = pointers[pointerId]): Boolean {
+        cancelLongPress(pointerId)
         pointer?.let {
             setPressedKey(it.rowIndex, it.keyIndex, false)
             setLongPressedKey(it.rowIndex, it.keyIndex, false)
         }
-        return pointers.remove(pointerId) != null
+        val removed = pointers.remove(pointerId) != null
+        if (!isBackspacePressed()) cancelBackspaceRepeat()
+        return removed
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -498,7 +511,9 @@ class Keyboard(
             setPointerInfo(getPointerId(), rowIndex, keyIndex, popupValue != null)
             if (value == Action.BACKSPACE) {
                 backspaceDownTime = getTime()
-                backspaceRepeaterStarterJob = backspaceRepeaterStarter.launchIn(CoroutineScope(Dispatchers.IO))
+                backspaceRepeated = false
+                cancelBackspaceRepeat()
+                mainHandler.postDelayed(backspaceRepeatRunnable, REPEAT_START_DELAY)
             }
         }
     }
@@ -515,9 +530,8 @@ class Keyboard(
         rowKeyAndValues { rowIndex, keyIndex, value, popupValue ->
             if (value != null) when (value) {
                 Action.BACKSPACE -> {
-                    backspaceRepeaterStarterJob?.cancel()
-                    backspaceRepeaterJob?.cancel()
-                    if (getTime() - backspaceDownTime < REPEAT_START_DELAY)
+                    cancelBackspaceRepeat()
+                    if (!backspaceRepeated)
                         performClick(Action.BACKSPACE)
                 }
 
