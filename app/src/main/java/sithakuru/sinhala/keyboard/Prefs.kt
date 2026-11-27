@@ -26,53 +26,92 @@ import sithakuru.sinhala.keyboard.clipboard.ClipboardSettings
 class Prefs(private val context: Context) {
     private val preferences: SharedPreferences = context.getSharedPreferences("sithakuru_preferences", Context.MODE_PRIVATE)
 
+    /**
+     * In-memory settings received from [MainActivity] over [SettingsBroadcast].
+     * Used only by the IME process so it reflects changes immediately without
+     * ever writing back to `sithakuru_preferences`.
+     */
+    @Volatile
+    private var remoteSnapshot: SettingsSnapshot? = null
+
+    fun applyRemoteSnapshot(snapshot: SettingsSnapshot) {
+        remoteSnapshot = snapshot
+    }
+
+    fun toSettingsSnapshot(): SettingsSnapshot = SettingsSnapshot(
+        layoutEnglish = layoutEnglish,
+        layoutWijesekara = layoutWijesekara,
+        layoutSinglish = layoutSinglish,
+        englishSuggestions = englishSuggestions,
+        darkTheme = darkTheme,
+        keyBorders = keyBorders,
+        longPressKeysLabels = longPressKeysLabels,
+        heightPercentage = heightPercentage,
+        textSize = textSize,
+        colorBackground = colorBackground,
+        colorPressedKeyBackground = colorPressedKeyBackground,
+        colorLongPressedKeyBackground = colorLongPressedKeyBackground,
+        colorKeyBorder = colorKeyBorder,
+        colorText = colorText,
+        colorTextDim = colorTextDim,
+        colorTextLongPress = colorTextLongPress,
+        longPressKeys = longPressKeys,
+        swipeToErase = swipeToErase,
+        swipeToMoveCursor = swipeToMoveCursor,
+        emojiKey = emojiKey,
+        clipboardKey = clipboardKey,
+        clipboardHistoryEnabled = clipboardHistoryEnabled,
+        clipboardExpiryMillis = clipboardExpiryMillis,
+        clipboardClearRequests = clipboardClearRequests
+    )
+
     var layoutEnglish: Boolean
-        get() = preferences.getBoolean(KEY_ENGLISH, true)
+        get() = remoteSnapshot?.layoutEnglish ?: preferences.getBoolean(KEY_ENGLISH, true)
         set(value) = preferences.edit().putBoolean(KEY_ENGLISH, value).apply()
     var layoutWijesekara: Boolean
-        get() = preferences.getBoolean(KEY_WIJESEKARA, true)
+        get() = remoteSnapshot?.layoutWijesekara ?: preferences.getBoolean(KEY_WIJESEKARA, true)
         set(value) = preferences.edit().putBoolean(KEY_WIJESEKARA, value).apply()
     var layoutSinglish: Boolean
-        get() = preferences.getBoolean(KEY_SINGLISH, false)
+        get() = remoteSnapshot?.layoutSinglish ?: preferences.getBoolean(KEY_SINGLISH, false)
         set(value) = preferences.edit().putBoolean(KEY_SINGLISH, value).apply()
     var englishSuggestions: Boolean
-        get() = preferences.getBoolean(KEY_ENGLISH_SUGGESTIONS, DEFAULT_ENGLISH_SUGGESTIONS)
+        get() = remoteSnapshot?.englishSuggestions ?: preferences.getBoolean(KEY_ENGLISH_SUGGESTIONS, DEFAULT_ENGLISH_SUGGESTIONS)
         set(value) = preferences.edit().putBoolean(KEY_ENGLISH_SUGGESTIONS, value).apply()
     var darkTheme: Boolean
-        get() = preferences.getBoolean(KEY_DARK_THEME, DEFAULT_DARK_THEME)
+        get() = remoteSnapshot?.darkTheme ?: preferences.getBoolean(KEY_DARK_THEME, DEFAULT_DARK_THEME)
         set(value) = preferences.edit().putBoolean(KEY_DARK_THEME, value).apply()
     var keyBorders: Boolean
-        get() = preferences.getBoolean(KEY_KEY_BORDERS, DEFAULT_KEY_BORDERS)
+        get() = remoteSnapshot?.keyBorders ?: preferences.getBoolean(KEY_KEY_BORDERS, DEFAULT_KEY_BORDERS)
         set(value) = preferences.edit().putBoolean(KEY_KEY_BORDERS, value).apply()
     var longPressKeysLabels: Boolean
-        get() = preferences.getBoolean(KEY_LONG_PRESS_KEYS_LABELS, DEFAULT_LONG_PRESS_KEYS_LABELS)
+        get() = remoteSnapshot?.longPressKeysLabels ?: preferences.getBoolean(KEY_LONG_PRESS_KEYS_LABELS, DEFAULT_LONG_PRESS_KEYS_LABELS)
         set(value) = preferences.edit().putBoolean(KEY_LONG_PRESS_KEYS_LABELS, value).apply()
     var heightPercentage: Int
-        get() = preferences.getInt(KEY_HEIGHT_PERCENTAGE, DEFAULT_HEIGHT_PERCENTAGE)
+        get() = remoteSnapshot?.heightPercentage ?: preferences.getInt(KEY_HEIGHT_PERCENTAGE, DEFAULT_HEIGHT_PERCENTAGE)
         set(value) = preferences.edit().putInt(KEY_HEIGHT_PERCENTAGE, value).apply()
     var textSize: Int
-        get() = preferences.getInt(KEY_TEXT_SIZE, DEFAULT_TEXT_SIZE)
+        get() = remoteSnapshot?.textSize ?: preferences.getInt(KEY_TEXT_SIZE, DEFAULT_TEXT_SIZE)
         set(value) = preferences.edit().putInt(KEY_TEXT_SIZE, value).apply()
     var colorBackground: Int
-        get() = preferences.getInt(KEY_COLOR_BACKGROUND, 0)
+        get() = remoteSnapshot?.colorBackground ?: preferences.getInt(KEY_COLOR_BACKGROUND, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_BACKGROUND, value).apply()
     var colorPressedKeyBackground: Int
-        get() = preferences.getInt(KEY_COLOR_PRESSED_KEY_BACKGROUND, 0)
+        get() = remoteSnapshot?.colorPressedKeyBackground ?: preferences.getInt(KEY_COLOR_PRESSED_KEY_BACKGROUND, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_PRESSED_KEY_BACKGROUND, value).apply()
     var colorLongPressedKeyBackground: Int
-        get() = preferences.getInt(KEY_COLOR_LONG_PRESSED_KEY_BACKGROUND, 0)
+        get() = remoteSnapshot?.colorLongPressedKeyBackground ?: preferences.getInt(KEY_COLOR_LONG_PRESSED_KEY_BACKGROUND, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_LONG_PRESSED_KEY_BACKGROUND, value).apply()
     var colorKeyBorder: Int
-        get() = preferences.getInt(KEY_COLOR_KEY_BORDER, 0)
+        get() = remoteSnapshot?.colorKeyBorder ?: preferences.getInt(KEY_COLOR_KEY_BORDER, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_KEY_BORDER, value).apply()
     var colorText: Int
-        get() = preferences.getInt(KEY_COLOR_TEXT, 0)
+        get() = remoteSnapshot?.colorText ?: preferences.getInt(KEY_COLOR_TEXT, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_TEXT, value).apply()
     var colorTextDim: Int
-        get() = preferences.getInt(KEY_COLOR_TEXT_DIM, 0)
+        get() = remoteSnapshot?.colorTextDim ?: preferences.getInt(KEY_COLOR_TEXT_DIM, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_TEXT_DIM, value).apply()
     var colorTextLongPress: Int
-        get() = preferences.getInt(KEY_COLOR_TEXT_LONG_PRESS, 0)
+        get() = remoteSnapshot?.colorTextLongPress ?: preferences.getInt(KEY_COLOR_TEXT_LONG_PRESS, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_TEXT_LONG_PRESS, value).apply()
     var colorCustomBackground: Int
         get() = preferences.getInt(KEY_COLOR_CUSTOM_BACKGROUND, 0)
@@ -96,30 +135,30 @@ class Prefs(private val context: Context) {
         get() = preferences.getInt(KEY_COLOR_CUSTOM_TEXT_LONG_PRESS, 0)
         set(value) = preferences.edit().putInt(KEY_COLOR_CUSTOM_TEXT_LONG_PRESS, value).apply()
     var longPressKeys: Boolean
-        get() = preferences.getBoolean(KEY_LONG_PRESS_KEYS, DEFAULT_LONG_PRESS_KEYS)
+        get() = remoteSnapshot?.longPressKeys ?: preferences.getBoolean(KEY_LONG_PRESS_KEYS, DEFAULT_LONG_PRESS_KEYS)
         set(value) = preferences.edit().putBoolean(KEY_LONG_PRESS_KEYS, value).apply()
     var swipeToErase: Boolean
-        get() = preferences.getBoolean(KEY_SWIPE_TO_ERASE, DEFAULT_SWIPE_TO_ERASE)
+        get() = remoteSnapshot?.swipeToErase ?: preferences.getBoolean(KEY_SWIPE_TO_ERASE, DEFAULT_SWIPE_TO_ERASE)
         set(value) = preferences.edit().putBoolean(KEY_SWIPE_TO_ERASE, value).apply()
     var swipeToMoveCursor: Boolean
-        get() = preferences.getBoolean(KEY_SWIPE_TO_MOVE_CURSOR, DEFAULT_SWIPE_TO_MOVE_CURSOR)
+        get() = remoteSnapshot?.swipeToMoveCursor ?: preferences.getBoolean(KEY_SWIPE_TO_MOVE_CURSOR, DEFAULT_SWIPE_TO_MOVE_CURSOR)
         set(value) = preferences.edit().putBoolean(KEY_SWIPE_TO_MOVE_CURSOR, value).apply()
 
     var emojiKey: Boolean
-        get() = preferences.getBoolean(KEY_EMOJI_KEY, DEFAULT_EMOJI_KEY)
+        get() = remoteSnapshot?.emojiKey ?: preferences.getBoolean(KEY_EMOJI_KEY, DEFAULT_EMOJI_KEY)
         set(value) = preferences.edit().putBoolean(KEY_EMOJI_KEY, value).apply()
 
     var clipboardKey: Boolean
-        get() = preferences.getBoolean(KEY_CLIPBOARD_KEY, DEFAULT_CLIPBOARD_KEY)
+        get() = remoteSnapshot?.clipboardKey ?: preferences.getBoolean(KEY_CLIPBOARD_KEY, DEFAULT_CLIPBOARD_KEY)
         set(value) = preferences.edit().putBoolean(KEY_CLIPBOARD_KEY, value).apply()
 
     var clipboardHistoryEnabled: Boolean
-        get() = preferences.getBoolean(KEY_CLIPBOARD_HISTORY_ENABLED, DEFAULT_CLIPBOARD_HISTORY_ENABLED)
+        get() = remoteSnapshot?.clipboardHistoryEnabled ?: preferences.getBoolean(KEY_CLIPBOARD_HISTORY_ENABLED, DEFAULT_CLIPBOARD_HISTORY_ENABLED)
         set(value) = preferences.edit().putBoolean(KEY_CLIPBOARD_HISTORY_ENABLED, value).apply()
 
     /** How long unpinned clips are kept; [CLIPBOARD_EXPIRY_NEVER] keeps them until pushed out. */
     var clipboardExpiryMillis: Long
-        get() = preferences.getLong(KEY_CLIPBOARD_EXPIRY, DEFAULT_CLIPBOARD_EXPIRY)
+        get() = remoteSnapshot?.clipboardExpiryMillis ?: preferences.getLong(KEY_CLIPBOARD_EXPIRY, DEFAULT_CLIPBOARD_EXPIRY)
         set(value) = preferences.edit().putLong(KEY_CLIPBOARD_EXPIRY, value).apply()
 
     /**
@@ -129,7 +168,7 @@ class Prefs(private val context: Context) {
      * it handled last (see ClipboardPolicy).
      */
     var clipboardClearRequests: Int
-        get() = preferences.getInt(KEY_CLIPBOARD_CLEAR_REQUESTS, 0)
+        get() = remoteSnapshot?.clipboardClearRequests ?: preferences.getInt(KEY_CLIPBOARD_CLEAR_REQUESTS, 0)
         set(value) = preferences.edit().putInt(KEY_CLIPBOARD_CLEAR_REQUESTS, value).apply()
 
     val clipboardSettings: ClipboardSettings

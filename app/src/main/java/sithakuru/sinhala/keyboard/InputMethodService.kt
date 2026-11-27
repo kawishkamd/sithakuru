@@ -100,10 +100,19 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
      * the file is not refreshed while it runs.
      */
     private lateinit var clipboardSettings: ClipboardSettings
-    private val clipboardSettingsReceiver = object : BroadcastReceiver() {
+    private val settingsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            clipboardSettings = ClipboardSettingsBroadcast.read(intent) ?: return
-            applyClipboardPolicy()
+            when (intent.action) {
+                ClipboardSettingsBroadcast.ACTION -> {
+                    clipboardSettings = ClipboardSettingsBroadcast.read(intent) ?: return
+                    applyClipboardPolicy()
+                }
+                SettingsBroadcast.ACTION -> {
+                    val snapshot = SettingsBroadcast.read(intent) ?: return
+                    prefs.applyRemoteSnapshot(snapshot)
+                    reloadSettings()
+                }
+            }
         }
     }
     private var builtLayoutOptions: Pair<Boolean, Boolean>? = null
@@ -138,8 +147,11 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
         applyClipboardPolicy()
         ContextCompat.registerReceiver(
             this,
-            clipboardSettingsReceiver,
-            IntentFilter(ClipboardSettingsBroadcast.ACTION),
+            settingsReceiver,
+            IntentFilter().apply {
+                addAction(ClipboardSettingsBroadcast.ACTION)
+                addAction(SettingsBroadcast.ACTION)
+            },
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
         clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
@@ -156,13 +168,34 @@ class InputMethodService : InputMethodService(), Keyboard.EventListener {
     }
 
     override fun onDestroy() {
-        unregisterReceiver(clipboardSettingsReceiver)
+        unregisterReceiver(settingsReceiver)
         try {
             clipboardManager?.removePrimaryClipChangedListener(clipChangedListener)
         } catch (e: Exception) {
             Log.w(TAG, "Could not stop watching the clipboard", e)
         }
         super.onDestroy()
+    }
+
+    /**
+     * Applies live setting updates broadcast by [MainActivity] without killing
+     * the IME process.
+     */
+    private fun reloadSettings() {
+        clipboardSettings = prefs.clipboardSettings
+        applyClipboardPolicy()
+        darkTheme = prefs.darkTheme
+        // Force layout rebuild in case longPressKeys/labels/emoji/clipboard changed.
+        builtLayoutOptions = null
+        initKeyboardLayouts()
+        if (!isLayoutEnabled(currentLayout)) {
+            switchToNextAvailableLayout()
+        }
+        updateNavigationBarTheme()
+        updateWindowBackground()
+        if (::inputViewContainer.isInitialized || hardwareInputViewBinding != null) {
+            setInputView(onCreateInputView())
+        }
     }
 
     /**
